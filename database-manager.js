@@ -1,22 +1,25 @@
 const fs = require('fs');
 
-// Data Stored
-let data = {};
+let data = {}
 
 // Save Function - save(UserName, DataToBeSaved)
-function save(saveName, dataToBeSaved) {
-  // Opens the file with the user's name to save data
-  fs.writeFileSync(saveName, JSON.stringify(dataToBeSaved));
+function save(fileName, data) {
+  try {
+    fs.writeFileSync(fileName, JSON.stringify(data, null, 2), 'utf8');
+  } catch (error) {
+    console.error(`Error saving data to ${fileName}:`, error);
+  }
 }
 
 // Load Function - load(UserName)
-function load(loadName) {
-  // Opens the file with the user's name to load data
+function load(fileName) {
   try {
-    data = JSON.parse(fs.readFileSync(loadName, 'utf8'));
-    console.log(`We have loaded: ${loadName} data:`, data);
+    const rawData = fs.readFileSync(fileName, 'utf8');
+    data = JSON.parse(rawData)
+    return data;
   } catch (error) {
-    console.error(`Error loading data for ${loadName}:`, error);
+    console.error(`Error loading data from ${fileName}:`, error);
+    return {};
   }
 }
 
@@ -33,4 +36,4 @@ function varDelete(fileName, deleteName) {
   save(fileName, data);
 }
 
-module.exports = {update, varDelete};
+module.exports = { update, varDelete, load, update};
