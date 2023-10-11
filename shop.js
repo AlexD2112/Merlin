@@ -4,7 +4,7 @@ class shop {
   // Function to add items/edit - additem(name, price)
   static addItem(itemName, itemPrice) {
     // Set the database name
-    dbm.name = 'shop';
+    dbm.name = 'shop.json';
     // Run the update function with the changes needed
     dbm.update(dbm.name, itemName, itemPrice);
   }
@@ -12,7 +12,7 @@ class shop {
   // Function to print item list
   static itemList() {
     // Load the data
-    dbm.load('shop');
+    dbm.load('shop.json');
     // Log it to the console
     console.log(dbm.data);
     return dbm.data;
@@ -21,7 +21,7 @@ class shop {
   // Function to remove items - removeItem(name)
   static removeItem(itemName) {
     // Set the database name
-    dbm.name = 'shop';
+    dbm.name = 'shop.json';
     // Try to remove the item, and if it doesn't exist, catch the error
     try {
       dbm.varDelete(itemName);
@@ -32,9 +32,11 @@ class shop {
   }
 
   static getItemPrice(itemName) {
-    dbm.load('shop');
+    dbm.load('shop.json');
     const price = dbm.data[itemName];
     console.log(price);
     return price;
   }
 }
+
+module.exports = shop;
