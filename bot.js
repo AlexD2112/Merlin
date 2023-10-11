@@ -1,10 +1,8 @@
-const DISC_API_KEY = 'MTEwNjk5MzE1ODgxMTgyMDE2Ng.GtCc1s.g_KkrHjkyJHqLUWOMAOU8Kr9B8fwYCaBfAt2Sc';
-const BUS_API_KEY = '36g2hBZeY4H5xNTVu9EeGXJkF';
+const DISC_API_KEY = 'MTE2MTA5NDY3MjkzMjk0MTg5NA.GPMLS8.lbQiOiCB83yxvndfVuMqoSVQD9-bo6r6Wauovg';
 
 const Discord = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
-const classes = require('./classes'); //importing classes file through which actions are taken
 const { Client, GatewayIntentBits, Collection, Events } = require('discord.js');
 const client = new Discord.Client({ 
     intents: [
@@ -20,12 +18,15 @@ const foldersPath = path.join(__dirname, 'commands');
 const commandFolders = fs.readdirSync(foldersPath);
 
 for (const folder of commandFolders) {
+	console.log("FUCK");
 	const commandsPath = path.join(foldersPath, folder);
 	const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
 	for (const file of commandFiles) {
+		console.log("YEAH");
 		const filePath = path.join(commandsPath, file);
 		const command = require(filePath);
 		if ('data' in command && 'execute' in command) {
+			console.log("heyo");
 			client.commands.set(command.data.name, command);
 		} else {
 			console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);

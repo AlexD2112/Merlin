@@ -1,6 +1,6 @@
 const dbm = require('./database-manager'); // Importing the database manager
 
-class Shop {
+class shop {
   // Function to add items/edit - additem(name, price)
   static addItem(itemName, itemPrice) {
     // Set the database name
