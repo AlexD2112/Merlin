@@ -1,12 +1,18 @@
 const dbm = require('./database-manager'); // Importing the database manager
 
 class shop {
-  // Function to add items/edit - additem(name, price)
-  static addItem(itemName, itemPrice) {
+  // Function to add items
+  static addItem(itemName, itemPrice, itemDescription) {
     // Set the database name
     let fileName = 'shop.json';
-    // Run the update function with the changes needed
-    dbm.update(fileName, itemName, itemPrice);
+    let data = dbm.load(fileName);
+
+    data[itemName] = {
+      price: itemPrice,
+      description: itemDescription,
+    };
+    
+    dbm.save(fileName, data);
   }
 
   // Function to print item list
@@ -15,7 +21,7 @@ class shop {
     let data = dbm.load('shop.json');
     let superstring = ""
     for (let [key, value] of Object.entries(data)) {
-      superstring = superstring + (key + " : " + String(value) + "\n");
+      superstring = superstring + (key + " : " + String(value["price"]) + "\n");
     }
     return superstring;
   }
@@ -39,6 +45,8 @@ class shop {
     console.log(price);
     return price;
   }
+
+  //todo- buy, inspect, use
 }
 
 module.exports = shop;

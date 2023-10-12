@@ -1,7 +1,10 @@
 {
-  "apple": "69",
-  "muffin": "23",
-  "sword": "323",
-  "shield": "450",
-  "crown": "1000"
+  "sword": {
+    "price": 32,
+    "description": "funny thing"
+  },
+  "Shield": {
+    "price": 39,
+    "description": "A funky shield"
+  }
 }

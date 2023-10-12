@@ -1,8 +1,8 @@
-const DISC_API_KEY = 'MTE2MTA5NDY3MjkzMjk0MTg5NA.GQjuvf._EkPDu_ziCi4SOD4H3THSG_giFOJtOcMvoeV3Y';
-
+const {clientId, GuildId, token} = require('./config.json');
 const Discord = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
+const modalHandler = require('./modal-handler')
 const { Client, GatewayIntentBits, Collection, Events } = require('discord.js');
 const client = new Discord.Client({ 
     intents: [
@@ -37,20 +37,26 @@ client.on('ready', () => {
 
 //slash command handler
 client.on(Events.InteractionCreate, async interaction => {
-	if (!interaction.isChatInputCommand()) return;
+	if (interaction.isChatInputCommand()) {
+		const command = client.commands.get(interaction.commandName);
 
-	const command = client.commands.get(interaction.commandName);
+		if (!command) return;
 
-	if (!command) return;
-
-	try {
-		await command.execute(interaction);
-	} catch (error) {
-		console.error(error);
-		if (interaction.replied || interaction.deferred) {
-			await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
-		} else {
-			await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+		try {
+			await command.execute(interaction);
+		} catch (error) {
+			console.error(error);
+			if (interaction.replied || interaction.deferred) {
+				await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
+			} else {
+				await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+			}
+		}
+	}
+	if (interaction.isModalSubmit()) {
+		console.log("Submitted")
+		if (interaction.customId === 'additemmodal') {
+			modalHandler.addItem(interaction)
 		}
 	}
 });
@@ -62,4 +68,4 @@ client.on('messageCreate', (msg) => {
     }
 });
 
-client.login(DISC_API_KEY);
+client.login(token);

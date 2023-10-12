@@ -1,0 +1,22 @@
+const { SlashCommandBuilder } = require('discord.js');
+const shop = require('../../shop'); // Importing the database manager
+
+module.exports = {
+	data: new SlashCommandBuilder()
+		.setName('removeitem')
+		.setDescription('Remove item from shop')
+		.addStringOption((option) =>
+		option.setName('itemname')
+			.setDescription('The item name')
+			.setRequired(true)
+		),
+	execute(interaction) {
+		const itemName = interaction.options.getString('itemname');
+
+		(async () => {
+			await interaction.reply(`Item '${itemName}' has been removed from the shop.`);
+			// Call the addItem function from the Shop class
+			shop.removeItem(itemName);
+		})()
+	},
+};

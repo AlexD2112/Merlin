@@ -36,4 +36,4 @@ function varDelete(fileName, deleteName) {
   save(fileName, data);
 }
 
-module.exports = { update, varDelete, load, update};
+module.exports = { update, varDelete, load, save};
