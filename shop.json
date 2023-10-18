@@ -6,5 +6,41 @@
   "Shield": {
     "price": 39,
     "description": "A funky shield"
+  },
+  ":test_tube: test tube": {
+    "price": 330,
+    "description": "Test Tube"
+  },
+  "iphone 18": {
+    "price": 90,
+    "description": "no diffeence from every iphone we made."
+  },
+  "this&ZeroWidthSpace;has&ZeroWidthSpace;Zero&ZeroWidthSpace;Width&ZeroWidthSpace;spaces": {
+    "price": 1,
+    "description": "1"
+  },
+  "&ZeroWidthSpace;": {
+    "price": 1,
+    "description": "zeroWidth &ZeroWidthSpace;"
+  },
+  "Can it be paragraphy": {
+    "price": 32,
+    "description": "jwofj\njlwkejfw\n\nfjlkwejfwe\n\nfjewjflewf"
+  },
+  "kobe jordan": {
+    "price": 69,
+    "description": "cobe Gordan"
+  },
+  "Name": {
+    "price": 39,
+    "description": "Still working?"
+  },
+  "Testing": {
+    "price": 10,
+    "description": "Still working?"
+  },
+  "pipi": {
+    "price": 40,
+    "description": "ok"
   }
 }

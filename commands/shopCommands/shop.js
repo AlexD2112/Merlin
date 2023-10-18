@@ -3,10 +3,10 @@ const shop = require('../../shop'); // Importing the database manager
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('itemlist')
+		.setName('shop')
 		.setDescription('List shop items'),
 	async execute(interaction) {
-			const itemListString = await shop.itemList();
+			const itemListString = await shop.shop();
 			console.log("DATA");
 			console.log(itemListString);
 			await interaction.reply(itemListString);

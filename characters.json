@@ -1,0 +1,50 @@
+{
+  "monday_leftmebroken.": {
+    "name": "Fíonn",
+    "bio": "Hunter from the woods",
+    "kingdom": "East Anglia",
+    "balance": 40,
+    "inventory": {},
+    "incomeList": {
+      "Daily": 40
+    },
+    "incomeAvailable": true,
+    "shireID": 0
+  },
+  "thegreatferret": {
+    "name": "Elfbert",
+    "bio": "wjl",
+    "kingdom": "East Anglia",
+    "balance": 8,
+    "inventory": {},
+    "incomeList": {
+      "Daily": 40
+    },
+    "incomeAvailable": true,
+    "shireID": 0
+  },
+  "insertnamehere4928": {
+    "name": "King Wulfhere, Son of Leofsy",
+    "bio": "Hello",
+    "kingdom": "East Anglia",
+    "balance": 0,
+    "inventory": {},
+    "incomeList": {
+      "Daily": 40
+    },
+    "incomeAvailable": true,
+    "shireID": 0
+  },
+  "b1rbo.": {
+    "name": "lebran messi",
+    "bio": "ok",
+    "kingdom": "Wessex",
+    "balance": 8,
+    "inventory": { },
+    "incomeList": {
+      "Daily": 40
+    },
+    "incomeAvailable": false,
+    "shireID": 0
+  }
+}

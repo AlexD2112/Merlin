@@ -1,5 +1,4 @@
 const dbm = require('./database-manager'); // Importing the database manager
-
 class shop {
   // Function to add items
   static addItem(itemName, itemPrice, itemDescription) {
@@ -16,7 +15,7 @@ class shop {
   }
 
   // Function to print item list
-  static async itemList() {
+  static async shop() {
     // Load the data
     let data = dbm.load('shop.json');
     let superstring = ""
@@ -39,14 +38,47 @@ class shop {
     }
   }
 
-  static getItemPrice(itemName) {
-    dbm.load('shop.json');
-    const price = dbm.data[itemName];
-    console.log(price);
+  static async getItemPrice(itemName) {
+    let data = dbm.load('shop.json');
+    var price;
+    if (data[itemName]) {
+      price = data[itemName].price;
+    } else {
+      return "ERROR";
+    }
     return price;
   }
 
-  //todo- buy, inspect, use
+  static async buyItem(itemName, charID, numToBuy) {
+    const price = await this.getItemPrice(itemName);
+    if (price === "ERROR") {
+      return "Not a valid item";
+    }
+    let fileName = 'characters.json';
+
+    let returnString;
+    let data = dbm.load(fileName);
+    if (data[charID].balance <= (price * numToBuy)) {
+      returnString = "You do not have enough gold!";
+      dbm.save(fileName, data);
+      return returnString;
+    } else {
+      console.log(numToBuy);
+      console.log(price);
+      console.log(price * numToBuy);
+      data[charID].balance -= (price * numToBuy);
+      console.log(data[charID].balance);
+
+      if (!data[charID].inventory[itemName]) {
+        data[charID].inventory[itemName] = 0;
+      }
+      data[charID].inventory[itemName] += numToBuy;
+
+      returnString = "Succesfully bought " + numToBuy + " " + itemName;
+      dbm.save(fileName, data);
+      return returnString;
+    }
+  }
 }
 
 module.exports = shop;

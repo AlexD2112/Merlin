@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const modalHandler = require('./modal-handler')
 const { Client, GatewayIntentBits, Collection, Events } = require('discord.js');
+const char = require('./char');
 const client = new Discord.Client({ 
     intents: [
         GatewayIntentBits.Guilds,
@@ -58,14 +59,28 @@ client.on(Events.InteractionCreate, async interaction => {
 		if (interaction.customId === 'additemmodal') {
 			modalHandler.addItem(interaction)
 		}
+		if (interaction.customId === 'newcharmodal') {
+			modalHandler.newChar(interaction)
+		}
 	}
 });
 
-//test command, can be used later to implement text commands
-client.on('messageCreate', (msg) => {
-    if (msg.content === 'Wonder') {
-        msg.reply('Woman');
-    }
-});
+//For commands that need to be run daily, and daily logging of infos and such
+function botMidnightLoop() {
+	var now = new Date();
+	console.log(now);
+
+	var msToMidnight = (24 * 60 * 60 * 1000) 
+		- ((now.getUTCHours()) * 60 * 60 * 1000) 
+		- ((now.getUTCMinutes()) * 60 * 1000) 
+		- ((now.getUTCSeconds()) * 1000)
+		- ((now.getUTCMilliseconds()));
+	setTimeout(function() {
+		char.resetIncomeCD();
+		botMidnightLoop;
+	}, msToMidnight);
+	console.log(msToMidnight);
+}
+botMidnightLoop();
 
 client.login(token);
