@@ -16,6 +16,7 @@ class char {
         inventory: data[playerID].inventory,
         incomeList: data[playerID].incomeList,
         incomeAvailable: incomeAvailable,
+        stats: data[playerID].stats,
         shireID: 0
       };
     } else {
@@ -29,6 +30,11 @@ class char {
           Daily: 40
         },
         incomeAvailable: true,
+        stats: {
+          Martial: 0,
+          Intrigue: 0,
+          Prestige: 0
+        },
         shireID: 0
       };
     }

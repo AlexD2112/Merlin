@@ -55,12 +55,17 @@ client.on(Events.InteractionCreate, async interaction => {
 		}
 	}
 	if (interaction.isModalSubmit()) {
-		console.log("Submitted")
 		if (interaction.customId === 'additemmodal') {
-			modalHandler.addItem(interaction)
+			modalHandler.addItem(interaction);
+			console.log("Submitted New Item")
 		}
 		if (interaction.customId === 'newcharmodal') {
-			modalHandler.newChar(interaction)
+			modalHandler.newChar(interaction);
+			console.log("Submitted New Character")
+		}
+		if (interaction.customId === 'addusecasemodel') {
+			modalHandler.addUseCase(interaction);
+			console.log("Submitted New Use Case")
 		}
 	}
 });

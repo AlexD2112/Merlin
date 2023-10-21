@@ -17,6 +17,11 @@ module.exports = {
 			.setCustomId('itemname')
 			.setLabel('Item Name')
 			.setStyle(TextInputStyle.Short);
+		
+		const itemIconInput = new TextInputBuilder()
+			.setCustomId('itemicon')
+			.setLabel('Item Icon- Emoji to go before name in shop')
+			.setStyle(TextInputStyle.Short);
 
 		const itemCostInput = new TextInputBuilder()
 			.setCustomId('itemcost')
@@ -30,11 +35,12 @@ module.exports = {
 
 		// Create action rows for each input
 		const nameActionRow = new ActionRowBuilder().addComponents(itemNameInput);
+		const iconActionRow = new ActionRowBuilder().addComponents(itemIconInput);
 		const costActionRow = new ActionRowBuilder().addComponents(itemCostInput);
 		const descriptionActionRow = new ActionRowBuilder().addComponents(itemDescriptionInput);
 
 		// Add the action rows to the modal
-		modal.addComponents(nameActionRow, costActionRow, descriptionActionRow);
+		modal.addComponents(nameActionRow, iconActionRow, costActionRow, descriptionActionRow);
 
 		// Show the modal to the user
 		await interaction.showModal(modal);

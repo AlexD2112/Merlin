@@ -5,16 +5,45 @@ const char = require('./char')
 exports.addItem = async (interaction) => {
   // Get the data entered by the user
   const itemName = interaction.fields.getTextInputValue('itemname');
+  const itemIcon = interaction.fields.getTextInputValue('itemicon');
   const itemCost = interaction.fields.getTextInputValue('itemcost');
   const itemDescription = interaction.fields.getTextInputValue('itemdescription');
 
   // Call the addItem function from the Shop class with the collected information
   if (itemName && parseInt(itemCost)) {
-    shop.addItem(itemName, parseInt(itemCost), itemDescription);
+    shop.addItem(itemName, itemIcon, parseInt(itemCost), itemDescription);
     await interaction.reply(`Item '${itemName}' has been added to the shop.`);
   } else {
     // Handle missing information
     await interaction.reply('Item creation failed. Please provide a name and integer cost.');
+  }
+};
+
+exports.addUseCase = async (interaction) => {
+  // Get the data entered by the user
+  const itemName = interaction.fields.getTextInputValue('itemname');
+  const itemUseType = interaction.fields.getTextInputValue('itemusetype');
+  const itemGives = interaction.fields.getTextInputValue('itemgives');
+  let itemTakes;
+  if (interaction.fields.getField("itemtakes").value) {
+    itemTakes = interaction.fields.getTextInputValue('itemtakes');
+  } else {
+    itemTakes = "Empty Field";
+  }
+
+  // Call the addItem function from the Shop class with the collected information
+  if (itemName && itemUseType && itemGives) {
+    let toReturn;
+    if (itemTakes != "Empty Field") {
+      console.log("CALLINGHERE");
+      toReturn = await shop.addUseCaseWithCost(itemName, itemUseType, itemGives, itemTakes);
+    } else {
+      toReturn = await shop.addUseCase(itemName, itemUseType, itemGives);
+    }
+    interaction.reply(toReturn);
+  } else {
+    // Handle missing information
+    await interaction.reply('Item use creation failed. Please give a name, use type and record what using the item gives.');
   }
 };
 
