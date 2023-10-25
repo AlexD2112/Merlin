@@ -1,4 +1,7 @@
 const dbm = require('./database-manager'); // Importing the database manager
+const Discord = require('discord.js');
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+
 class shop {
   // Function to add items
   static addItem(itemName, itemIcon, itemPrice, itemDescription) {
@@ -31,6 +34,16 @@ class shop {
           if (!onKey) {
             return "ERROR IN GIVE SECTION";
           } else {
+            if (useType == "CRAFTING")  {
+              if (this.getItemPrice(currKey) == "ERROR") {
+                return "ERROR! DOES NOT CRAFT A REAL ITEM";
+              }
+            }
+            if (useType == "STATBOOST")  {
+              if (!((currKey == "Martial") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
+                return 'ERROR! DOES NOT BOOST "Martial", "Prestige", OR "Intrigue"';
+              }
+            }
             onKey = false;
           }
           break;
@@ -78,7 +91,8 @@ class shop {
 
   //Overloaded version with takes
   static async addUseCaseWithCost(itemName, useType, gives, takes) {
-    if (this.getItemPrice(itemName) == "ERROR") {
+    console.log(this.getItemPrice(itemName));
+    if (await this.getItemPrice(itemName) == "ERROR") {
       return "ERROR! NOT A REAL ITEM IN SHOP. DOUBLE CHECK NAME"
     }
     if (!(useType == "INCOMEROLE" || useType == "CRAFTING" || useType == "STATBOOST")) {
@@ -93,6 +107,16 @@ class shop {
           if (!onKey) {
             return "ERROR IN GIVE SECTION";
           } else {
+            if (useType == "CRAFTING")  {
+              if (await this.getItemPrice(currKey) == "ERROR") {
+                return "ERROR! DOES NOT CRAFT A REAL ITEM";
+              }
+            }
+            if (useType == "STATBOOST")  {
+              if (!((currKey == "Martial") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
+                return 'ERROR! DOES NOT BOOST "Martial", "Prestige", OR "Intrigue"';
+              }
+            }
             onKey = false;
           }
           break;
@@ -124,7 +148,6 @@ class shop {
     let takesMap = {};
     currKey = "";
     onKey = true;
-    console.log(takes);
     for (let i = 0; i < takes.length; i++) {
       switch (takes[i]) {
         case "\n" :
@@ -133,6 +156,11 @@ class shop {
           if (!onKey) {
             return "ERROR IN TAKES SECTION";
           } else {
+            if (useType == "CRAFTING" || useType == "INCOMEROLE")  {
+              if (await this.getItemPrice(currKey) == "ERROR") {
+                return "ERROR! DOES NOT TAKE A REAL ITEM";
+              }
+            }
             onKey = false;
           }
           break;
@@ -152,13 +180,11 @@ class shop {
         default:
           if (onKey) {
             currKey += takes[i];
-            console.log(currKey);
           } else {
             if (!takesMap[currKey]) {
               takesMap[currKey] = "";
             }
             takesMap[currKey] += takes[i];
-            console.log(takesMap[currKey]);
           }
           break;
       }
@@ -182,6 +208,96 @@ class shop {
     }
 
     return returnString;
+  }
+
+  
+  static async createShopEmbed(page, interaction) {
+    const itemsPerPage = 26;
+    // Load data from shop.json and shoplayout.json
+    const shopData = dbm.load('shop.json');
+    const shopLayoutData = dbm.load('shoplayout.json');
+
+    let startIndices = [];
+    startIndices[0] = 0;
+    const shopCategories = Object.keys(shopLayoutData);
+
+    let currIndice = 0;
+    let currPageLength = 0;
+    let i = 0;
+    for (const category of shopCategories) {
+      let length = shopLayoutData[category].length;
+      currPageLength += length;
+      if (currPageLength > itemsPerPage) {
+        currPageLength = length;
+        currIndice++;
+        startIndices[currIndice] = i;
+      }
+      i++;
+    }
+
+    console.log(startIndices);
+
+    const pages = Math.ceil(startIndices.length);
+
+    const pageItems = shopCategories.slice(
+      startIndices[page-1],
+      startIndices[page] ? startIndices[page] - 1 : undefined
+    );
+
+    const embed = new Discord.EmbedBuilder()
+      .setTitle(':coin: Shop')
+      .setColor(0x36393e);
+
+      let descriptionText = '';
+
+      for (const category of pageItems) {
+        const endSpaces = "-".repeat(20 - category.length - 2);
+        descriptionText += `**\`--${category}${endSpaces}\`**\n`;
+        descriptionText += shopLayoutData[category]
+          .map((item) => {
+            const icon = shopData[item].icon;
+            const price = shopData[item].price;
+
+            const alignSpaces = ' '.repeat(30 - item.length - ("" + price).length);
+    
+            // Create the formatted line
+            return `${icon} \`${item}${alignSpaces}${price}\` :coin:`;
+          })
+          .join('\n');
+        descriptionText += '\n';
+      }
+      // Set the accumulated description
+      embed.setDescription(descriptionText);
+
+    if (pages > 1) {
+      embed.setFooter({text: `Page ${page} of ${pages}`});
+    }
+
+    const rows = [];
+
+    // Create a "Previous Page" button
+    const prevButton = new ButtonBuilder()
+      .setCustomId('prev_page')
+      .setLabel('Previous Page')
+      .setStyle(ButtonStyle.Primary); // You can change the style to your preference
+
+    // Disable the button on the first page
+    if (page === 1) {
+      prevButton.setDisabled(true);
+    }
+
+    rows.push(new ActionRowBuilder().addComponents(prevButton));
+
+    // Create a "Next Page" button if not on the last page
+    if (page < pages) {
+      const nextButton = new ButtonBuilder()
+          .setCustomId('next_page')
+          .setLabel('Next Page')
+          .setStyle(ButtonStyle.Primary); // You can change the style to your preference
+      rows.push(new ActionRowBuilder().addComponents(nextButton));
+    }
+
+    await interaction.reply({ embeds: [embed], components: rows});
   }
 
   // Function to print item list
@@ -222,27 +338,49 @@ class shop {
   static async inspect(itemName) {
     let data = dbm.load('shop.json');
     if (data[itemName]) {
+      let aboutString = "Price: :coin: " + data[itemName].price;
+      let descriptionString = "**Description:\n**" + data[itemName].description;
+      if (data[itemName].usageCase) {
+        descriptionString += ("\nUsage type: ");
+        switch (data[itemName].usageCase.useType) {
+          case "CRAFTING":
+            descriptionString += "Crafting";
+            break;
+          case "INCOMEROLE":
+            descriptionString += "Income Role";
+            break;
+          case "STATBOOST":
+            descriptionString += "Statboost";
+            break;
+          default:
+            descriptionString += "ERROR";
+            break;
+        }
+        if (data[itemName].usageCase.takes) {
+          aboutString += "\nTakes:";
+          for (let key in data[itemName].usageCase.takes) {
+            aboutString += ("\n`   `- " + data[key].icon + " " + key + ": " + data[itemName].usageCase.takes[key]);
+          }
+        }
+        aboutString += "\nGives:";
+        for (let key in data[itemName].usageCase.gives) {
+          aboutString += ("\n`   `- " + data[key].icon + " " + key + ": " + data[itemName].usageCase.gives[key]);
+        }
+      }
       const inspectEmbed = {
-        color: 0xFFB600,
-        title: '**Item: ' +  data[itemName].icon + itemName + "**",
-        description: "**" + data[itemName].description + "**",
+        color: 0x36393e,
+        title: '**__Item:__ ' +  data[itemName].icon + " " + itemName + "**",
+        description: descriptionString,
         fields: [
           {
-            name: 'Regular field title',
-            value: 'Some value here',
+            name: '**About**',
+            value: aboutString,
           },
         ],
-        image: {
-          url: 'https://i.imgur.com/AfFp7pu.png',
-        },
-        timestamp: new Date().toISOString(),
-        footer: {
-          text: 'Some footer text here',
-          icon_url: 'https://i.imgur.com/AfFp7pu.png',
-        },
       };
+      return inspectEmbed;
     } else {
-      return "ERROR";
+      return "This is not an item in the shop! Make sure to include spaces and not include the emoji.";
     }
 
   }
@@ -271,6 +409,109 @@ class shop {
       returnString = "Succesfully bought " + numToBuy + " " + itemName;
       dbm.save(fileName, data);
       return returnString;
+    }
+  }
+
+  static async shopLayout(categoryToEdit, layoutString) {
+    if (categoryToEdit === "GENERAL") {
+      let shopMap = {};
+      let currCategory = null;
+      const lines = layoutString.split('\n');
+    
+      for (let line of lines) {
+        line = line.trim(); // Remove leading/trailing whitespace
+    
+        if (line.startsWith("**")) {
+          // This is a category line
+          const categoryName = line.substring(2, line.length - 2); // Remove leading/trailing **
+    
+          if (shopMap[categoryName]) {
+            return ("ERROR: Duplicate category " + categoryName);
+          }
+          currCategory = categoryName;
+          shopMap[categoryName] = [];
+        } else if (line.endsWith(";")) {
+          if (currCategory === null) {
+            return ("ERROR: Item outside a category.");
+          }
+
+          const item = line.slice(0, -1); // Remove the trailing semicolon
+
+          if (await this.getItemPrice(item) == "ERROR") {
+            return ("ERROR! Item " + item + " is not in shop");
+          }
+    
+          for (const category in shopMap) {
+            if (shopMap[category].includes(item)) {
+              return ("ERROR: Duplicate item " + item + " in category " + category);
+            }
+          }
+          shopMap[currCategory].push(item);
+        } else if (line !== "") {
+          return ("ERROR: Invalid line: " + line);
+        }
+      }
+      let data = dbm.load("shoplayout.json");
+      data = shopMap;
+      dbm.save("shoplayout.json", data);
+
+      let result = "Shop layout updated successfully. Categories and items added:\n";
+      for (const category in shopMap) {
+        result += `Category: ${category}\n`;
+        for (const item of shopMap[category]) {
+          result += `- ${item}\n`;
+        }
+      }
+      return result;
+    } else {
+      let catMap = [];
+      let onCategory = true;
+    
+      const lines = layoutString.split('\n');
+    
+      for (let line of lines) {
+        line = line.trim();
+    
+        if (line.startsWith("**")) {
+          // This is a category line
+          const categoryMatch = line.match(/\*\*(.*?)\*\*/); // Extract the category name
+          if (!categoryMatch) {
+            return "ERROR: Invalid category format.";
+          }
+          const categoryName = categoryMatch[1];
+    
+          if (categoryName === categoryToEdit) {
+            onCategory = true;
+            catMap = [];
+          } else {
+            return "ERROR: The provided category does not match the layout.";
+          }
+        } else if (line.endsWith(";")) {
+          // This is an item line
+          if (!onCategory) {
+            return "ERROR: Items can only be within a category.";
+          }
+
+          const item = line.slice(0, -1); // Remove the trailing semicolon
+
+          if (await this.getItemPrice(item) == "ERROR") {
+            return ("ERROR! Item " + item + " is not in shop");
+          }
+
+          catMap.push(item);
+        } else if (line !== "") {
+          return "ERROR: Invalid line: " + line;
+        }
+      }
+      let data = dbm.load("shoplayout.json");
+      data[categoryToEdit] = catMap;
+      dbm.save("shoplayout.json", data);
+
+      let result = `Category "${categoryToEdit}" updated successfully. Items added:\n`;
+      for (const item of catMap) {
+        result += `- ${item}\n`;
+      }
+      return result;
     }
   }
 }

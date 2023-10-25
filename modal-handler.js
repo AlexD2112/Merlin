@@ -8,11 +8,24 @@ exports.addItem = async (interaction) => {
   const itemIcon = interaction.fields.getTextInputValue('itemicon');
   const itemCost = interaction.fields.getTextInputValue('itemcost');
   const itemDescription = interaction.fields.getTextInputValue('itemdescription');
+  
+  colonCounter = 0;
+  for (let i = 0; i < itemIcon.length; i++) {
+    if (itemIcon[i] == ":") {
+      console.log(itemIcon, i, colonCounter);
+      console.log(itemIcon[i]);
+      colonCounter++;
+      if (colonCounter >= 3) {
+        await interaction.reply(`Item creation failed. Only one icon allowed;`);
+        return;
+      }
+    }
+  }
 
   // Call the addItem function from the Shop class with the collected information
   if (itemName && parseInt(itemCost)) {
     shop.addItem(itemName, itemIcon, parseInt(itemCost), itemDescription);
-    await interaction.reply(`Item '${itemName}' has been added to the shop.`);
+    await interaction.reply(`Item '${itemName}' has been added to the item list. Use /shoplayout or ping Alex to add to shop.`);
   } else {
     // Handle missing information
     await interaction.reply('Item creation failed. Please provide a name and integer cost.');
@@ -35,7 +48,6 @@ exports.addUseCase = async (interaction) => {
   if (itemName && itemUseType && itemGives) {
     let toReturn;
     if (itemTakes != "Empty Field") {
-      console.log("CALLINGHERE");
       toReturn = await shop.addUseCaseWithCost(itemName, itemUseType, itemGives, itemTakes);
     } else {
       toReturn = await shop.addUseCase(itemName, itemUseType, itemGives);
@@ -90,3 +102,10 @@ exports.newChar = async (interaction) => {
     await interaction.reply('Character creation failed. Please provide a name and bio.');
   }
 };
+
+exports.shopLayout = async (interaction) => {
+  const categoryToEdit = interaction.fields.getTextInputValue('categorytoedit');
+  const layoutString = interaction.fields.getTextInputValue('layoutstring');
+
+  await interaction.reply(await shop.shopLayout(categoryToEdit, layoutString));
+}

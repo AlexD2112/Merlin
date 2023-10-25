@@ -7,7 +7,12 @@ module.exports = {
 		.setDescription('Collect your daily incomes'),
 	async execute(interaction) {
         const userID = interaction.user.tag;
-		var incomeListString = await char.incomes(userID);
-		await interaction.reply(incomeListString);
+		const numericID = interaction.user.id;
+		var [replyEmbed, replyString] = await char.incomes(userID, numericID);
+		await interaction.reply(({ embeds: [replyEmbed] }));
+		console.log(replyString);
+		if (replyString) {
+			interaction.channel.send(replyString);
+		}
 	},
 };

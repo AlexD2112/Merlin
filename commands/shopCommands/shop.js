@@ -6,9 +6,10 @@ module.exports = {
 		.setName('shop')
 		.setDescription('List shop items'),
 	async execute(interaction) {
-			const itemListString = await shop.shop();
-			console.log("DATA");
-			console.log(itemListString);
-			await interaction.reply(itemListString);
+		// const itemListString = await shop.shop();
+		// console.log("DATA");
+		// console.log(itemListString);
+		// await interaction.reply(itemListString);
+		await shop.createShopEmbed(1, interaction);
 	},
 };

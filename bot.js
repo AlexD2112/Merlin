@@ -5,7 +5,7 @@ const path = require('node:path');
 const modalHandler = require('./modal-handler')
 const { Client, GatewayIntentBits, Collection, Events } = require('discord.js');
 const char = require('./char');
-const client = new Discord.Client({ 
+const client = new Client({ 
     intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
@@ -34,6 +34,7 @@ for (const folder of commandFolders) {
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
+	//client.user.setAvatar('https://images-ext-1.discordapp.net/external/xNBNeaCotnpdWVuj-r0wO8X87d34DAH4X58Bqs--vyQ/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1148265132791713802/a2637c14d39ff85a1ed89a6fa888ebbc.png');
 });
 
 //slash command handler
@@ -66,6 +67,10 @@ client.on(Events.InteractionCreate, async interaction => {
 		if (interaction.customId === 'addusecasemodel') {
 			modalHandler.addUseCase(interaction);
 			console.log("Submitted New Use Case")
+		}
+		if (interaction.customId === 'shoplayoutmodal') {
+			modalHandler.shopLayout(interaction);
+			console.log("Submitted New Shop Layout")
 		}
 	}
 });
