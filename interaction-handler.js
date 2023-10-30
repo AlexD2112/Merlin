@@ -1,7 +1,7 @@
 const shop = require('./shop');
 const char = require('./char')
 
-// Save Function - save(UserName, DataToBeSaved)
+// MODALS
 exports.addItem = async (interaction) => {
   // Get the data entered by the user
   const itemName = interaction.fields.getTextInputValue('itemname');
@@ -108,4 +108,10 @@ exports.shopLayout = async (interaction) => {
   const layoutString = interaction.fields.getTextInputValue('layoutstring');
 
   await interaction.reply(await shop.shopLayout(categoryToEdit, layoutString));
+}
+
+//BUTTONS
+exports.shopSwitch = async (interaction) => {
+  let [edittedEmbed, rows] = await shop.createShopEmbed(interaction.customId[11]);
+  await interaction.update({ embeds: [edittedEmbed], components: rows});
 }

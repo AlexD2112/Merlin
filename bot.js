@@ -2,7 +2,7 @@ const {clientId, GuildId, token} = require('./config.json');
 const Discord = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
-const modalHandler = require('./modal-handler')
+const interactionHandler = require('./interaction-handler')
 const { Client, GatewayIntentBits, Collection, Events } = require('discord.js');
 const char = require('./char');
 const client = new Client({ 
@@ -57,20 +57,25 @@ client.on(Events.InteractionCreate, async interaction => {
 	}
 	if (interaction.isModalSubmit()) {
 		if (interaction.customId === 'additemmodal') {
-			modalHandler.addItem(interaction);
+			interactionHandler.addItem(interaction);
 			console.log("Submitted New Item")
 		}
 		if (interaction.customId === 'newcharmodal') {
-			modalHandler.newChar(interaction);
+			interactionHandler.newChar(interaction);
 			console.log("Submitted New Character")
 		}
 		if (interaction.customId === 'addusecasemodel') {
-			modalHandler.addUseCase(interaction);
+			interactionHandler.addUseCase(interaction);
 			console.log("Submitted New Use Case")
 		}
 		if (interaction.customId === 'shoplayoutmodal') {
-			modalHandler.shopLayout(interaction);
+			interactionHandler.shopLayout(interaction);
 			console.log("Submitted New Shop Layout")
+		}
+	}
+	if (interaction.isButton()) {
+		if (interaction.customId.substring(0, 11) == 'switch_page') {
+			interactionHandler.shopSwitch(interaction);
 		}
 	}
 });

@@ -211,7 +211,8 @@ class shop {
   }
 
   
-  static async createShopEmbed(page, interaction) {
+  static async createShopEmbed(page) {
+    page = Number(page);
     const itemsPerPage = 26;
     // Load data from shop.json and shoplayout.json
     const shopData = dbm.load('shop.json');
@@ -234,8 +235,6 @@ class shop {
       }
       i++;
     }
-
-    console.log(startIndices);
 
     const pages = Math.ceil(startIndices.length);
 
@@ -277,27 +276,27 @@ class shop {
 
     // Create a "Previous Page" button
     const prevButton = new ButtonBuilder()
-      .setCustomId('prev_page')
-      .setLabel('Previous Page')
-      .setStyle(ButtonStyle.Primary); // You can change the style to your preference
+      .setCustomId('switch_page' + (page-1))
+      .setLabel('<')
+      .setStyle(ButtonStyle.Secondary); // You can change the style to your preference
 
     // Disable the button on the first page
-    if (page === 1) {
+    if (page == 1) {
       prevButton.setDisabled(true);
     }
 
-    rows.push(new ActionRowBuilder().addComponents(prevButton));
+    const nextButton = new ButtonBuilder()
+          .setCustomId('switch_page' + (page+1))
+          .setLabel('>')
+          .setStyle(ButtonStyle.Secondary); // You can change the style to your preference
 
     // Create a "Next Page" button if not on the last page
-    if (page < pages) {
-      const nextButton = new ButtonBuilder()
-          .setCustomId('next_page')
-          .setLabel('Next Page')
-          .setStyle(ButtonStyle.Primary); // You can change the style to your preference
-      rows.push(new ActionRowBuilder().addComponents(nextButton));
+    if (page == pages) {
+      nextButton.setDisabled(true);
     }
+    rows.push(new ActionRowBuilder().addComponents(prevButton, nextButton));
 
-    await interaction.reply({ embeds: [embed], components: rows});
+    return [embed, rows];
   }
 
   // Function to print item list
