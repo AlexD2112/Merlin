@@ -72,6 +72,10 @@ client.on(Events.InteractionCreate, async interaction => {
 			interactionHandler.shopLayout(interaction);
 			console.log("Submitted New Shop Layout")
 		}
+		if (interaction.customId === 'addusedescriptionmodal') {
+			interactionHandler.addUseDescription(interaction);
+			console.log("Submitted New Use Description")
+		}
 	}
 	if (interaction.isButton()) {
 		if (interaction.customId.substring(0, 11) == 'switch_page') {
@@ -99,3 +103,15 @@ function botMidnightLoop() {
 botMidnightLoop();
 
 client.login(token);
+
+process.on('uncaughtException', function (err){ 
+	const channelID = "1163130565910868159";
+	console.log('Caught exception: ' + err);
+	try {
+		client.channels.fetch(channelID).then(channel => {
+			channel.send("Bot has faced a major error! Ping Alex repeatedly with messages of shame until he fixes it. Certain commands may not function.");
+		});
+	} catch (error) {
+		console.log(error);
+	}
+});

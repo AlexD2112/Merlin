@@ -1,6 +1,6 @@
 const dbm = require('./database-manager'); // Importing the database manager
 const Discord = require('discord.js');
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
 
 class shop {
   // Function to add items
@@ -91,7 +91,6 @@ class shop {
 
   //Overloaded version with takes
   static async addUseCaseWithCost(itemName, useType, gives, takes) {
-    console.log(this.getItemPrice(itemName));
     if (await this.getItemPrice(itemName) == "ERROR") {
       return "ERROR! NOT A REAL ITEM IN SHOP. DOUBLE CHECK NAME"
     }
@@ -210,10 +209,152 @@ class shop {
     return returnString;
   }
 
+  //Version with countdown
+  static async addUseCaseWithCostAndCountdown(itemName, useType, gives, takes, countdown) {
+    if (await this.getItemPrice(itemName) == "ERROR") {
+      return "ERROR! NOT A REAL ITEM IN SHOP. DOUBLE CHECK NAME"
+    }
+    if (!(useType == "INCOMEROLE" || useType == "CRAFTING" || useType == "STATBOOST")) {
+      return "ERROR! USE PROPER CASE KEYWORD.";
+    }
+    if (!parseInt(countdown)) {
+      return "ERROR! Countdown not a number.";
+    }
+    let giveMap = {};
+    let currKey = "";
+    let onKey = true;
+    for (let i = 0; i < gives.length; i++) {
+      switch (gives[i]) {
+        case ":": 
+          if (!onKey) {
+            return "ERROR IN GIVE SECTION";
+          } else {
+            if (useType == "CRAFTING")  {
+              if (await this.getItemPrice(currKey) == "ERROR") {
+                return "ERROR! DOES NOT CRAFT A REAL ITEM";
+              }
+            }
+            if (useType == "STATBOOST")  {
+              if (!((currKey == "Martial") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
+                return 'ERROR! DOES NOT BOOST "Martial", "Prestige", OR "Intrigue"';
+              }
+            }
+            onKey = false;
+          }
+          break;
+        case ";":
+          if (onKey) {
+            return "ERROR IN GIVE SECTION";
+          } else {
+            if (parseInt(giveMap[currKey])) {
+              giveMap[currKey] = parseInt(giveMap[currKey]);
+            } else {
+              return "ERROR! INTEGER VALUES NOT GIVEN FOR NUMBER";
+            }
+            currKey = "";
+            onKey = true;
+          }
+          break;
+        default:
+          if (onKey) {
+            currKey += gives[i];
+          } else {
+            if (!giveMap[currKey]) {
+              giveMap[currKey] = "";
+            }
+            giveMap[currKey] += gives[i];
+          }
+          break;
+      }
+    }
+    let takesMap = {};
+    currKey = "";
+    onKey = true;
+    for (let i = 0; i < takes.length; i++) {
+      switch (takes[i]) {
+        case "\n" :
+          break;
+        case ":": 
+          if (!onKey) {
+            return "ERROR IN TAKES SECTION";
+          } else {
+            if (useType == "CRAFTING" || useType == "INCOMEROLE")  {
+              if (await this.getItemPrice(currKey) == "ERROR") {
+                return "ERROR! DOES NOT TAKE A REAL ITEM";
+              }
+            }
+            onKey = false;
+          }
+          break;
+        case ";":
+          if (onKey) {
+            return "ERROR IN TAKES SECTION";
+          } else {
+            if (parseInt(takesMap[currKey])) {
+              takesMap[currKey] = parseInt(takesMap[currKey]);
+            } else {
+              return "ERROR! INTEGER VALUES NOT GIVEN FOR NUMBER";
+            }
+            currKey = "";
+            onKey = true;
+          }
+          break;
+        default:
+          if (onKey) {
+            currKey += takes[i];
+          } else {
+            if (!takesMap[currKey]) {
+              takesMap[currKey] = "";
+            }
+            takesMap[currKey] += takes[i];
+          }
+          break;
+      }
+    }
+    let data = dbm.load('shop.json');
+    data[itemName].usageCase = {};
+    data[itemName].usageCase.useType = useType;
+    data[itemName].usageCase.gives = giveMap;
+    data[itemName].usageCase.takes = takesMap;
+    data[itemName].usageCase.countdown = parseInt(countdown);
+    dbm.save('shop.json', data);
+
+    let returnString = "Added a " + useType + " usage case to " + itemName + "\n\n";
+    returnString += "On use, this item will give:\n"
+    for (let key in giveMap) {
+      returnString += ('"' + key + '" : "' + giveMap[key] + '"' + "\n");
+    }
+    returnString += "\n";
+    returnString += "On use, this item will take:\n"
+    for (let key in takesMap) {
+      returnString += ('"' + key + '" : "' + takesMap[key] + '"' + "\n");
+    }
+
+    returnString += "\n";
+    returnString += "This item will take " + parseInt(countdown) + " hours to use";
+
+    return returnString;
+  }
+
+  static async addUseDescription(itemName, itemDescription) {
+    let data = dbm.load('shop.json');
+    if (!data[itemName].usageCase) {
+      return "ERROR! DOES NOT ALREADY HAVE A USE CASE. USE /addusecase FIRST"
+    }
+    
+    data[itemName].usageCase.description = itemDescription
+    dbm.save('shop.json', data);
+
+    let returnString = "Added the following description to " + itemName + ":\n\n";
+    returnString += itemDescription;
+
+    return returnString;
+  }
+
   
   static async createShopEmbed(page) {
     page = Number(page);
-    const itemsPerPage = 26;
+    const itemsPerPage = 25;
     // Load data from shop.json and shoplayout.json
     const shopData = dbm.load('shop.json');
     const shopLayoutData = dbm.load('shoplayout.json');
@@ -240,7 +381,7 @@ class shop {
 
     const pageItems = shopCategories.slice(
       startIndices[page-1],
-      startIndices[page] ? startIndices[page] - 1 : undefined
+      startIndices[page] ? startIndices[page] : undefined
     );
 
     const embed = new Discord.EmbedBuilder()

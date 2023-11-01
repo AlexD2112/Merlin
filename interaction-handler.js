@@ -43,12 +43,22 @@ exports.addUseCase = async (interaction) => {
   } else {
     itemTakes = "Empty Field";
   }
+  let itemCountdown;
+  if (interaction.fields.getField("itemcountdown").value) {
+    itemCountdown = interaction.fields.getTextInputValue('itemcountdown');
+  } else {
+    itemCountdown = "Empty Field";
+  }
 
   // Call the addItem function from the Shop class with the collected information
   if (itemName && itemUseType && itemGives) {
     let toReturn;
     if (itemTakes != "Empty Field") {
-      toReturn = await shop.addUseCaseWithCost(itemName, itemUseType, itemGives, itemTakes);
+      if (itemCountdown != "Empty Field") {
+        toReturn = await shop.addUseCaseWithCostAndCountdown(itemName, itemUseType, itemGives, itemTakes, itemCountdown);
+      } else {
+        toReturn = await shop.addUseCaseWithCost(itemName, itemUseType, itemGives, itemTakes);
+      }
     } else {
       toReturn = await shop.addUseCase(itemName, itemUseType, itemGives);
     }
@@ -58,6 +68,21 @@ exports.addUseCase = async (interaction) => {
     await interaction.reply('Item use creation failed. Please give a name, use type and record what using the item gives.');
   }
 };
+
+exports.addUseDescription = async (interaction) => {
+  const itemName = interaction.fields.getTextInputValue('itemname');
+  const itemDescription = interaction.fields.getTextInputValue('itemdescription');
+
+  // Call the addItem function from the Shop class with the collected information
+  if (itemName && itemDescription) {
+    let toReturn;
+    toReturn = await shop.addUseDescription(itemName, itemDescription);
+    interaction.reply(toReturn);
+  } else {
+    // Handle missing information
+    await interaction.reply('Item description creation failed. Please give a name and description.');
+  }
+}
 
 exports.newChar = async (interaction) => {
   // Get the data entered by the user

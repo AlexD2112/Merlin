@@ -36,15 +36,21 @@ module.exports = {
 			.setPlaceholder('(ITEM/STAT):(AMOUNT/NUMBER);\n(ITEM2/STAT2):(AMOUNT2/NUMBER2);')
 			.setRequired(false)
 			.setStyle(TextInputStyle.Paragraph);
+		const itemCountdownInput = new TextInputBuilder()
+			.setCustomId('itemcountdown')
+			.setLabel('CRAFTING- cooldown in hours (Optional)')
+			.setRequired(false)
+			.setStyle(TextInputStyle.Short);
 
 		//Create action rows for each input
 		const nameActionRow = new ActionRowBuilder().addComponents(itemNameInput);
 		const useTypeActionRow = new ActionRowBuilder().addComponents(itemUseTypeInput);
 		const givesActionRow = new ActionRowBuilder().addComponents(itemGivesInput);
 		const takesActionRow = new ActionRowBuilder().addComponents(itemTakesInput);
+		const countdownActionRow = new ActionRowBuilder().addComponents(itemCountdownInput);
 
 		// Add the action rows to the modal
-		modal.addComponents(nameActionRow, useTypeActionRow, givesActionRow, takesActionRow);
+		modal.addComponents(nameActionRow, useTypeActionRow, givesActionRow, takesActionRow, countdownActionRow);
 
 		// Show the modal to the user
 		await interaction.showModal(modal);
