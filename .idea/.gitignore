@@ -3,6 +3,3 @@
 /workspace.xml
 # Editor-based HTTP Client requests
 /httpRequests/
-# Jsons
-./shop.json
-./characters.json

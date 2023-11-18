@@ -1,5 +1,2 @@
-
-shop.json
-characters.json
-shop.json
-*.json
+package.json
+db.json
