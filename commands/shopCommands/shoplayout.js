@@ -5,7 +5,8 @@ const { SlashCommandBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, T
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('shoplayout')
-		.setDescription('Set a custom shop layout'),
+		.setDescription('Set a custom shop layout (Note- categories here will supersede previously set category)')
+		.setDefaultMemberPermissions(0),
 	async execute(interaction) {
 		// Create the modal
 		const modal = new ModalBuilder()

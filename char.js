@@ -1,7 +1,7 @@
 const dbm = require('./database-manager'); // Importing the database manager
 const shop = require ('./shop');
 const axios = require('axios');
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, createWebhook } = require('discord.js');
 
 class char {
   // Function to add items
@@ -385,6 +385,37 @@ class char {
 
   }
 
+  //Create a webhook and send a message using it with character name, avatar and message in the channel the command was used in
+  static async say(userID, message, channelID) {
+    console.log(userID);
+    let data = dbm.load('characters.json');
+    if (data[userID]) {
+      let webhookName = data[userID].name;
+      //if data[userID].icon is undefined, set it to the default avatar
+      let webhookAvatar = data[userID].icon ? data[userID].icon : 'https://images-ext-1.discordapp.net/external/xNBNeaCotnpdWVuj-r0wO8X87d34DAH4X58Bqs--vyQ/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1148265132791713802/a2637c14d39ff85a1ed89a6fa888ebbc.png';
+      let webhookMessage = message;
+
+      (async () => {
+        // Create a webhook
+        let webhook = await channelID.createWebhook({name: webhookName, avatar: webhookAvatar });
+        
+        // Send a message using the webhook
+        await webhook.send({
+            content: webhookMessage,
+            username: webhookName,
+            avatarURL: webhookAvatar
+        });
+
+        // Delete the webhook after sending the message
+        await webhook.delete();
+      })()
+
+      return "Message sent!";
+    } else {
+      return "You haven't made a character! Use /newchar first";
+    }
+  }
+
   static async incomes(userID, numericID) {
     let fileName = 'characters.json';
 
@@ -440,12 +471,86 @@ class char {
     dbm.save(fileName, data);
   }
 
+  static async craft(charID, itemName) {
+    itemName = await shop.findItemName(itemName);
+    if (itemName === "ERROR") {
+      return "Not a valid item";
+    }
+    const numToUse = 1;
+
+    let returnEmbed = new EmbedBuilder();
+    const charactersJSONName = 'characters.json';
+    let charactersData = dbm.load(charactersJSONName);
+    const shopJSONName = 'shop.json';
+    let shopData = dbm.load(shopJSONName);
+
+    if (!shopData[itemName].recipe) {
+      return "No recipe";
+    } else {
+      returnEmbed.setTitle("**__Started Crafting:__" + shopData[itemName].icon + itemName + "**");
+      if (shopData[itemName].recipe.countdown) {
+        if (shopData[itemName].recipe.takes) {
+          // Check crafting slots in charactersData[charID].cooldowns
+          const craftSlots = charactersData[charID].cooldowns.craftSlots || {};
+
+          if (Object.keys(craftSlots).length >= 3) {
+              return "All crafting slots are in use.";
+          }
+
+          let takeString = "";
+
+          // Remove items in recipe.takes
+          for (let key in shopData[itemName].recipe.takes) {
+            const val = shopData[itemName].recipe.takes[key] * numToUse;
+            if (!charactersData[charID].inventory[key] || charactersData[charID].inventory[key] < val) {
+                if (!charactersData[charID].inventory[key]) {
+                  charactersData[charID].inventory[key] = 0;
+                }
+                return "Not enough **" + shopData[key].icon + key + "**! You need " + val + " and only have " + charactersData[charID].inventory[key] + ".";
+            } else {
+                charactersData[charID].inventory[key] -= val;
+                takeString += "`   -" + val + "` " + shopData[key].icon + " " + key + "\n";
+            }
+          }
+
+          // Find an available slot for crafting
+          let slotKey = itemName;
+          let slotCount = 1;
+          while (craftSlots[slotKey]) {
+              slotCount++;
+              slotKey = `REPEAT_${slotCount}_${itemName}`;
+          }
+
+          // Set the crafting slot with the item and expiration time
+          const expirationTime = Math.round(Date.now() / 1000) + shopData[itemName].recipe.countdown;
+          craftSlots[slotKey] = expirationTime;
+
+          // Update craftSlots in charactersData
+          charactersData[charID].cooldowns.craftSlots = craftSlots;
+
+          returnEmbed.addFields(
+            { name: '**Took:**', value: takeString },
+            { name: '**Done:**', value: '<t:' + expirationTime + ':R>'}
+          );
+        } else {
+          return "Item does not take an item. Likely an error in setup, ping Alex or Serski";
+        }
+      } else {
+        return "Item does not have a crafting time. Likely an error in setup, ping Alex or Serski";
+      }
+    }
+    dbm.save(charactersJSONName, charactersData);
+    return returnEmbed;
+  }
+
   static async useItem(itemName, charID, numToUse) {
     if (!numToUse) {
       numToUse = 1;
+    } else if (numToUse < 1) {
+      return "Must use at least 1";
     }
-    const price = await shop.getItemPrice(itemName);
-    if (price === "ERROR") {
+    itemName = await shop.findItemName(itemName);
+    if (itemName === "ERROR") {
       return "Not a valid item";
     }
 
@@ -458,63 +563,38 @@ class char {
     if (!shopData[itemName].usageCase) {
       return "No usage case";
     } else {
+      if (shopData[itemName].usageCase.countdown) {
+        if (charactersData[charID].cooldowns[itemName]) {
+          if (charactersData[charID].cooldowns[itemName] > Math.round(Date.now() / 1000)) {
+            return "You have used this item recently! Can be used again <t:" + charactersData[charID].cooldowns[itemName] + ":R>";
+          }
+        } else if (!charactersData[charID].cooldowns) {
+          charactersData[charID].cooldowns = {};
+        }
+        charactersData[charID].cooldowns[itemName] = Math.round(Date.now() / 1000) + shopData[itemName].usageCase.countdown;
+        returnEmbed.addFields(
+          { name: '**Can be used again:**', value: '<t:' + charactersData[charID].cooldowns[itemName] + ':R>'}
+        );
+      }
+
       returnEmbed.setTitle("**__Used:__" + shopData[itemName].icon + "`" + numToUse + "` " + itemName + "**");
-      if (shopData[itemName].usageCase.usageDescription) {
-        returnEmbed.setDescription(shopData[itemName].usageCase.usageDescription);
+      if (shopData[itemName].usageCase.description) {
+        returnEmbed.setDescription(shopData[itemName].usageCase.description);
       }
       switch (shopData[itemName].usageCase.useType) {
-        case "CRAFTING":
-          if (!shopData[itemName].usageCase.countdown) {
-            if (shopData[itemName].usageCase.takes && shopData[itemName].usageCase.gives) {
-              let takeString = "";
-              if (!charactersData[charID].inventory[itemName] || charactersData[charID].inventory[itemName] < numToUse) {
-                if (!charactersData[charID].inventory[itemName]) {
-                  charactersData[charID].inventory[itemName] = 0;
-                }
-                return "Not enough **" + shopData[itemName].icon + itemName + "**! You need " + numToUse + " and only have " + charactersData[charID].inventory[itemName] + ".";
-              } else {
-                charactersData[charID].inventory[itemName] -= numToUse;
-                takeString += "`   -" + numToUse + "` " + shopData[itemName].icon + " " + itemName + "\n";
-              }
-              for (let key in shopData[itemName].usageCase.takes) {
-                let val = shopData[itemName].usageCase.takes[key] * numToUse;
-                if (!charactersData[charID].inventory[key] || charactersData[charID].inventory[key] < val) {
-                  if (!charactersData[charID].inventory[key]) {
-                    charactersData[charID].inventory[key] = 0;
-                  }
-                  return "Not enough **" + shopData[key].icon + key + "**! You need " + val + " and only have " + charactersData[charID].inventory[key] + ".";
-                } else {
-                  charactersData[charID].inventory[key] -= val;
-                  takeString += "`   -" + val + "` " + shopData[key].icon + " " + key + "\n";
-                }
-              }
-              let giveString = "";
-              for (let key in shopData[itemName].usageCase.gives) {
-                let val = shopData[itemName].usageCase.gives[key] * numToUse;
-                if (!charactersData[charID].inventory[key]) {
-                  charactersData[charID].inventory[key] = 0;
-                }
-                charactersData[charID].inventory[key] += val;
-                giveString += "`   +" + val + "` " + shopData[key].icon + " " + key + "\n";
-              }
-              returnEmbed.addFields(
-                { name: '**Took:**', value: takeString },
-                { name: '**Gave:**', value: giveString },
-              )
-            }
-            else {
-              return "Item does not both give and take an item. Likely an error in setup, ping Alex or Serski";
-            }
-          } else {
-            return "Countdowns aren't yet handled"
-            //COUNTDOWN HANDLING
-          }
-          break;
-        case "INCOMEROLE":
+        case "STATBOOST":
           if (numToUse > 1) {
-            return "You can only use one of this item! You will not get more income roles by using more.";
+            return "You can only use one of this item! You will not get more stats by using more.";
           }
-          if (shopData[itemName].usageCase.takes && shopData[itemName].usageCase.gives) {
+          if (!shopData[itemName].usageCase.countdown) {
+            return "This item does not have a countdown. Likely an error in setup, ping Alex or Serski";
+          }
+
+          const PrestigeEmoji = '<:Prestige:1165722839228354610>';
+          const MartialEmoji = '<:Martial:1165722873248354425>';
+          const IntrigueEmoji = '<:Intrigue:1165722896522563715>';
+
+          if (shopData[itemName].usageCase.gives) {
             let takeString = "";
             if (!charactersData[charID].inventory[itemName] || charactersData[charID].inventory[itemName] < numToUse) {
               if (!charactersData[charID].inventory[itemName]) {
@@ -525,39 +605,74 @@ class char {
               charactersData[charID].inventory[itemName] -= numToUse;
               takeString += "`   -" + numToUse + "` " + shopData[itemName].icon + " " + itemName + "\n";
             }
-            for (let key in shopData[itemName].usageCase.takes) {
-              let val = shopData[itemName].usageCase.takes[key];
-              if (!charactersData[charID].inventory[key] || charactersData[charID].inventory[key] < val) {
-                if (!charactersData[charID].inventory[key]) {
-                  charactersData[charID].inventory[key] = 0;
+            if (shopData[itemName].usageCase.takes) {
+              for (let key in shopData[itemName].usageCase.takes) {
+                let val = shopData[itemName].usageCase.takes[key];
+                let icon;
+                switch (key) {
+                  case "Prestige":
+                    icon = PrestigeEmoji;
+                    break;
+                  case "Martial":
+                    icon = MartialEmoji;
+                    break;
+                  case "Intrigue":
+                    icon = IntrigueEmoji;
+                    break;
+                  default:
+                    return "This use case includes an invalid stat name. Likely an error in setup, contact Alex or Serski";
                 }
-                return "Not enough **" + shopData[key].icon + key + "**! You need " + val + " and only have " + charactersData[charID].inventory[key] + ".";
-              } else {
-                charactersData[charID].inventory[key] -= val;
-                takeString += "`   -" + val + "` " + shopData[key].icon + " " + key + "\n";
+                if (!charactersData[charID].stats[key]) {
+                  charactersData[charID].stats[key] = 0;
+                }
+                charactersData[charID].stats[key] -= val;
+                takeString += "`   -" + val + "` " + icon + " " + key + "\n";
               }
             }
             let giveString = "";
             for (let key in shopData[itemName].usageCase.gives) {
               let val = shopData[itemName].usageCase.gives[key];
-              charactersData[charID].incomeList[key] = val;
-              giveString += "`   +" + val + "` :coin: " + key + " per day\n";
+              let icon;
+              switch (key) {
+                case "Prestige":
+                  icon = PrestigeEmoji;
+                  break;
+                case "Martial":
+                  icon = MartialEmoji;
+                  break;
+                case "Intrigue":
+                  icon = IntrigueEmoji;
+                  break;
+                default:
+                  return "This use case includes an invalid stat name. Likely an error in setup, contact Alex or Serski";
+              }
+              if (!charactersData[charID].stats[key]) {
+                charactersData[charID].stats[key] = 0;
+              }
+              charactersData[charID].stats[key] += val;
+              giveString += "`   +" + val + "` " + icon + " " + key + "\n";
             }
-            returnEmbed.addFields(
-              { name: '**Took:**', value: takeString },
-              { name: '**Gave:**', value: giveString },
-            )
-          }
-          else {
-            return "Item does not both give an income role and take an item. Likely an error in setup, ping Alex or Serski";
+            if (giveString && takeString) {
+              returnEmbed.addFields(
+                { name: '**Gave:**', value: giveString }, 
+                { name: '**Took:**', value: takeString }
+              );
+            } else if (giveString) {
+              returnEmbed.addFields(
+                { name: '**Gave:**', value: giveString }
+              );
+            } else if (takeString) {
+              returnEmbed.addFields(
+                { name: '**Took:**', value: takeString }
+              );
+            }
+          } else {
+            return "Item does not give stats. Likely an error in setup, ping Alex or Serski";
           }
           break;
-        case "STATBOOST":
+        case "INCOMEROLE":
           if (numToUse > 1) {
-            return "You can only use one of this item! You will not get more stats by using more.";
-          }
-          if (!shopData[itemName].usageCase.countdown) {
-            return "This item does not have a countdown. Likely an error in setup, ping Alex or Serski";
+            return "You can only use one of this item! You will not get more income roles by using more.";
           }
           if (shopData[itemName].usageCase.gives) {
             let takeString = "";
@@ -588,18 +703,40 @@ class char {
               charactersData[charID].incomeList[key] = val;
               giveString += "`   +" + val + "` :coin: " + key + " per day\n";
             }
-            returnEmbed.addFields(
-              { name: '**Took:**', value: takeString },
-              { name: '**Gave:**', value: giveString },
-            )
+            if (giveString && takeString) {
+              returnEmbed.addFields(
+                { name: '**Gave:**', value: giveString }, 
+                { name: '**Took:**', value: takeString }
+              );
+            } else if (giveString) {
+              returnEmbed.addFields(
+                { name: '**Gave:**', value: giveString }
+              );
+            } else if (takeString) {
+              returnEmbed.addFields(
+                { name: '**Took:**', value: takeString }
+              );
+            }
           }
           else {
-            return "Item does not give stats. Likely an error in setup, ping Alex or Serski";
+            return "Item does not both give an income role and take an item. Likely an error in setup, ping Alex or Serski";
           }
           break;
         default:
           return "Incorrect usage case. Likely an error in setup, contact Alex or Serski";
       }
+    }
+    if (shopData[itemName].usageCase.countdown) {
+      if (!charactersData[charID].cooldowns) {
+        charactersData[charID].cooldowns = {};
+      }
+      if (!charactersData[charID].cooldowns[itemName]) {
+        charactersData[charID].cooldowns[itemName] = 0;
+      }
+      charactersData[charID].cooldowns[itemName] = Math.round(Date.now() / 1000) + shopData[itemName].usageCase.countdown;
+      returnEmbed.addFields(
+        { name: '**Can be used again:**', value: '<t:' + charactersData[charID].cooldowns[itemName] + ':R>'}
+      );
     }
     dbm.save(charactersJSONName, charactersData);
     return returnEmbed;

@@ -1,13 +1,27 @@
 //ADMIN COMMAND
 const { SlashCommandBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
-//const shop = require('../../shop'); // Importing shop
+const shop = require('../../shop'); // Importing shop
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('additem')
-		.setDescription('Add item to shop')
-		.setDefaultMemberPermissions(0),
+		.setName('edititem')
+		.setDescription('Edit item in shop')
+		.setDefaultMemberPermissions(0)
+        .addStringOption((option) =>
+			option.setName('itemname')
+				.setDescription('The item name')
+				.setRequired(true)
+		),
 	async execute(interaction) {
+        let itemName = interaction.options.getString('itemname');
+		//Get default values from shop.editUseCasePlaceholders
+		const arrayPlaceholders = await shop.editItemPlaceholders(itemName);
+		itemName = arrayPlaceholders[0];
+		const itemIcon = arrayPlaceholders[1];
+		const itemCost = arrayPlaceholders[2];
+		const itemDescription = arrayPlaceholders[3];
+		const itemCategory = arrayPlaceholders[4];
+
 		// Create the modal
 		const modal = new ModalBuilder()
 			.setCustomId('additemmodal')
@@ -17,26 +31,31 @@ module.exports = {
 		const itemNameInput = new TextInputBuilder()
 			.setCustomId('itemname')
 			.setLabel('Item Name')
+            .setValue(itemName)
 			.setStyle(TextInputStyle.Short);
 		
 		const itemIconInput = new TextInputBuilder()
 			.setCustomId('itemicon')
 			.setLabel('Item Icon- Emoji to go before name in shop')
+            .setValue(itemIcon)
 			.setStyle(TextInputStyle.Short);
 
 		const itemCostInput = new TextInputBuilder()
 			.setCustomId('itemcost')
 			.setLabel('Item Cost')
+            .setValue(itemCost) 
 			.setStyle(TextInputStyle.Short);
 
 		const itemDescriptionInput = new TextInputBuilder()
 			.setCustomId('itemdescription')
 			.setLabel('Item Description')
+            .setValue(itemDescription)
 			.setStyle(TextInputStyle.Paragraph);
 
 		const itemCategoryInput = new TextInputBuilder()
 			.setCustomId('itemcategory')
 			.setLabel('Item Category')
+            .setValue(itemCategory)
 			.setStyle(TextInputStyle.Short);
 
 		// Create action rows for each input

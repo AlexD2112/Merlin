@@ -5,11 +5,12 @@ const { SlashCommandBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, T
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('addusecase')
-		.setDescription('Add a "/use" case for the item'),
+		.setDescription('Add a "/use" case for the item')
+		.setDefaultMemberPermissions(0),
 	async execute(interaction) {
 		// Create the modal
 		const modal = new ModalBuilder()
-			.setCustomId('addusecasemodel')
+			.setCustomId('addusecasemodal')
 			.setTitle('Add A "/use" case');
 
 		// Create the text input components
@@ -20,14 +21,14 @@ module.exports = {
 		
 		const itemUseTypeInput = new TextInputBuilder()
 			.setCustomId('itemusetype')
-			.setLabel('Use type- INCOMEROLE, CRAFTING, or STATBOOST')
+			.setLabel('Use type- INCOMEROLE or STATBOOST')
 			.setPlaceholder('Must be all caps, one word')
 			.setStyle(TextInputStyle.Short);
 
 		const itemGivesInput = new TextInputBuilder()
 			.setCustomId('itemgives')
 			.setLabel('What exactly does using this item give?')
-			.setPlaceholder('(ROLE/ITEM/STAT):(DAILYINCOME/AMOUNT/NUMBER);')
+			.setPlaceholder('(ROLE/STAT):(DAILYINCOME/NUMBER);')
 			.setStyle(TextInputStyle.Short);
 
 		const itemTakesInput = new TextInputBuilder()
@@ -36,9 +37,10 @@ module.exports = {
 			.setPlaceholder('(ITEM/STAT):(AMOUNT/NUMBER);\n(ITEM2/STAT2):(AMOUNT2/NUMBER2);')
 			.setRequired(false)
 			.setStyle(TextInputStyle.Paragraph);
+
 		const itemCountdownInput = new TextInputBuilder()
 			.setCustomId('itemcountdown')
-			.setLabel('CRAFTING- cooldown in hours (Optional)')
+			.setLabel('Usage cooldown in hours (Optional)')
 			.setRequired(false)
 			.setStyle(TextInputStyle.Short);
 

@@ -37,7 +37,21 @@ client.on('ready', () => {
 	//client.user.setAvatar('https://images-ext-1.discordapp.net/external/xNBNeaCotnpdWVuj-r0wO8X87d34DAH4X58Bqs--vyQ/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1148265132791713802/a2637c14d39ff85a1ed89a6fa888ebbc.png');
 });
 
-//slash command handler
+//message handler
+client.on('messageCreate', async message => {
+    if (message.author.bot) return;
+
+    // Check for =say, if found send the message coming after =say and a space using char.say. If returned message is not Message sent! then send the returned message.
+    if (message.content.startsWith('=say')) {
+		const msg = message.content.slice(4);
+		let reply = await char.say(message.author.tag, msg, message.channel);
+		if (reply != "Message sent!") {
+			message.channel.send(reply);
+		}
+    }
+});
+
+//interaction handler
 client.on(Events.InteractionCreate, async interaction => {
 	if (interaction.isChatInputCommand()) {
 		const command = client.commands.get(interaction.commandName);
@@ -54,33 +68,8 @@ client.on(Events.InteractionCreate, async interaction => {
 				await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 			}
 		}
-	}
-	if (interaction.isModalSubmit()) {
-		if (interaction.customId === 'additemmodal') {
-			interactionHandler.addItem(interaction);
-			console.log("Submitted New Item")
-		}
-		if (interaction.customId === 'newcharmodal') {
-			interactionHandler.newChar(interaction);
-			console.log("Submitted New Character")
-		}
-		if (interaction.customId === 'addusecasemodel') {
-			interactionHandler.addUseCase(interaction);
-			console.log("Submitted New Use Case")
-		}
-		if (interaction.customId === 'shoplayoutmodal') {
-			interactionHandler.shopLayout(interaction);
-			console.log("Submitted New Shop Layout")
-		}
-		if (interaction.customId === 'addusedescriptionmodal') {
-			interactionHandler.addUseDescription(interaction);
-			console.log("Submitted New Use Description")
-		}
-	}
-	if (interaction.isButton()) {
-		if (interaction.customId.substring(0, 11) == 'switch_page') {
-			interactionHandler.shopSwitch(interaction);
-		}
+	} else {
+		interactionHandler.handle(interaction);
 	}
 });
 

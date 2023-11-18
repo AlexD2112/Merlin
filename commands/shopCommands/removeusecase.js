@@ -3,8 +3,8 @@ const shop = require('../../shop'); // Importing the database manager
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('removeitem')
-		.setDescription('Remove item from shop')
+		.setName('removeusecase')
+		.setDescription('Remove use case from item')
 		.setDefaultMemberPermissions(0)
 		.addStringOption((option) =>
 		option.setName('itemname')
@@ -15,9 +15,8 @@ module.exports = {
 		const itemName = interaction.options.getString('itemname');
 
 		(async () => {
-			await interaction.reply(`Item '${itemName}' has been removed from the shop.`);
-			// Call the addItem function from the Shop class
-			shop.removeItem(itemName);
+			reply = await shop.removeUseCase(itemName);
+            await interaction.reply(reply);
 		})()
 	},
 };

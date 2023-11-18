@@ -1,13 +1,15 @@
 const shop = require('./shop');
-const char = require('./char')
+const char = require('./char');
+const marketplace = require('./marketplace');
 
 // MODALS
-exports.addItem = async (interaction) => {
+addItem = async (interaction) => {
   // Get the data entered by the user
   const itemName = interaction.fields.getTextInputValue('itemname');
   const itemIcon = interaction.fields.getTextInputValue('itemicon');
   const itemCost = interaction.fields.getTextInputValue('itemcost');
   const itemDescription = interaction.fields.getTextInputValue('itemdescription');
+  const itemCategory = interaction.fields.getTextInputValue('itemcategory');
   
   colonCounter = 0;
   for (let i = 0; i < itemIcon.length; i++) {
@@ -24,7 +26,7 @@ exports.addItem = async (interaction) => {
 
   // Call the addItem function from the Shop class with the collected information
   if (itemName && parseInt(itemCost)) {
-    shop.addItem(itemName, itemIcon, parseInt(itemCost), itemDescription);
+    shop.addItem(itemName, itemIcon, parseInt(itemCost), itemDescription, itemCategory);
     await interaction.reply(`Item '${itemName}' has been added to the item list. Use /shoplayout or ping Alex to add to shop.`);
   } else {
     // Handle missing information
@@ -32,11 +34,16 @@ exports.addItem = async (interaction) => {
   }
 };
 
-exports.addUseCase = async (interaction) => {
+addUseCase = async (interaction) => {
   // Get the data entered by the user
   const itemName = interaction.fields.getTextInputValue('itemname');
   const itemUseType = interaction.fields.getTextInputValue('itemusetype');
-  const itemGives = interaction.fields.getTextInputValue('itemgives');
+  let itemGives;
+  if (interaction.fields.getField("itemgives").value) {
+    itemGives = interaction.fields.getTextInputValue('itemgives');
+  } else {
+    itemGives = "Empty Field";
+  }
   let itemTakes;
   if (interaction.fields.getField("itemtakes").value) {
     itemTakes = interaction.fields.getTextInputValue('itemtakes');
@@ -60,7 +67,11 @@ exports.addUseCase = async (interaction) => {
         toReturn = await shop.addUseCaseWithCost(itemName, itemUseType, itemGives, itemTakes);
       }
     } else {
-      toReturn = await shop.addUseCase(itemName, itemUseType, itemGives);
+      if (itemCountdown != "Empty Field") {
+        toReturn = await shop.addUseCaseWithCountdown(itemName, itemUseType, itemGives, itemCountdown);
+      } else {
+        toReturn = await shop.addUseCase(itemName, itemUseType, itemGives);
+      }
     }
     interaction.reply(toReturn);
   } else {
@@ -69,7 +80,23 @@ exports.addUseCase = async (interaction) => {
   }
 };
 
-exports.addUseDescription = async (interaction) => {
+addRecipe = async (interaction) => {
+  // Get the data entered by the user
+  const itemName = interaction.fields.getTextInputValue('itemname');
+  const itemTakes = interaction.fields.getTextInputValue('itemtakes');
+  const itemCrafttime = interaction.fields.getTextInputValue('itemcrafttime');
+
+  // Call the addItem function from the Shop class with the collected information
+  if (itemName && itemTakes && itemCrafttime) {
+    toReturn = await shop.addRecipe(itemName, itemTakes, itemCrafttime);
+    interaction.reply(toReturn);
+  } else {
+    // Handle missing information
+    await interaction.reply('Item use creation failed. Please give a name, what the item takes, and enter a craft time.');
+  }
+};
+
+addUseDescription = async (interaction) => {
   const itemName = interaction.fields.getTextInputValue('itemname');
   const itemDescription = interaction.fields.getTextInputValue('itemdescription');
 
@@ -84,7 +111,7 @@ exports.addUseDescription = async (interaction) => {
   }
 }
 
-exports.newChar = async (interaction) => {
+newChar = async (interaction) => {
   // Get the data entered by the user
   const userID = interaction.user.tag;
   const charName = interaction.fields.getTextInputValue('charname');
@@ -128,7 +155,7 @@ exports.newChar = async (interaction) => {
   }
 };
 
-exports.shopLayout = async (interaction) => {
+shopLayout = async (interaction) => {
   const categoryToEdit = interaction.fields.getTextInputValue('categorytoedit');
   const layoutString = interaction.fields.getTextInputValue('layoutstring');
 
@@ -136,7 +163,41 @@ exports.shopLayout = async (interaction) => {
 }
 
 //BUTTONS
-exports.shopSwitch = async (interaction) => {
+shopSwitch = async (interaction) => {
   let [edittedEmbed, rows] = await shop.createShopEmbed(interaction.customId[11]);
   await interaction.update({ embeds: [edittedEmbed], components: rows});
 }
+salesSwitch = async (interaction) => {
+  let [edittedEmbed, rows] = await marketplace.createSalesEmbed(interaction.customId[11]);
+  await interaction.update({ embeds: [edittedEmbed], components: rows});
+}
+
+exports.handle = async (interaction) => {
+  if (interaction.isModalSubmit()) {
+    if (interaction.customId === 'additemmodal') {
+      addItem(interaction);
+    }
+    if (interaction.customId === 'newcharmodal') {
+      newChar(interaction);
+    }
+    if (interaction.customId === 'addusecasemodal') {
+      addUseCase(interaction);
+    }
+    if (interaction.customId === 'addrecipemodal') {
+      addRecipe(interaction);
+    }
+    if (interaction.customId === 'shoplayoutmodal') {
+      shopLayout(interaction);
+    }
+    if (interaction.customId === 'addusedescriptionmodal') {
+      addUseDescription(interaction);
+    }
+  } else if (interaction.isButton()) {
+    if (interaction.customId.substring(0, 11) == 'switch_page') {
+      shopSwitch(interaction);
+    } else if (interaction.customId.substring(0, 11) == 'switch_sale') {
+      salesSwitch(interaction);
+    }
+  }
+}
+

@@ -5,7 +5,8 @@ const { SlashCommandBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, T
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('addusedescription')
-		.setDescription('Add a "/use" description for the item to pop up when used'),
+		.setDescription('Add a "/use" description for the item to pop up when used')
+		.setDefaultMemberPermissions(0),
 	async execute(interaction) {
 		// Create the modal
 		const modal = new ModalBuilder()
