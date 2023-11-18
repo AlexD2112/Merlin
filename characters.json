@@ -22,11 +22,6 @@
     "kingdom": "East Anglia",
     "balance": 4100,
     "inventory": {
-      "Wood": 16,
-      "Big Shield": 9,
-      "Shield": 8,
-      "Alpha": 0,
-      "War Games": 0
     },
     "incomeList": {
       "Daily": 40,
@@ -109,10 +104,6 @@
     "kingdom": "Gwynedd",
     "balance": 1594,
     "inventory": {
-      "Wood": 35,
-      "Shield": 0,
-      "Big Shield": 2,
-      "Alpha": 0
     },
     "incomeList": {
       "Daily": 40,
