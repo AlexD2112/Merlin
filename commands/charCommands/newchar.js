@@ -1,4 +1,3 @@
-//ADMIN COMMAND
 const { SlashCommandBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 //const char = require('../../char'); // Importing char
 

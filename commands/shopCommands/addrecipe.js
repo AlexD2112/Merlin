@@ -5,6 +5,7 @@ const { SlashCommandBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, T
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('addrecipe')
+        .setDefaultMemberPermissions(0)
         .setDescription('Add a recipe for the item')
         .setDefaultMemberPermissions(0),
     async execute(interaction) {

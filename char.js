@@ -43,6 +43,17 @@ class char {
     dbm.saveFile(collectionName, playerID, charData);
   }
 
+  //returns player name and bio from playerID
+  static async editCharPlaceholders(playerID) {
+    let collectionName = 'characters';
+    let charData = await dbm.loadFile(collectionName, playerID);
+    if (charData) {
+      return [charData.name, charData.bio];
+    } else {
+      return "ERROR";
+    }
+  }  
+
   //Setavatar using new saveFile and loadFile
   static async setAvatar(avatarURL, userID) {
     try {
@@ -738,6 +749,47 @@ class char {
     }
     dbm.saveFile(charactersCollection, charID, charData);
     return returnEmbed;
+  }
+
+  static async setPlayerGold(player, gold) {
+    let collectionName = 'characters';
+    let charData = await dbm.loadFile(collectionName, player);
+    if (charData) {
+      charData.balance = gold;
+      dbm.saveFile(collectionName, player, charData);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  static async addItemToPlayer(player, item, amount) {
+    let collectionName = 'characters';
+    let charData = await dbm.loadFile(collectionName, player);
+    if (charData) {
+      //If amount is positive, add items to player or set to amount if they have none of the item already. If amount is negative, remove items from player or set to 0 if they have none of the item already, or less than the amount.
+      if (amount > 0) {
+        if (charData.inventory[item]) {
+          charData.inventory[item] += amount;
+        } else {
+          charData.inventory[item] = amount;
+        }
+      } else if (amount < 0) {
+        if (charData.inventory[item]) {
+          if (charData.inventory[item] + amount > 0) {
+            charData.inventory[item] += amount;
+          } else {
+            charData.inventory[item] = 0;
+          }
+        } else {
+          charData.inventory[item] = 0;
+        }
+      }
+      dbm.saveFile(collectionName, player, charData);
+      return true;
+    } else {
+      return false;
+    }
   }
 }
 
