@@ -5,17 +5,21 @@ const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, createWebhoo
 
 class char {
   // Function to add items
-  static newChar(playerID, charName, charBio, charKingdom) {
-    // Set the database name
-    let fileName = 'characters.json';
-    let data = dbm.load(fileName);
+  static async newChar(playerID, charName, charBio, charKingdom) {
+    // Set the collection name
+    let collectionName = 'characters';
 
-    if (data[playerID]) {
-      data[playerID].name = charName;
-      data[playerID].bio = charBio;
-      data[playerID].kingdom = charKingdom;
+    // Load the player's character data (if it exists)
+    let charData = await dbm.loadFile(collectionName, playerID);
+
+    if (charData) {
+      // If the character already exists, update the fields
+      charData.name = charName;
+      charData.bio = charBio;
+      charData.kingdom = charKingdom;
     } else {
-      data[playerID] = {
+      // If the character does not exist, create a new character
+      charData = {
         name: charName,
         bio: charBio,
         kingdom: charKingdom,
@@ -34,19 +38,12 @@ class char {
         shireID: 0
       };
     }
-    
-    dbm.save(fileName, data);
 
-    // // Reload the data
-    // data = dbm.load(fileName);
-
-    // // Add the specified item with a quantity of 1 to the inventory
-    // data[playerID].inventory["apples"] += 1;
-
-    // // Save the updated data
-    // dbm.save(fileName, data);
+    // Save the character data
+    dbm.saveFile(collectionName, playerID, charData);
   }
 
+  //Setavatar using new saveFile and loadFile
   static async setAvatar(avatarURL, userID) {
     try {
       // Make a HEAD request to check if the URL leads to a valid image
@@ -54,12 +51,12 @@ class char {
   
       // Check if the response status code indicates success (e.g., 200)
       if (response.status === 200) {
-        let fileName = 'characters.json';
-        let data = dbm.load(fileName);
+        let collectionName = 'characters';
+        let charData = await dbm.loadFile(collectionName, userID);
   
-        data[userID].icon = avatarURL;
+        charData.icon = avatarURL;
   
-        dbm.save(fileName, data);
+        dbm.saveFile(collectionName, userID, charData);
   
         return "Avatar has been set";
       } else {
@@ -70,25 +67,26 @@ class char {
     }
   }
 
-  static balance(userID) {
-    let data = dbm.load('characters.json');
-    if (data[userID]) {
+  //New commands using saveFile, saveCollection, loadFile and loadCollection
+  static async balance(userID) {
+    let collectionName = 'characters';
+    let charData = await dbm.loadFile(collectionName, userID);
+    if (charData) {
       const charEmbed = {
         color: 0x36393e,
         author: {
-          name: data[userID].name,
-          icon_url: data[userID].icon ? data[userID].icon : 'https://images-ext-1.discordapp.net/external/xNBNeaCotnpdWVuj-r0wO8X87d34DAH4X58Bqs--vyQ/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1148265132791713802/a2637c14d39ff85a1ed89a6fa888ebbc.png',
+          name: charData.name,
+          icon_url: charData.icon ? charData.icon : 'https://images-ext-1.discordapp.net/external/xNBNeaCotnpdWVuj-r0wO8X87d34DAH4X58Bqs--vyQ/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1148265132791713802/a2637c14d39ff85a1ed89a6fa888ebbc.png',
         },
-        description: ":coin: **" + data[userID].balance + "**",
+        description: ":coin: **" + charData.balance + "**",
       };
       return charEmbed;
     } else {
       return "You haven't made a character! Use /newchar first";
     }
-
   }
 
-  static stats(userID) {
+  static async stats(userID) {
     const PrestigeBar1Emoji = '<:PrestigeBar1:1165819978449158254>';
     const PrestigeBar2Emoji = '<:PrestigeBar2:1165819993552850944>';
     const PrestigeBar3Emoji = '<:PrestigeBar3:1165820399897034752>';
@@ -105,11 +103,12 @@ class char {
     const MartialEmoji = '<:Martial:1165722873248354425>';
     const IntrigueEmoji = '<:Intrigue:1165722896522563715>';
 
-    let data = dbm.load('characters.json');
-    if (data[userID]) {
-      const prestige = data[userID].stats.Prestige;
-      const martial = data[userID].stats.Martial;
-      const intrigue = data[userID].stats.Intrigue;
+    let collectionName = 'characters';
+    let charData = await dbm.loadFile(collectionName, userID);
+    if (charData) {
+      const prestige = charData.stats.Prestige;
+      const martial = charData.stats.Martial;
+      const intrigue = charData.stats.Intrigue;
 
       const maxPrestige = prestige;
       const maxMartial = martial;
@@ -206,45 +205,45 @@ class char {
       const charEmbed = {
         color: 0x36393e,
         author: {
-          name: data[userID].name,
-          icon_url: data[userID].icon ? data[userID].icon : 'https://images-ext-1.discordapp.net/external/xNBNeaCotnpdWVuj-r0wO8X87d34DAH4X58Bqs--vyQ/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1148265132791713802/a2637c14d39ff85a1ed89a6fa888ebbc.png',
+          name: charData.name,
+          icon_url: charData.icon ? charData.icon : 'https://images-ext-1.discordapp.net/external/xNBNeaCotnpdWVuj-r0wO8X87d34DAH4X58Bqs--vyQ/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1148265132791713802/a2637c14d39ff85a1ed89a6fa888ebbc.png',
         },
         description: "**`━━━━━━━Stats━━━━━━━`\n" + PrestigeEmoji + prestigeString + " " + prestige + "**/" + maxPrestige +  
               "\n**"+ MartialEmoji + martialString + " " + martial + "**/" + maxMartial +
               "\n**"+ IntrigueEmoji + intrigueString  + " " + intrigue + "**/" + maxIntrigue + 
               "\n**`━━━━━━━━━━━━━━━━━━━`**",
       };
+
       return charEmbed;
     } else {
       return "You haven't made a character! Use /newchar first";
     }
-
   }
-
-  static me(userID) {
-    let data = dbm.load('characters.json');
-    if (data[userID]) {
-      let bioString = data[userID].bio;
+  
+  static async me(userID) {
+    let collectionName = 'characters';
+    let charData = await dbm.loadFile(collectionName, userID);
+    if (charData) {
+      let bioString = charData.bio;
 
       const charEmbed = {
         color: 0x36393e,
         author: {
-          name: data[userID].name,
-          icon_url: data[userID].icon ? data[userID].icon : 'https://images-ext-1.discordapp.net/external/xNBNeaCotnpdWVuj-r0wO8X87d34DAH4X58Bqs--vyQ/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1148265132791713802/a2637c14d39ff85a1ed89a6fa888ebbc.png',
+          name: charData.name,
+          icon_url: charData.icon ? charData.icon : 'https://images-ext-1.discordapp.net/external/xNBNeaCotnpdWVuj-r0wO8X87d34DAH4X58Bqs--vyQ/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1148265132791713802/a2637c14d39ff85a1ed89a6fa888ebbc.png',
         },
         description: bioString,
         image: {
-          url: data[userID].icon ? data[userID].icon : 'https://images-ext-1.discordapp.net/external/xNBNeaCotnpdWVuj-r0wO8X87d34DAH4X58Bqs--vyQ/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1148265132791713802/a2637c14d39ff85a1ed89a6fa888ebbc.png',
+          url: charData.icon ? charData.icon : 'https://images-ext-1.discordapp.net/external/xNBNeaCotnpdWVuj-r0wO8X87d34DAH4X58Bqs--vyQ/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1148265132791713802/a2637c14d39ff85a1ed89a6fa888ebbc.png',
         },
       };
       return charEmbed;
     } else {
       return "You haven't made a character! Use /newchar first";
     }
-
   }
 
-  static char(userID) {
+  static async char(userID) {
     const PrestigeBar1Emoji = '<:PrestigeBar1:1165819978449158254>';
     const PrestigeBar2Emoji = '<:PrestigeBar2:1165819993552850944>';
     const PrestigeBar3Emoji = '<:PrestigeBar3:1165820399897034752>';
@@ -261,13 +260,14 @@ class char {
     const MartialEmoji = '<:Martial:1165722873248354425>';
     const IntrigueEmoji = '<:Intrigue:1165722896522563715>';
 
-    let data = dbm.load('characters.json');
-    if (data[userID]) {
-      let bioString = data[userID].bio;
+    let collectionName = 'characters';
+    let charData = await dbm.loadFile(collectionName, userID);
+    if (charData) {
+      let bioString = charData.bio;
 
-      const prestige = data[userID].stats.Prestige;
-      const martial = data[userID].stats.Martial;
-      const intrigue = data[userID].stats.Intrigue;
+      const prestige = charData.stats.Prestige;
+      const martial = charData.stats.Martial;
+      const intrigue = charData.stats.Intrigue;
 
       const maxPrestige = prestige;
       const maxMartial = martial;
@@ -364,13 +364,13 @@ class char {
       const charEmbed = {
         color: 0x36393e,
         author: {
-          name: data[userID].name,
-          icon_url: data[userID].icon ? data[userID].icon : 'https://images-ext-1.discordapp.net/external/xNBNeaCotnpdWVuj-r0wO8X87d34DAH4X58Bqs--vyQ/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1148265132791713802/a2637c14d39ff85a1ed89a6fa888ebbc.png',
+          name: charData.name,
+          icon_url: charData.icon ? charData.icon : 'https://images-ext-1.discordapp.net/external/xNBNeaCotnpdWVuj-r0wO8X87d34DAH4X58Bqs--vyQ/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1148265132791713802/a2637c14d39ff85a1ed89a6fa888ebbc.png',
         },
         description: bioString,
         fields: [
           {
-            name: ":coin: Balance: " + data[userID].balance,
+            name: ":coin: Balance: " + charData.balance,
             value: "**`━━━━━━━Stats━━━━━━━`\n"+ PrestigeEmoji + prestigeString + " " + prestige + "**/" + maxPrestige +  
               "\n**"+ MartialEmoji + martialString + " " + martial + "**/" + maxMartial +
               "\n**"+ IntrigueEmoji + intrigueString  + " " + intrigue + "**/" + maxIntrigue + 
@@ -382,17 +382,15 @@ class char {
     } else {
       return "You haven't made a character! Use /newchar first";
     }
-
   }
 
-  //Create a webhook and send a message using it with character name, avatar and message in the channel the command was used in
   static async say(userID, message, channelID) {
     console.log(userID);
-    let data = dbm.load('characters.json');
-    if (data[userID]) {
-      let webhookName = data[userID].name;
-      //if data[userID].icon is undefined, set it to the default avatar
-      let webhookAvatar = data[userID].icon ? data[userID].icon : 'https://images-ext-1.discordapp.net/external/xNBNeaCotnpdWVuj-r0wO8X87d34DAH4X58Bqs--vyQ/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1148265132791713802/a2637c14d39ff85a1ed89a6fa888ebbc.png';
+    let charData = dbm.loadFile('characters', userID);
+    if (charData) {
+      let webhookName = charData.name;
+      //if charData.icon is undefined, set it to the default avatar
+      let webhookAvatar = charData.icon ? charData.icon : 'https://images-ext-1.discordapp.net/external/xNBNeaCotnpdWVuj-r0wO8X87d34DAH4X58Bqs--vyQ/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1148265132791713802/a2637c14d39ff85a1ed89a6fa888ebbc.png';
       let webhookMessage = message;
 
       (async () => {
@@ -417,41 +415,41 @@ class char {
   }
 
   static async incomes(userID, numericID) {
-    let fileName = 'characters.json';
+    let collectionName = 'characters';
 
     // Load the data
-    let data = dbm.load(fileName);
+    let charData = dbm.loadFile(collectionName, userID);
 
     var now = new Date();
     now.setUTCDate(now.getUTCDate() + 1);
     now.setUTCHours(0, 0, 0, 0);
 
-    let charIncomeData = data[userID].incomeList;
+    let charIncomeData = charData.incomeList;
     let superstring = "";
     let afterString = "";
     let total = 0;
     for (let [key, value] of Object.entries(charIncomeData)) {
       superstring += (":coin: **" + key + "** : `" + String(value) + "`\n");
-      if ((data[userID].incomeAvailable === true)) {
+      if ((charData.incomeAvailable === true)) {
         afterString += (":coin: **" + key + "** : `+" + String(value) + "`\n");
       }
       total += value;
     }
     superstring += ":coin: **__Total :__** `" + total + "`\n\n";
-    if ((data[userID].incomeAvailable === true)) {
+    if ((charData.incomeAvailable === true)) {
       afterString += (":coin: **__Total :__** `+" + total + "`");
     }
-    if (data[userID].incomeAvailable === false) {
+    if (charData.incomeAvailable === false) {
       superstring += "You have already used income this income cycle!";
     } else {
       superstring += "Succesfully collected!"
     }
     superstring += "\nNext cycle  <t:" + (now.getTime()/1000) + ":R>"
     
-    data[userID].incomeAvailable = false;
-    data[userID].balance += total;
+    charData.incomeAvailable = false;
+    charData.balance += total;
 
-    dbm.save(fileName, data);
+    dbm.saveFile(collectionName, userID, charData);
     
     const incomeEmbed = {
       color: 0x36393e,
@@ -463,12 +461,12 @@ class char {
   }
 
   static async resetIncomeCD() {
-    let fileName = 'characters.json';
-    let data = dbm.load(fileName);
+    let collectionName = 'characters';
+    let data = dbm.loadCollection(collectionName);
     for (let [_, charData] of Object.entries(data)) {
       charData.incomeAvailable = true;
     }
-    dbm.save(fileName, data);
+    dbm.saveCollection(collectionName, data);
   }
 
   static async craft(charID, itemName) {
@@ -479,10 +477,10 @@ class char {
     const numToUse = 1;
 
     let returnEmbed = new EmbedBuilder();
-    const charactersJSONName = 'characters.json';
-    let charactersData = dbm.load(charactersJSONName);
-    const shopJSONName = 'shop.json';
-    let shopData = dbm.load(shopJSONName);
+    const charactersCollection = 'characters';
+    let charData = dbm.loadFile(charactersCollection, charID);
+    const shopCollection = 'shop';
+    let shopData = dbm.loadCollection(shopCollection);
 
     if (!shopData[itemName].recipe) {
       return "No recipe";
@@ -490,8 +488,8 @@ class char {
       returnEmbed.setTitle("**__Started Crafting:__" + shopData[itemName].icon + itemName + "**");
       if (shopData[itemName].recipe.countdown) {
         if (shopData[itemName].recipe.takes) {
-          // Check crafting slots in charactersData[charID].cooldowns
-          const craftSlots = charactersData[charID].cooldowns.craftSlots || {};
+          // Check crafting slots in charData.cooldowns
+          const craftSlots = charData.cooldowns.craftSlots || {};
 
           if (Object.keys(craftSlots).length >= 3) {
               return "All crafting slots are in use.";
@@ -502,13 +500,13 @@ class char {
           // Remove items in recipe.takes
           for (let key in shopData[itemName].recipe.takes) {
             const val = shopData[itemName].recipe.takes[key] * numToUse;
-            if (!charactersData[charID].inventory[key] || charactersData[charID].inventory[key] < val) {
-                if (!charactersData[charID].inventory[key]) {
-                  charactersData[charID].inventory[key] = 0;
+            if (!charData.inventory[key] || charData.inventory[key] < val) {
+                if (!charData.inventory[key]) {
+                  charData.inventory[key] = 0;
                 }
-                return "Not enough **" + shopData[key].icon + key + "**! You need " + val + " and only have " + charactersData[charID].inventory[key] + ".";
+                return "Not enough **" + shopData[key].icon + key + "**! You need " + val + " and only have " + charData.inventory[key] + ".";
             } else {
-                charactersData[charID].inventory[key] -= val;
+                charData.inventory[key] -= val;
                 takeString += "`   -" + val + "` " + shopData[key].icon + " " + key + "\n";
             }
           }
@@ -526,7 +524,7 @@ class char {
           craftSlots[slotKey] = expirationTime;
 
           // Update craftSlots in charactersData
-          charactersData[charID].cooldowns.craftSlots = craftSlots;
+          charData.cooldowns.craftSlots = craftSlots;
 
           returnEmbed.addFields(
             { name: '**Took:**', value: takeString },
@@ -539,7 +537,7 @@ class char {
         return "Item does not have a crafting time. Likely an error in setup, ping Alex or Serski";
       }
     }
-    dbm.save(charactersJSONName, charactersData);
+    dbm.saveFile(charactersCollection, charID, charData);
     return returnEmbed;
   }
 
@@ -555,25 +553,25 @@ class char {
     }
 
     let returnEmbed = new EmbedBuilder();
-    const charactersJSONName = 'characters.json';
-    let charactersData = dbm.load(charactersJSONName);
-    const shopJSONName = 'shop.json';
-    let shopData = dbm.load(shopJSONName);
+    const charactersCollection = 'characters';
+    let charData = dbm.loadFile(charactersCollection, charID);
+    const shopCollection = 'shop';
+    let shopData = dbm.loadCollection(shopCollection);
 
     if (!shopData[itemName].usageCase) {
       return "No usage case";
     } else {
       if (shopData[itemName].usageCase.countdown) {
-        if (charactersData[charID].cooldowns[itemName]) {
-          if (charactersData[charID].cooldowns[itemName] > Math.round(Date.now() / 1000)) {
-            return "You have used this item recently! Can be used again <t:" + charactersData[charID].cooldowns[itemName] + ":R>";
+        if (charData.cooldowns[itemName]) {
+          if (charData.cooldowns[itemName] > Math.round(Date.now() / 1000)) {
+            return "You have used this item recently! Can be used again <t:" + charData.cooldowns[itemName] + ":R>";
           }
-        } else if (!charactersData[charID].cooldowns) {
-          charactersData[charID].cooldowns = {};
+        } else if (!charData.cooldowns) {
+          charData.cooldowns = {};
         }
-        charactersData[charID].cooldowns[itemName] = Math.round(Date.now() / 1000) + shopData[itemName].usageCase.countdown;
+        charData.cooldowns[itemName] = Math.round(Date.now() / 1000) + shopData[itemName].usageCase.countdown;
         returnEmbed.addFields(
-          { name: '**Can be used again:**', value: '<t:' + charactersData[charID].cooldowns[itemName] + ':R>'}
+          { name: '**Can be used again:**', value: '<t:' + charData.cooldowns[itemName] + ':R>'}
         );
       }
 
@@ -596,13 +594,13 @@ class char {
 
           if (shopData[itemName].usageCase.gives) {
             let takeString = "";
-            if (!charactersData[charID].inventory[itemName] || charactersData[charID].inventory[itemName] < numToUse) {
-              if (!charactersData[charID].inventory[itemName]) {
-                charactersData[charID].inventory[itemName] = 0;
+            if (!charData.inventory[itemName] || charData.inventory[itemName] < numToUse) {
+              if (!charData.inventory[itemName]) {
+                charData.inventory[itemName] = 0;
               }
-              return "Not enough **" + shopData[itemName].icon + itemName + "**! You need " + numToUse + " and only have " + charactersData[charID].inventory[itemName] + ".";
+              return "Not enough **" + shopData[itemName].icon + itemName + "**! You need " + numToUse + " and only have " + charData.inventory[itemName] + ".";
             } else {
-              charactersData[charID].inventory[itemName] -= numToUse;
+              charData.inventory[itemName] -= numToUse;
               takeString += "`   -" + numToUse + "` " + shopData[itemName].icon + " " + itemName + "\n";
             }
             if (shopData[itemName].usageCase.takes) {
@@ -622,10 +620,10 @@ class char {
                   default:
                     return "This use case includes an invalid stat name. Likely an error in setup, contact Alex or Serski";
                 }
-                if (!charactersData[charID].stats[key]) {
-                  charactersData[charID].stats[key] = 0;
+                if (!charData.stats[key]) {
+                  charData.stats[key] = 0;
                 }
-                charactersData[charID].stats[key] -= val;
+                charData.stats[key] -= val;
                 takeString += "`   -" + val + "` " + icon + " " + key + "\n";
               }
             }
@@ -646,10 +644,10 @@ class char {
                 default:
                   return "This use case includes an invalid stat name. Likely an error in setup, contact Alex or Serski";
               }
-              if (!charactersData[charID].stats[key]) {
-                charactersData[charID].stats[key] = 0;
+              if (!charData.stats[key]) {
+                charData.stats[key] = 0;
               }
-              charactersData[charID].stats[key] += val;
+              charData.stats[key] += val;
               giveString += "`   +" + val + "` " + icon + " " + key + "\n";
             }
             if (giveString && takeString) {
@@ -676,31 +674,31 @@ class char {
           }
           if (shopData[itemName].usageCase.gives) {
             let takeString = "";
-            if (!charactersData[charID].inventory[itemName] || charactersData[charID].inventory[itemName] < numToUse) {
-              if (!charactersData[charID].inventory[itemName]) {
-                charactersData[charID].inventory[itemName] = 0;
+            if (!charData.inventory[itemName] || charData.inventory[itemName] < numToUse) {
+              if (!charData.inventory[itemName]) {
+                charData.inventory[itemName] = 0;
               }
-              return "Not enough **" + shopData[itemName].icon + itemName + "**! You need " + numToUse + " and only have " + charactersData[charID].inventory[itemName] + ".";
+              return "Not enough **" + shopData[itemName].icon + itemName + "**! You need " + numToUse + " and only have " + charData.inventory[itemName] + ".";
             } else {
-              charactersData[charID].inventory[itemName] -= numToUse;
+              charData.inventory[itemName] -= numToUse;
               takeString += "`   -" + numToUse + "` " + shopData[itemName].icon + " " + itemName + "\n";
             }
             for (let key in shopData[itemName].usageCase.takes) {
               let val = shopData[itemName].usageCase.takes[key];
-              if (!charactersData[charID].inventory[key] || charactersData[charID].inventory[key] < val) {
-                if (!charactersData[charID].inventory[key]) {
-                  charactersData[charID].inventory[key] = 0;
+              if (!charData.inventory[key] || charData.inventory[key] < val) {
+                if (!charData.inventory[key]) {
+                  charData.inventory[key] = 0;
                 }
-                return "Not enough **" + shopData[key].icon + key + "**! You need " + val + " and only have " + charactersData[charID].inventory[key] + ".";
+                return "Not enough **" + shopData[key].icon + key + "**! You need " + val + " and only have " + charData.inventory[key] + ".";
               } else {
-                charactersData[charID].inventory[key] -= val;
+                charData.inventory[key] -= val;
                 takeString += "`   -" + val + "` " + shopData[key].icon + " " + key + "\n";
               }
             }
             let giveString = "";
             for (let key in shopData[itemName].usageCase.gives) {
               let val = shopData[itemName].usageCase.gives[key];
-              charactersData[charID].incomeList[key] = val;
+              charData.incomeList[key] = val;
               giveString += "`   +" + val + "` :coin: " + key + " per day\n";
             }
             if (giveString && takeString) {
@@ -727,18 +725,18 @@ class char {
       }
     }
     if (shopData[itemName].usageCase.countdown) {
-      if (!charactersData[charID].cooldowns) {
-        charactersData[charID].cooldowns = {};
+      if (!charData.cooldowns) {
+        charData.cooldowns = {};
       }
-      if (!charactersData[charID].cooldowns[itemName]) {
-        charactersData[charID].cooldowns[itemName] = 0;
+      if (!charData.cooldowns[itemName]) {
+        charData.cooldowns[itemName] = 0;
       }
-      charactersData[charID].cooldowns[itemName] = Math.round(Date.now() / 1000) + shopData[itemName].usageCase.countdown;
+      charData.cooldowns[itemName] = Math.round(Date.now() / 1000) + shopData[itemName].usageCase.countdown;
       returnEmbed.addFields(
-        { name: '**Can be used again:**', value: '<t:' + charactersData[charID].cooldowns[itemName] + ':R>'}
+        { name: '**Can be used again:**', value: '<t:' + charData.cooldowns[itemName] + ':R>'}
       );
     }
-    dbm.save(charactersJSONName, charactersData);
+    dbm.saveFile(charactersCollection, charID, charData);
     return returnEmbed;
   }
 }

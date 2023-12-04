@@ -12,16 +12,16 @@ class marketplace {
    * */ 
   static async postSale(numberItems, itemName, cost, userTag, userID) {
     // Load the character.json and marketplace.json file
-    let charData = dbm.load('characters.json');
-    let marketData = dbm.load('marketplace.json');
+    let charData = dbm.loadFile('characters', userTag);
+    let marketData = dbm.loadCollection('marketplace');
     // Find the item name using shop.findItemName
     itemName = await shop.findItemName(itemName);
     // Check if they have enough of the item
-    if (charData[userTag].inventory[itemName] < numberItems) {
+    if (charData.inventory[itemName] < numberItems) {
       return "You don't have enough of that item to sell it!";
     }
     // Take the items from their inventory
-    charData[userTag].inventory[itemName] -= numberItems;
+    charData.inventory[itemName] -= numberItems;
     // Add them to the marketplace under a created unique ID, one greater than the last. The last will be under lastID in marketplace.json
     let itemID = marketData.lastID + 1;
     marketData.lastID = itemID;
@@ -40,9 +40,9 @@ class marketplace {
       "sellerID": userID
     }
     // Save the character.json file
-    dbm.save('characters.json', charData);
+    dbm.saveFile('characters', userTag, charData);
     // Save the marketplace.json file
-    dbm.save('marketplace.json', marketData);
+    dbm.saveCollection('marketplace', marketData);
     // Create an embed to return on success. Will just say @user listed **numberItems :itemIcon: itemName** to the **/sales** page for :coin:**cost**.
     let embed = new EmbedBuilder();
     embed.setDescription(`<@${userID}> listed **${numberItems} ${await shop.getItemIcon(itemName)} ${itemName}** to the **/sales** page for :coin:**${cost}**.`);
@@ -55,7 +55,7 @@ class marketplace {
   static async createSalesEmbed(page) {
     page = Number(page);
     // Load the marketplace.json file
-    let marketData = dbm.load('marketplace.json');
+    let marketData = dbm.loadCollection('marketplace');
 
     // Get the start indices of every page. Don't split items, but can split categories
 
@@ -164,8 +164,8 @@ class marketplace {
   //Buy a sale. Send the money from the buyer to the seller, and give the buyer the items. If the seller is buying their own sale, merely give them back their items, no need to check their money- this functionality will exist for accidental sales
   static async buySale(saleID, userTag, userID) {
     // Load the character.json and marketplace.json file
-    let charData = dbm.load('characters.json');
-    let marketData = dbm.load('marketplace.json');
+    let charData = dbm.loadCollection('characters');
+    let marketData = dbm.loadCollection('marketplace');
     // Search through marketData for the saleID
     const [foundCategory, foundItemName, sale] = await marketplace.getSale(saleID);
     // If the saleID doesn't exist, return an error
@@ -179,9 +179,9 @@ class marketplace {
       // Remove the sale from the marketplace
       delete marketData.marketplace[foundCategory][foundItemName][saleID];
       // Save the character.json file
-      dbm.save('characters.json', charData);
+      dbm.saveCollection('characters', charData);
       // Save the marketplace.json file
-      dbm.save('marketplace.json', marketData);
+      dbm.saveCollection('marketplace', marketData);
       // Create an embed to return on success. Will just say @user bought **numberItems :itemIcon: itemName** from @seller for :coin:**cost**.
       let embed = new EmbedBuilder();
       embed.setDescription(`<@${userID}> bought **${sale.number} ${await shop.getItemIcon(foundItemName)} ${foundItemName}** back from themselves. It was listed for :coin:**${sale.cost}**.`);
@@ -203,9 +203,9 @@ class marketplace {
     console.log(marketData.marketplace[foundCategory][foundItemName][saleID]);
     delete marketData.marketplace[foundCategory][foundItemName][saleID];
     // Save the character.json file
-    dbm.save('characters.json', charData);
+    dbm.saveCollection('characters', charData);
     // Save the marketplace.json file
-    dbm.save('marketplace.json', marketData);
+    dbm.saveCollection('marketplace', marketData);
     // Create an embed to return on success. Will just say @user bought **numberItems :itemIcon: itemName** from @seller for :coin:**cost**.
     let embed = new EmbedBuilder();
     embed.setDescription(`<@${userID}> bought **${sale.number} ${await shop.getItemIcon(foundItemName)} ${foundItemName}** from <@${sale.sellerID}> for :coin:**${sale.cost}**.`);
@@ -214,8 +214,6 @@ class marketplace {
 
   //Inspect a sale. Will take the saleID and return an embed with the sale information
   static async inspectSale(saleID) {
-    // Load the marketplace.json file
-    let marketData = dbm.load('marketplace.json');
     // Search through marketData for the saleID
     const [itemCategory, itemName, sale] = await marketplace.getSale(saleID);
     // If the saleID doesn't exist, return an error
@@ -234,7 +232,7 @@ class marketplace {
   //Get itemcategory, itemname and sale from saleID
   static async getSale(saleID) {
     // Load the marketplace.json file
-    let marketData = dbm.load('marketplace.json');
+    let marketData = dbm.loadCollection('marketplace');
     // Search through marketData for the saleID
     let sale;
     let itemName;

@@ -1,39 +1,76 @@
-const fs = require('fs');
+const admin = require('firebase-admin');
+
+// Replace 'path/to/serviceAccountKey.json' with the path to the JSON file you downloaded
+const serviceAccount = require('./firebaseKey.json');
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
+const db = admin.firestore();
 
 let data = {}
 
 // Save Function - save(UserName, DataToBeSaved)
-function save(fileName, data) {
-  try {
-    fs.writeFileSync(fileName, JSON.stringify(data, null, 2), 'utf8');
-  } catch (error) {
-    console.error(`Error saving data to ${fileName}:`, error);
-  }
+function saveCollection(collectionName, data) {
+  const batch = db.batch();
+
+  Object.keys(data).forEach(docId => {
+    const docRef = db.collection(collectionName).doc(docId);
+    batch.set(docRef, data[docId]);
+  });
+
+  return batch.commit()
+    .then(() => console.log('Collection saved successfully'))
+    .catch(error => console.error('Error saving collection:', error));
 }
 
 // Load Function - load(UserName)
-function load(fileName) {
+async function loadCollection(collectionName) {
   try {
-    const rawData = fs.readFileSync(fileName, 'utf8');
-    data = JSON.parse(rawData)
+    const collection = await db.collection(collectionName).get();
+    const data = {};
+    collection.forEach(doc => data[doc.id] = doc.data());
     return data;
   } catch (error) {
-    console.error(`Error loading data from ${fileName}:`, error);
+    console.error('Error loading collection:', error);
     return {};
   }
 }
 
-// Update Function - update(name, updatedata, newvalue)
-function update(fileName, updateData, newValue) {
-  load(fileName); // Loads past value
-  data[updateData] = newValue; // Changes the value/adds a new variable
-  save(fileName, data); // Saves the changes
+function saveFile(collectionName, docId, data) {
+  db.collection(collectionName).doc(docId).set(data)
+    .then(() => console.log('Document saved successfully'))
+    .catch(error => console.error('Error saving document:', error));
 }
 
-function varDelete(fileName, deleteName) {
-  load(fileName);
-  delete data[deleteName];
-  save(fileName, data);
+async function loadFile(collectionName, docId) {
+  try {
+    const doc = await db.collection(collectionName).doc(docId).get();
+    if (doc.exists) {
+      return doc.data();
+    } else {
+      console.log('No such document!');
+      return {};
+    }
+  } catch (error) {
+    console.error('Error loading document:', error);
+    return {};
+  }
 }
 
-module.exports = { update, varDelete, load, save};
+function docDelete(collectionName, docName) {
+  db.collection(collectionName).doc(docName).delete()
+    .then(() => console.log('Document deleted'))
+    .catch(error => console.error('Error deleting document:', error));
+}
+
+function fieldDelete(collectionName, docName, deleteField) {
+  db.collection(collectionName).doc(docName).update({
+    [deleteField]: admin.firestore.FieldValue.delete()
+  })
+    .then(() => console.log('Field deleted'))
+    .catch(error => console.error('Error deleting field:', error));
+}
+
+module.exports = { saveCollection, loadCollection, saveFile, loadFile, varDelete };
