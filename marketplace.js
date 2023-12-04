@@ -20,7 +20,7 @@ class marketplace {
       return "That item doesn't exist!";
     }
     // Check if they have enough of the item
-    if (charData.inventory[itemName] < numberItems) {
+    if (!charData.inventory[itemName] || charData.inventory[itemName] < numberItems) {
       return "You don't have enough of that item to sell it!";
     }
     // Take the items from their inventory
