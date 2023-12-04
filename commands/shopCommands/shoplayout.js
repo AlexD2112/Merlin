@@ -16,7 +16,7 @@ module.exports = {
 		// Create the text input components
 		const categoryToEditInput = new TextInputBuilder()
 			.setCustomId('categorytoedit')
-			.setLabel('Category to set- whole layout, use "GENERAL"')
+			.setLabel('Category to set- whole layout, use GENERAL')
 			.setStyle(TextInputStyle.Short);
 		
 		const layoutStringInput = new TextInputBuilder()

@@ -25,12 +25,13 @@ function saveCollection(collectionName, data) {
     .catch(error => console.error('Error saving collection:', error));
 }
 
-// Load Function - load(UserName)
+// Load Function - creates a map of doc names to doc data
 async function loadCollection(collectionName) {
   try {
     const collection = await db.collection(collectionName).get();
     const data = {};
     collection.forEach(doc => data[doc.id] = doc.data());
+    console.log(data);
     return data;
   } catch (error) {
     console.error('Error loading collection:', error);
