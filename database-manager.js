@@ -73,4 +73,4 @@ function fieldDelete(collectionName, docName, deleteField) {
     .catch(error => console.error('Error deleting field:', error));
 }
 
-module.exports = { saveCollection, loadCollection, saveFile, loadFile, varDelete };
+module.exports = { saveCollection, loadCollection, saveFile, loadFile, docDelete, fieldDelete };
