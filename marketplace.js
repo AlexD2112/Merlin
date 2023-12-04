@@ -16,6 +16,9 @@ class marketplace {
     let marketData = dbm.loadCollection('marketplace');
     // Find the item name using shop.findItemName
     itemName = await shop.findItemName(itemName);
+    if (itemName = "ERROR") {
+      return "That item doesn't exist!";
+    }
     // Check if they have enough of the item
     if (charData.inventory[itemName] < numberItems) {
       return "You don't have enough of that item to sell it!";
