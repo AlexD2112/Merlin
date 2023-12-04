@@ -12,7 +12,7 @@ const db = admin.firestore();
 let data = {}
 
 // Save Function - save(UserName, DataToBeSaved)
-function saveCollection(collectionName, data) {
+async function saveCollection(collectionName, data) {
   const batch = db.batch();
 
   Object.keys(data).forEach(docId => {
@@ -39,7 +39,7 @@ async function loadCollection(collectionName) {
   }
 }
 
-function saveFile(collectionName, docId, data) {
+async function saveFile(collectionName, docId, data) {
   db.collection(collectionName).doc(docId).set(data)
     .then(() => console.log('Document saved successfully'))
     .catch(error => console.error('Error saving document:', error));

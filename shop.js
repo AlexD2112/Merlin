@@ -4,9 +4,11 @@ const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('
 
 class shop {
   // Function to find an item by name in the shop
+  //THIS IS INEFFICIENT BECAUSE IT MEANS CALLING IT MEANS TWO CALLS TO THE DATABASE- FIX LATER
   static async findItemName(itemName) {
     let data = await dbm.loadCollection('shop');
     let dataKeys = Object.keys(data);
+    console.log(dataKeys);
     for (let i = 0; i < dataKeys.length; i++) {
       if (dataKeys[i].toLowerCase() == itemName.toLowerCase()) {
         return dataKeys[i];
