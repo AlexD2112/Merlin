@@ -31,7 +31,6 @@ async function loadCollection(collectionName) {
     const collection = await db.collection(collectionName).get();
     const data = {};
     collection.forEach(doc => data[doc.id] = doc.data());
-    console.log(data);
     return data;
   } catch (error) {
     console.error('Error loading collection:', error);

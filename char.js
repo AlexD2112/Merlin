@@ -397,7 +397,7 @@ class char {
 
   static async say(userID, message, channelID) {
     console.log(userID);
-    let charData = dbm.loadFile('characters', userID);
+    let charData = await dbm.loadFile('characters', userID);
     if (charData) {
       let webhookName = charData.name;
       //if charData.icon is undefined, set it to the default avatar
@@ -429,7 +429,7 @@ class char {
     let collectionName = 'characters';
 
     // Load the data
-    let charData = dbm.loadFile(collectionName, userID);
+    let charData = await dbm.loadFile(collectionName, userID);
 
     var now = new Date();
     now.setUTCDate(now.getUTCDate() + 1);
@@ -473,7 +473,7 @@ class char {
 
   static async resetIncomeCD() {
     let collectionName = 'characters';
-    let data = dbm.loadCollection(collectionName);
+    let data = await dbm.loadCollection(collectionName);
     for (let [_, charData] of Object.entries(data)) {
       charData.incomeAvailable = true;
     }
@@ -489,9 +489,9 @@ class char {
 
     let returnEmbed = new EmbedBuilder();
     const charactersCollection = 'characters';
-    let charData = dbm.loadFile(charactersCollection, charID);
+    let charData = await dbm.loadFile(charactersCollection, charID);
     const shopCollection = 'shop';
-    let shopData = dbm.loadCollection(shopCollection);
+    let shopData = await dbm.loadCollection(shopCollection);
 
     if (!shopData[itemName].recipe) {
       return "No recipe";
@@ -565,9 +565,9 @@ class char {
 
     let returnEmbed = new EmbedBuilder();
     const charactersCollection = 'characters';
-    let charData = dbm.loadFile(charactersCollection, charID);
+    let charData = await dbm.loadFile(charactersCollection, charID);
     const shopCollection = 'shop';
-    let shopData = dbm.loadCollection(shopCollection);
+    let shopData = await dbm.loadCollection(shopCollection);
 
     if (!shopData[itemName].usageCase) {
       return "No usage case";

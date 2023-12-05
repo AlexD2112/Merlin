@@ -8,7 +8,6 @@ class shop {
   static async findItemName(itemName) {
     let data = await dbm.loadCollection('shop');
     let dataKeys = Object.keys(data);
-    console.log(dataKeys);
     for (let i = 0; i < dataKeys.length; i++) {
       if (dataKeys[i].toLowerCase() == itemName.toLowerCase()) {
         return dataKeys[i];
@@ -567,7 +566,7 @@ class shop {
           break;
       }
     }
-    let data = dbm.loadFile('shop', itemName);
+    let data = await dbm.loadFile('shop', itemName);
     data.recipe = {};
     data.recipe.takes = takesMap;
     data.recipe.countdown = parseInt(countdown) * 3600;
@@ -587,7 +586,7 @@ class shop {
   }
 
   static async addUseDescription(itemName, itemDescription) {
-    let data = dbm.loadCollection('shop');
+    let data = await dbm.loadCollection('shop');
     if (!data[itemName] || !data[itemName].usageCase) {
       return "ERROR! DOES NOT ALREADY HAVE A USE CASE. USE /addusecase FIRST"
     }
@@ -609,7 +608,7 @@ class shop {
       // Check if the response status code indicates success (e.g., 200)
       if (response.status === 200) {
         let collectionName = 'shop';
-        let data = dbm.loadFile(collectionName, itemName);
+        let data = await dbm.loadFile(collectionName, itemName);
         if (data.usageCase) {
           data.usageCase.image = avatarURL;
   
@@ -631,8 +630,8 @@ class shop {
     page = Number(page);
     const itemsPerPage = 25;
     // Load data from shop.json and shoplayout.json
-    const shopData = dbm.loadCollection('shop');
-    const shopLayoutData = dbm.loadCollection('shoplayout');
+    const shopData = await dbm.loadCollection('shop');
+    const shopLayoutData = await dbm.loadFile('shoplayout', 'shopLayout');
 
     let startIndices = [];
     startIndices[0] = 0;
@@ -668,6 +667,7 @@ class shop {
       for (const category of pageItems) {
         const endSpaces = "-".repeat(20 - category.length - 2);
         descriptionText += `**\`--${category}${endSpaces}\`**\n`;
+        console.log(shopLayoutData);
         descriptionText += shopLayoutData[category]
           .map((item) => {
             const icon = shopData[item].icon;
@@ -718,8 +718,8 @@ class shop {
   //function to create an embed of player inventory
   static async createInventoryEmbed(charID) {
     // load data from characters.json and shop.json
-    const charData = dbm.loadCollection('characters');
-    const shopData = dbm.loadCollection('shop');
+    const charData = await dbm.loadCollection('characters');
+    const shopData = await dbm.loadCollection('shop');
 
     // create a 2d of items in the player's inventory sorted by category
     let inventory = [];
@@ -762,7 +762,7 @@ class shop {
   // Function to print item list
   static async shop() {
     // Load the data
-    let data = dbm.loadCollection('shop');
+    let data = await dbm.loadCollection('shop');
     let superstring = ""
     for (let [key, value] of Object.entries(data)) {
       superstring = superstring + (String(value["icon"]) + " " + key + " : " + String(value["price"]) + "\n");
@@ -784,7 +784,7 @@ class shop {
   }
 
   static async getItemPrice(itemName) {
-    let data = dbm.loadCollection('shop');
+    let data = await dbm.loadCollection('shop');
     var price;
     if (data[itemName]) {
       price = data[itemName].price;
@@ -795,7 +795,7 @@ class shop {
   }
 
   static async getItemCategory(itemName) {
-    let data = dbm.loadCollection('shop');
+    let data = await dbm.loadCollection('shop');
     var category;
     if (data[itemName]) {
       category = data[itemName].category;
@@ -806,7 +806,7 @@ class shop {
   }
 
   static async getItemIcon(itemName) {
-    let data = dbm.loadCollection('shop');
+    let data = await dbm.loadCollection('shop');
     var icon;
     if (data[itemName]) {
       icon = data[itemName].icon;
@@ -822,7 +822,7 @@ class shop {
     const IntrigueEmoji = '<:Intrigue:1165722896522563715>';
     itemName = await this.findItemName(itemName);
 
-    let itemData = dbm.loadFile('shop', itemName);
+    let itemData = await dbm.loadFile('shop', itemName);
     
     const inspectEmbed = new Discord.EmbedBuilder()
       .setTitle('**__Item:__ ' +  itemData.icon + " " + itemName + "**")
@@ -946,7 +946,7 @@ class shop {
     let charCollection = 'characters';
 
     let returnString;
-    let charData = dbm.loadFile(charCollection, charID);
+    let charData = await dbm.loadFile(charCollection, charID);
     if (charData.balance <= (price * numToBuy)) {
       returnString = "You do not have enough gold!";
       dbm.saveFile(charCollection, charID, charData);
@@ -1004,7 +1004,7 @@ class shop {
           return ("ERROR: Invalid line: " + line);
         }
       }
-      let shopData = dbm.loadCollection("shop");
+      let shopData = await dbm.loadCollection("shop");
       for (const category in shopMap) {
         for (const item of shopMap[category]) {
           if (!shopData[item]) {
@@ -1015,9 +1015,8 @@ class shop {
         }
       }
       dbm.saveCollection("shop", shopData);
-      let layoutData = dbm.loadCollection("shoplayout");
-      layoutData = shopMap;
-      dbm.saveCollection("shoplayout", layoutData);
+      console.log(shopMap);
+      dbm.saveFile("shoplayout", "shopLayout", shopMap);
 
       let result = "Shop layout updated successfully. Categories and items added:\n";
       for (const category in shopMap) {
@@ -1067,7 +1066,7 @@ class shop {
           return "ERROR: Invalid line: " + line;
         }
       }
-      let shopData = dbm.loadCollection("shop");
+      let shopData = await dbm.loadCollection("shop");
       for (const item of catMap) {
         if (!shopData[item]) {
           return ("ERROR! Item " + item + " is not in shop");
@@ -1077,9 +1076,9 @@ class shop {
       }
       dbm.saveCollection("shop", shopData);
 
-      let layoutData = dbm.loadCollection("shoplayout");
+      let layoutData = await dbm.loadFile("shoplayout", "shopLayout");
       layoutData[categoryToEdit] = catMap;
-      dbm.saveCollection("shoplayout", layoutData);
+      dbm.saveFile("shoplayout", "shopLayout", layoutData);
 
       let result = `Category "${categoryToEdit}" updated successfully. Items added:\n`;
       for (const item of catMap) {

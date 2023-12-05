@@ -12,8 +12,8 @@ class marketplace {
    * */ 
   static async postSale(numberItems, itemName, cost, userTag, userID) {
     // Load the character.json and marketplace.json file
-    let charData = dbm.loadFile('characters', userTag);
-    let marketData = dbm.loadCollection('marketplace');
+    let charData = await dbm.loadFile('characters', userTag);
+    let marketData = await dbm.loadCollection('marketplace');
     // Find the item name using shop.findItemName
     itemName = await shop.findItemName(itemName);
     if (itemName = "ERROR") {
@@ -58,7 +58,7 @@ class marketplace {
   static async createSalesEmbed(page) {
     page = Number(page);
     // Load the marketplace.json file
-    let marketData = dbm.loadCollection('marketplace');
+    let marketData = await dbm.loadCollection('marketplace');
 
     // Get the start indices of every page. Don't split items, but can split categories
 
@@ -167,8 +167,8 @@ class marketplace {
   //Buy a sale. Send the money from the buyer to the seller, and give the buyer the items. If the seller is buying their own sale, merely give them back their items, no need to check their money- this functionality will exist for accidental sales
   static async buySale(saleID, userTag, userID) {
     // Load the character.json and marketplace.json file
-    let charData = dbm.loadCollection('characters');
-    let marketData = dbm.loadCollection('marketplace');
+    let charData = await dbm.loadCollection('characters');
+    let marketData = await dbm.loadCollection('marketplace');
     // Search through marketData for the saleID
     const [foundCategory, foundItemName, sale] = await marketplace.getSale(saleID);
     // If the saleID doesn't exist, return an error
@@ -235,7 +235,7 @@ class marketplace {
   //Get itemcategory, itemname and sale from saleID
   static async getSale(saleID) {
     // Load the marketplace.json file
-    let marketData = dbm.loadCollection('marketplace');
+    let marketData = await dbm.loadCollection('marketplace');
     // Search through marketData for the saleID
     let sale;
     let itemName;
