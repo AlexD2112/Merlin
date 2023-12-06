@@ -51,7 +51,7 @@ async function loadFile(collectionName, docId) {
       return doc.data();
     } else {
       console.log('No such document!');
-      return {};
+      return undefined;
     }
   } catch (error) {
     console.error('Error loading document:', error);
@@ -59,13 +59,13 @@ async function loadFile(collectionName, docId) {
   }
 }
 
-function docDelete(collectionName, docName) {
+async function docDelete(collectionName, docName) {
   db.collection(collectionName).doc(docName).delete()
     .then(() => console.log('Document deleted'))
     .catch(error => console.error('Error deleting document:', error));
 }
 
-function fieldDelete(collectionName, docName, deleteField) {
+async function fieldDelete(collectionName, docName, deleteField) {
   db.collection(collectionName).doc(docName).update({
     [deleteField]: admin.firestore.FieldValue.delete()
   })

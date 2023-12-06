@@ -1,13 +1,25 @@
 //ADMIN COMMAND
 const { SlashCommandBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
-//const shop = require('../../shop'); // Importing shop
+const shop = require('../../shop'); // Importing shop
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('shoplayout')
-		.setDescription('Set a custom shop layout (Note- categories here will supersede previously set category)')
-		.setDefaultMemberPermissions(0),
+		.setName('editshoplayout')
+		.setDescription('Use "GENERAL" to edit whole shop layout, or a category name to edit that category')
+		.setDefaultMemberPermissions(0)
+		.addStringOption((option) =>
+			option.setName('categoryname')
+				.setDescription('Category name or GENERAL')
+				.setRequired(true)
+		),
 	async execute(interaction) {
+		let categoryName = interaction.options.getString('categoryname');
+		let placeholders = await shop.editShopLayoutPlaceholders(categoryName);
+
+		if (placeholders == "ERROR") {
+			await interaction.reply("Error! That category does not exist.");
+			return;
+		}
 		// Create the modal
 		const modal = new ModalBuilder()
 			.setCustomId('shoplayoutmodal')
@@ -16,13 +28,14 @@ module.exports = {
 		// Create the text input components
 		const categoryToEditInput = new TextInputBuilder()
 			.setCustomId('categorytoedit')
-			.setLabel('Category to set- whole layout, use GENERAL')
+			.setLabel('CATEGORY name- or GENERAL replaces everything')
+			.setValue(placeholders[0])
 			.setStyle(TextInputStyle.Short);
 		
 		const layoutStringInput = new TextInputBuilder()
 			.setCustomId('layoutstring')
-			.setLabel('String representing layout. Format below')
-			.setPlaceholder('**CATEGORY1**\nItem1;\nItem2;\nItem3;\n**CATEGORY3 (If GENERAL)**\nItem4;\nItem5;')
+			.setLabel('Only 1 category unless GENERAL. Format below')
+			.setValue(placeholders[1])
 			.setStyle(TextInputStyle.Paragraph);
 
 		//Create action rows for each input

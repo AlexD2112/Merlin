@@ -381,7 +381,7 @@ class char {
         description: bioString,
         fields: [
           {
-            name: ":coin: Balance: " + charData.balance,
+            name: ":coin: Balance: " + (charData.balance ? charData.balance : 0),
             value: "**`━━━━━━━Stats━━━━━━━`\n"+ PrestigeEmoji + prestigeString + " " + prestige + "**/" + maxPrestige +  
               "\n**"+ MartialEmoji + martialString + " " + martial + "**/" + maxMartial +
               "\n**"+ IntrigueEmoji + intrigueString  + " " + intrigue + "**/" + maxIntrigue + 
@@ -396,7 +396,6 @@ class char {
   }
 
   static async say(userID, message, channelID) {
-    console.log(userID);
     let charData = await dbm.loadFile('characters', userID);
     if (charData) {
       let webhookName = charData.name;

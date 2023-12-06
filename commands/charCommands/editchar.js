@@ -6,7 +6,7 @@ module.exports = {
 		.setName('editchar')
 		.setDescription('Edit your character'),
 	async execute(interaction) {
-        placeholderArray = await char.editCharPlaceholders(interaction.user.id);
+        placeholderArray = await char.editCharPlaceholders(interaction.user.tag);
 
 		// Create the modal
 		const modal = new ModalBuilder()
@@ -17,13 +17,13 @@ module.exports = {
 		const charNameInput = new TextInputBuilder()
 			.setCustomId('charname')
 			.setLabel('Character Name')
-            .setPlaceholder(placeholderArray[0])
+            .setValue(placeholderArray[0])
 			.setStyle(TextInputStyle.Short);
 
 		const charBioInput = new TextInputBuilder()
 			.setCustomId('charbio')
 			.setLabel('Character Bio')
-            .setPlaceholder(placeholderArray[1])
+            .setValue(placeholderArray[1])
 			.setStyle(TextInputStyle.Short);
 
 		// Create action rows for each input

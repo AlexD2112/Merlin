@@ -202,8 +202,6 @@ class marketplace {
     // Give the buyer the items
     charData[userTag].inventory[foundItemName] += sale.number;
     // Remove the sale from the marketplace
-    console.log(foundCategory, foundItemName, saleID);
-    console.log(marketData.marketplace[foundCategory][foundItemName][saleID]);
     delete marketData.marketplace[foundCategory][foundItemName][saleID];
     // Save the character.json file
     dbm.saveCollection('characters', charData);

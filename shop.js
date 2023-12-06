@@ -16,6 +16,23 @@ class shop {
     return "ERROR";
   }
 
+  static async convertToShopMap(rawShopLayoutData) {
+    const arrayShopLayoutData = rawShopLayoutData.shopArray;
+    //Turn shopArray, an array of fields of arrays, into map of category to items
+
+    let shopLayoutData = {};
+    // Iterate over the shopArray which is an array of objects
+    for (let categoryObject of arrayShopLayoutData) {
+      // Each object has keys which are the category names, and the values are arrays of items
+      for (let [category, items] of Object.entries(categoryObject)) {
+        // Assign the array of items to the corresponding category in the shopLayoutData map
+        shopLayoutData[category] = items;
+      }
+    }
+
+    return shopLayoutData;
+  }
+
   // Function to add items to the shop
   static async addItem(itemName, itemIcon, itemPrice, itemDescription, itemCategory) {
     let itemData = {
@@ -631,7 +648,8 @@ class shop {
     const itemsPerPage = 25;
     // Load data from shop.json and shoplayout.json
     const shopData = await dbm.loadCollection('shop');
-    const shopLayoutData = await dbm.loadFile('shoplayout', 'shopLayout');
+    const rawShopLayoutData = await dbm.loadFile('shoplayout', 'shopLayout');
+    const shopLayoutData = await this.convertToShopMap(rawShopLayoutData);
 
     let startIndices = [];
     startIndices[0] = 0;
@@ -667,7 +685,6 @@ class shop {
       for (const category of pageItems) {
         const endSpaces = "-".repeat(20 - category.length - 2);
         descriptionText += `**\`--${category}${endSpaces}\`**\n`;
-        console.log(shopLayoutData);
         descriptionText += shopLayoutData[category]
           .map((item) => {
             const icon = shopData[item].icon;
@@ -1014,9 +1031,19 @@ class shop {
           }
         }
       }
-      dbm.saveCollection("shop", shopData);
-      console.log(shopMap);
-      dbm.saveFile("shoplayout", "shopLayout", shopMap);
+      await dbm.saveCollection("shop", shopData);
+      //Convert shopMap into an ordered array of its elements with a key to avoid alphabetizing
+      let shopMapInMap = {};
+
+      let shopArray = [];
+      let key = 0;
+      for (const category in shopMap) {
+        shopArray[key] = {};
+        shopArray[key][category] = shopMap[category];
+        key++;
+      }
+      shopMapInMap.shopArray = shopArray;
+      await dbm.saveFile("shoplayout", "shopLayout", shopMapInMap);
 
       let result = "Shop layout updated successfully. Categories and items added:\n";
       for (const category in shopMap) {
@@ -1077,7 +1104,22 @@ class shop {
       dbm.saveCollection("shop", shopData);
 
       let layoutData = await dbm.loadFile("shoplayout", "shopLayout");
-      layoutData[categoryToEdit] = catMap;
+      // if (!layoutData.organizedLayout) {
+      //   layoutData.organizedLayout = {};
+      // }
+
+      // layoutData.organizedLayout[categoryToEdit] = catMap;
+      let shopArray = layoutData.shopArray;
+      
+      for (let i = 0; i < shopArray.length; i++) {
+        if (shopArray[i].hasOwnProperty(categoryToEdit)) {
+          shopArray[i][categoryToEdit] = catMap;
+        }
+      }
+
+      layoutData = {};
+      layoutData.shopArray = shopArray;
+
       dbm.saveFile("shoplayout", "shopLayout", layoutData);
 
       let result = `Category "${categoryToEdit}" updated successfully. Items added:\n`;
@@ -1085,6 +1127,42 @@ class shop {
         result += `- ${item}\n`;
       }
       return result;
+    }
+  }
+
+  static async editShopLayoutPlaceholders(categoryToEdit) {
+    if (categoryToEdit == "GENERAL") {
+      let layoutData = await dbm.loadFile("shoplayout", "shopLayout");
+      
+      layoutData = await this.convertToShopMap(layoutData);
+
+      let returnArray = [];
+      returnArray[0] = categoryToEdit;
+      let returnString = "";
+      for (const category in layoutData) {
+        returnString += "**" + category + "**\n";
+        for (const item of layoutData[category]) {
+          returnString += item + ";\n";
+        }
+        returnString += "\n";
+      }
+      returnArray[1] = returnString;
+      return returnArray;
+    } else {
+      let layoutData = await dbm.loadFile("shoplayout", "shopLayout");
+      layoutData = await this.convertToShopMap(layoutData);
+      if (!layoutData[categoryToEdit]) {
+        return "ERROR";
+      }
+      let returnArray = [];
+      returnArray[0] = categoryToEdit;
+      let returnString = "";
+      returnString += "**" + categoryToEdit + "**\n";
+      for (const item of layoutData[categoryToEdit]) {
+        returnString += item + ";\n";
+      }
+      returnArray[1] = returnString;
+      return returnArray;
     }
   }
 }
