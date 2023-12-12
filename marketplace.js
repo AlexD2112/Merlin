@@ -16,7 +16,7 @@ class marketplace {
     let marketData = await dbm.loadCollection('marketplace');
     // Find the item name using shop.findItemName
     itemName = await shop.findItemName(itemName);
-    if (itemName = "ERROR") {
+    if (itemName == "ERROR") {
       return "That item doesn't exist!";
     }
     // Check if they have enough of the item
@@ -26,16 +26,17 @@ class marketplace {
     // Take the items from their inventory
     charData.inventory[itemName] -= numberItems;
     // Add them to the marketplace under a created unique ID, one greater than the last. The last will be under lastID in marketplace.json
-    let itemID = marketData.lastID + 1;
-    marketData.lastID = itemID;
+    marketData = marketData || { idfile: {lastID: 1000}, marketplace: {} };
+    marketData.idfile = marketData.idfile || {};
+    marketData.idfile.lastID = marketData.idfile.lastID || 1000;
+    let itemID = marketData.idfile.lastID + 1;
+    marketData.idfile.lastID = itemID;
     // Add the item to the marketplace according to its item name and category. Category can be found in shop.getItemCategory
     let itemCategory = await shop.getItemCategory(itemName);
-    if (marketData.marketplace[itemCategory] == undefined) {
-      marketData.marketplace[itemCategory] = {};
-    }
-    if (marketData.marketplace[itemCategory][itemName] == undefined) {
-      marketData.marketplace[itemCategory][itemName] = {};
-    }
+    marketData.marketplace = marketData.marketplace || {};
+    marketData.marketplace[itemCategory] = marketData.marketplace[itemCategory] || {};
+    marketData.marketplace[itemCategory][itemName] = marketData.marketplace[itemCategory][itemName] || {};
+
     marketData.marketplace[itemCategory][itemName][itemID] = {
       "seller": userTag,
       "cost": cost,
@@ -44,7 +45,6 @@ class marketplace {
     }
     // Save the character.json file
     dbm.saveFile('characters', userTag, charData);
-    // Save the marketplace.json file
     dbm.saveCollection('marketplace', marketData);
     // Create an embed to return on success. Will just say @user listed **numberItems :itemIcon: itemName** to the **/sales** page for :coin:**cost**.
     let embed = new EmbedBuilder();

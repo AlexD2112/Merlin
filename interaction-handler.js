@@ -7,15 +7,13 @@ addItem = async (interaction) => {
   // Get the data entered by the user
   const itemName = interaction.fields.getTextInputValue('itemname');
   const itemIcon = interaction.fields.getTextInputValue('itemicon');
-  const itemCost = interaction.fields.getTextInputValue('itemcost');
+  const itemCost = interaction.fields.getTextInputValue('itemcost') || undefined;
   const itemDescription = interaction.fields.getTextInputValue('itemdescription');
   const itemCategory = interaction.fields.getTextInputValue('itemcategory');
   
   colonCounter = 0;
   for (let i = 0; i < itemIcon.length; i++) {
     if (itemIcon[i] == ":") {
-      console.log(itemIcon, i, colonCounter);
-      console.log(itemIcon[i]);
       colonCounter++;
       if (colonCounter >= 3) {
         await interaction.reply(`Item creation failed. Only one icon allowed;`);
@@ -28,6 +26,9 @@ addItem = async (interaction) => {
   if (itemName && parseInt(itemCost)) {
     shop.addItem(itemName, itemIcon, parseInt(itemCost), itemDescription, itemCategory);
     await interaction.reply(`Item '${itemName}' has been added to the item list. Use /shoplayout or ping Alex to add to shop.`);
+  } else if (itemName) {
+    shop.addNoCostItem(itemName, itemIcon, itemDescription, itemCategory);
+    await interaction.reply(`Item '${itemName}' has been added to the item list. It CANNOT be added to the shop, because it has no cost`);
   } else {
     // Handle missing information
     await interaction.reply('Item creation failed. Please provide a name and integer cost.');

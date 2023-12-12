@@ -26,7 +26,8 @@ module.exports = {
 
 		const itemCostInput = new TextInputBuilder()
 			.setCustomId('itemcost')
-			.setLabel('Item Cost')
+			.setLabel('Item Cost (Leave blank for none)')
+			.setRequired(false)
 			.setStyle(TextInputStyle.Short);
 
 		const itemDescriptionInput = new TextInputBuilder()

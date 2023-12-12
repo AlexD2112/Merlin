@@ -44,6 +44,14 @@ class shop {
     await dbm.saveFile('shop', itemName, itemData);
   }
 
+  static async addNoCostItem(itemName, itemIcon, itemDescription, itemCategory) {
+    let itemData = {
+      icon: itemIcon,
+      description: itemDescription,
+      category: itemCategory
+    };
+    await dbm.saveFile('shop', itemName, itemData);
+  }
 
   // Function to edit item placeholders
   static async editItemPlaceholders(itemName) {
@@ -642,7 +650,6 @@ class shop {
     }
   }
 
-  
   static async createShopEmbed(page) {
     page = Number(page);
     const itemsPerPage = 25;
@@ -738,15 +745,32 @@ class shop {
     const charData = await dbm.loadCollection('characters');
     const shopData = await dbm.loadCollection('shop');
 
-    // create a 2d of items in the player's inventory sorted by category
+    // create a 2d of items in the player's inventory sorted by category. Remove items with 0 quantity
+    let deleted = false;
     let inventory = [];
     for (const item in charData[charID].inventory) {
+      if (charData[charID].inventory[item] == 0) {
+        deleted = true;
+        delete charData[charID].inventory[item];
+        continue;
+      }
       const category = shopData[item].category;
       if (!inventory[category]) {
         inventory[category] = [];
       }
       inventory[category].push(item);
     }
+    if (deleted) {
+      await dbm.saveCollection('characters', charData);
+    }
+    // let inventory = [];
+    // for (const item in charData[charID].inventory) {
+    //   const category = shopData[item].category;
+    //   if (!inventory[category]) {
+    //     inventory[category] = [];
+    //   }
+    //   inventory[category].push(item);
+    // }
 
     //create description text from the 2d array
     let descriptionText = '';
@@ -804,6 +828,9 @@ class shop {
     let data = await dbm.loadCollection('shop');
     var price;
     if (data[itemName]) {
+      if (data[itemName].price == undefined) {
+        return "No Price Item!";
+      }
       price = data[itemName].price;
     } else {
       return "ERROR";
@@ -846,7 +873,10 @@ class shop {
       .setColor(0x36393e);
 
     if (itemData) {
-      let aboutString = "Price: :coin: " + itemData.price;
+      let aboutString;
+      if (itemData.price) {
+        aboutString = "Price: :coin: " + itemData.price;
+      }
       let descriptionString = "**Description:\n**" + itemData.description;
       if (itemData.usageCase) {
         descriptionString += ("\nUsage type: ");
@@ -916,7 +946,10 @@ class shop {
       }
 
       inspectEmbed.setDescription(descriptionString);
-      inspectEmbed.addFields({ name: '**About**', value: aboutString });
+      if (aboutString.length > 0)
+      {
+        inspectEmbed.addFields({ name: '**About**', value: aboutString });
+      }
 
       if (itemData.recipe) {
         let recipeString = "";
@@ -957,8 +990,8 @@ class shop {
   static async buyItem(itemName, charID, numToBuy) {
     itemName = await this.findItemName(itemName);
     const price = await this.getItemPrice(itemName);
-    if (price === "ERROR") {
-      return "Not a valid item";
+    if (price === "ERROR" || price === "No Price Item!") {
+      return "Not a valid item to purchase!";
     }
     let charCollection = 'characters';
 
@@ -1009,6 +1042,8 @@ class shop {
 
           if (await this.getItemPrice(item) == "ERROR") {
             return ("ERROR! Item " + item + " is not in shop");
+          } else if (await this.getItemPrice(item) == "No Price Item!") {
+            return ("ERROR! Item " + item + " has no price");
           }
     
           for (const category in shopMap) {
