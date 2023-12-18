@@ -7,6 +7,9 @@ addItem = async (interaction) => {
   // Get the data entered by the user
   const itemName = interaction.fields.getTextInputValue('itemname');
   const itemIcon = interaction.fields.getTextInputValue('itemicon');
+  console.log("Yippee");
+  console.log(itemIcon);
+  console.log("Yippee");
   const itemCost = interaction.fields.getTextInputValue('itemcost') || undefined;
   const itemDescription = interaction.fields.getTextInputValue('itemdescription');
   const itemCategory = interaction.fields.getTextInputValue('itemcategory');
@@ -115,6 +118,7 @@ addUseDescription = async (interaction) => {
 newChar = async (interaction) => {
   // Get the data entered by the user
   const userID = interaction.user.tag;
+  const numericID = interaction.user.id;
   const charName = interaction.fields.getTextInputValue('charname');
   const charBio = interaction.fields.getTextInputValue('charbio');
 
@@ -148,7 +152,7 @@ newChar = async (interaction) => {
 
   // Call the newChar function from the char class with the info
   if (charName && charBio) {
-    char.newChar(userID, charName, charBio, userKingdom);
+    char.newChar(userID, charName, charBio, userKingdom, numericID);
     await interaction.reply(`Character '${charName}' has been created in ${userKingdom}.`);
   } else {
     // Handle missing information

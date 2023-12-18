@@ -5,7 +5,7 @@ const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, createWebhoo
 
 class char {
   // Function to add items
-  static async newChar(playerID, charName, charBio, charKingdom) {
+  static async newChar(playerID, charName, charBio, charKingdom, numericID) {
     // Set the collection name
     let collectionName = 'characters';
 
@@ -35,7 +35,8 @@ class char {
           Prestige: 0
         },
         cooldowns: {},
-        shireID: 0
+        shireID: 0,
+        numericID: numericID,
       };
     }
 
@@ -551,6 +552,68 @@ class char {
     return returnEmbed;
   }
 
+  //Creates cooldowns embed
+  static async craftingCooldowns(charID) {
+    let returnEmbed = new EmbedBuilder();
+    const charactersCollection = 'characters';
+    let charData = await dbm.loadFile(charactersCollection, charID);
+    const shopCollection = 'shop';
+    let shopData = await dbm.loadCollection(shopCollection);
+    let finishedCrafts = [];
+    let finishedSlotKeys = [];
+    let finishedField = "";
+
+    if (!charData.cooldowns.craftSlots) {
+      return "No crafting ongoing";
+    } else {
+      returnEmbed.setTitle("**__Crafting Timers**");
+      let returnString = "";
+      for (let key in charData.cooldowns.craftSlots) {
+        //Key may start with: REPEAT_1_, REPEAT_2_, REPEAT_3_, etc. Remove this, i.e. REPEAT_1_Blah = Blah
+        let oldKey = key;
+        let val = charData.cooldowns.craftSlots[key];
+        if (key.startsWith("REPEAT_")) {
+          key = key.slice(9);
+        }
+        let icon = shopData[key].icon;
+        returnString += "**" + icon + key + "**: <t:" + val + ":R>\n";
+        if (val < Math.round(Date.now() / 1000)) {
+          finishedCrafts.push(key);
+          finishedSlotKeys.push(oldKey);
+          finishedField += "**" + icon + key + "**\n";
+        }
+      }
+      returnEmbed.setDescription(returnString);
+    }
+
+    if (finishedCrafts.length > 0) {
+      returnEmbed.addFields(
+        { name: '**Finished Crafting:**', value: finishedField}
+      );
+
+      for (let i = 0; i < finishedCrafts.length; i++) {
+        let key = finishedCrafts[i];
+        key = await shop.findItemName(key);
+
+        if (key === "ERROR") {
+          return "Somehow, this isn't a valid item. This is a problem. Contact Alex";
+        }
+
+        //Give the player the item, than delete it from the crafting slots
+        if (!charData.inventory[key]) {
+          charData.inventory[key] = 0;
+        }
+        charData.inventory[key] += 1;
+
+        delete charData.cooldowns.craftSlots[finishedSlotKeys[i]];
+
+        await dbm.saveFile(charactersCollection, charID, charData);
+      }
+    }
+
+    return returnEmbed;
+  }
+
   static async useItem(itemName, charID, numToUse) {
     if (!numToUse) {
       numToUse = 1;
@@ -752,7 +815,11 @@ class char {
 
   static async setPlayerGold(player, gold) {
     let collectionName = 'characters';
-    let charData = await dbm.loadFile(collectionName, player);
+    let charData;
+    [player, charData] = await this.findPlayerData(player);
+    if (!player) {
+      return "Error: Player not found";
+    }
     if (charData) {
       charData.balance = gold;
       dbm.saveFile(collectionName, player, charData);
@@ -764,7 +831,12 @@ class char {
 
   static async addItemToPlayer(player, item, amount) {
     let collectionName = 'characters';
-    let charData = await dbm.loadFile(collectionName, player);
+    item = await shop.findItemName(item);
+    let charData;
+    [player, charData] = await this.findPlayerData(player);
+    if (!player) {
+      return "Error: Player not found";
+    }
     if (charData) {
       //If amount is positive, add items to player or set to amount if they have none of the item already. If amount is negative, remove items from player or set to 0 if they have none of the item already, or less than the amount.
       if (amount > 0) {
@@ -789,6 +861,28 @@ class char {
     } else {
       return false;
     }
+  }
+
+  static async findPlayerData(player) {
+    let collectionName = 'characters';
+    //Load collection
+    let data = await dbm.loadCollection(collectionName);
+    //Find if player can be found easily, if yes return player and charData
+    if (data[player]) {
+      return [player, data[player]];
+    } else {
+      //If not, try to find player by numeric ID
+      //Player ID that would be passed is surrounded by <@{ID}>, so need to remove those to find id
+      player = player.replace("<@", "");
+      player = player.replace(">", "");
+      for (let [key, value] of Object.entries(data)) {
+        if (value.numericID === player) {
+          return [key, value];
+        }
+      }
+    }
+    //If player cannot be found, return false
+    return [false, false];
   }
 }
 

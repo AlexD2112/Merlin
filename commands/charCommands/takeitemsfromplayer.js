@@ -19,8 +19,10 @@ module.exports = {
 
         if (response == true) {
             return interaction.reply(`Took ${amount} ${item} from ${player}`);
-        } else {
+        } else if (response == false || !response) {
             return interaction.reply('Something went wrong');
+        } else {
+            return interaction.reply(response);
         }
     },
 };

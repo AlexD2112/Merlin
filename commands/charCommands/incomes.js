@@ -10,7 +10,6 @@ module.exports = {
 		const numericID = interaction.user.id;
 		var [replyEmbed, replyString] = await char.incomes(userID, numericID);
 		await interaction.reply(({ embeds: [replyEmbed] }));
-		console.log(replyString);
 		if (replyString) {
 			interaction.channel.send(replyString);
 		}

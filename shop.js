@@ -64,8 +64,10 @@ class shop {
 
   // Function to add a use case to an item
   static async addUseCase(itemName, useType, gives) {
+    itemName = await this.findItemName(itemName);
+
     // Validate the item
-    if (await this.getItemPrice(itemName) == "ERROR") {
+    if (await itemName == "ERROR") {
       return "ERROR! NOT A REAL ITEM IN SHOP. DOUBLE CHECK NAME";
     }
 
@@ -211,8 +213,10 @@ class shop {
 
   // Function to add a use case with countdown
   static async addUseCaseWithCountdown(itemName, useType, gives, countdown) {
+    itemName = await this.findItemName(itemName);
+
     // Validate the item
-    if (await this.getItemPrice(itemName) == "ERROR") {
+    if (itemName == "ERROR") {
       return "ERROR! NOT A REAL ITEM IN SHOP. DOUBLE CHECK NAME";
     }
 
@@ -297,7 +301,9 @@ class shop {
 
   // Overloaded version with takes
   static async addUseCaseWithCost(itemName, useType, gives, takes) {
-    if (await this.getItemPrice(itemName) == "ERROR") {
+    itemName = await this.findItemName(itemName);
+
+    if (itemName == "ERROR") {
       return "ERROR! NOT A REAL ITEM IN SHOP. DOUBLE CHECK NAME"
     }
     if (!(useType == "INCOMEROLE"|| useType == "STATBOOST")) {
@@ -421,7 +427,9 @@ class shop {
 
   //Version with countdown
   static async addUseCaseWithCostAndCountdown(itemName, useType, gives, takes, countdown) {
-    if (await this.getItemPrice(itemName) == "ERROR") {
+    itemName = await this.findItemName(itemName);
+
+    if (itemName == "ERROR") {
       return "ERROR! NOT A REAL ITEM IN SHOP. DOUBLE CHECK NAME"
     }
     if (!(useType == "INCOMEROLE" || useType == "STATBOOST")) {
@@ -542,7 +550,9 @@ class shop {
   }
 
   static async addRecipe(itemName, takes, countdown) {
-    if (await this.getItemPrice(itemName) == "ERROR") {
+    itemName = await this.findItemName(itemName);
+
+    if (itemName == "ERROR") {
       return "ERROR! NOT A REAL ITEM IN SHOP. DOUBLE CHECK NAME"
     }
     if (!parseInt(countdown)) {
@@ -611,6 +621,8 @@ class shop {
   }
 
   static async addUseDescription(itemName, itemDescription) {
+    itemName = await this.findItemName(itemName);
+
     let data = await dbm.loadCollection('shop');
     if (!data[itemName] || !data[itemName].usageCase) {
       return "ERROR! DOES NOT ALREADY HAVE A USE CASE. USE /addusecase FIRST"
@@ -633,6 +645,13 @@ class shop {
       // Check if the response status code indicates success (e.g., 200)
       if (response.status === 200) {
         let collectionName = 'shop';
+
+        itemName = await this.findItemName(itemName);
+
+        if (itemName == "ERROR") {
+          return "ERROR! NOT A REAL ITEM IN SHOP. DOUBLE CHECK NAME"
+        }
+
         let data = await dbm.loadFile(collectionName, itemName);
         if (data.usageCase) {
           data.usageCase.image = avatarURL;
@@ -815,6 +834,10 @@ class shop {
   static removeItem(itemName) {
     // Set the database name
     let fileName = 'shop';
+    itemName = this.findItemName(itemName);
+    if (itemName == "ERROR") {
+      return "ERROR! NOT A REAL ITEM IN SHOP. DOUBLE CHECK NAME";
+    }
     // Try to remove the item, and if it doesn't exist, catch the error
     try {
       dbm.docDelete(fileName, itemName);
@@ -866,14 +889,19 @@ class shop {
     const IntrigueEmoji = '<:Intrigue:1165722896522563715>';
     itemName = await this.findItemName(itemName);
 
-    let itemData = await dbm.loadFile('shop', itemName);
+    if (itemName == "ERROR") {
+      return "Item not found!";
+    }
+
+    let data = await dbm.loadCollection('shop');
+    let itemData = data[itemName];
     
     const inspectEmbed = new Discord.EmbedBuilder()
       .setTitle('**__Item:__ ' +  itemData.icon + " " + itemName + "**")
       .setColor(0x36393e);
 
     if (itemData) {
-      let aboutString;
+      let aboutString = "";
       if (itemData.price) {
         aboutString = "Price: :coin: " + itemData.price;
       }
@@ -946,6 +974,7 @@ class shop {
       }
 
       inspectEmbed.setDescription(descriptionString);
+      
       if (aboutString.length > 0)
       {
         inspectEmbed.addFields({ name: '**About**', value: aboutString });
@@ -976,8 +1005,8 @@ class shop {
               }
             }
             recipeString += ("\n`   `- " + icon + " " + key + ": " + itemData.recipe.takes[key]);
-            inspectEmbed.addFields({ name: '**Recipe**', value: recipeString });
           }
+          inspectEmbed.addFields({ name: '**Recipe**', value: recipeString });
         }
       }
       return inspectEmbed;
@@ -1029,38 +1058,38 @@ class shop {
           const categoryName = line.substring(2, line.length - 2); // Remove leading/trailing **
     
           if (shopMap[categoryName]) {
-            return ("ERROR: Duplicate category " + categoryName);
+            return ("ERROR: Duplicate category " + categoryName + "\n\nSubmitted layout string: \n " + layoutString);
           }
           currCategory = categoryName;
           shopMap[categoryName] = [];
         } else if (line.endsWith(";")) {
           if (currCategory === null) {
-            return ("ERROR: Item outside a category.");
+            return ("ERROR: Item outside a category." + "\n\nSubmitted layout string: \n " + layoutString);
           }
 
           const item = line.slice(0, -1); // Remove the trailing semicolon
 
           if (await this.getItemPrice(item) == "ERROR") {
-            return ("ERROR! Item " + item + " is not in shop");
+            return ("ERROR! Item " + item + " is not in shop" + "\n\nSubmitted layout string: \n " + layoutString);
           } else if (await this.getItemPrice(item) == "No Price Item!") {
-            return ("ERROR! Item " + item + " has no price");
+            return ("ERROR! Item " + item + " has no price" + "\n\nSubmitted layout string: \n " + layoutString);
           }
     
           for (const category in shopMap) {
             if (shopMap[category].includes(item)) {
-              return ("ERROR: Duplicate item " + item + " in category " + category);
+              return ("ERROR: Duplicate item " + item + " in category " + category + "\n\nSubmitted layout string: \n " + layoutString);
             }
           }
           shopMap[currCategory].push(item);
         } else if (line !== "") {
-          return ("ERROR: Invalid line: " + line);
+          return ("ERROR: Invalid line: " + line + "\n\nSubmitted layout string: \n " + layoutString);
         }
       }
       let shopData = await dbm.loadCollection("shop");
       for (const category in shopMap) {
         for (const item of shopMap[category]) {
           if (!shopData[item]) {
-            return ("ERROR! Item " + item + " is not in shop");
+            return ("ERROR! Item " + item + " is not in shop" + "\n\nSubmitted layout string: \n " + layoutString);
           } else {
             shopData[item].category = category;
           }
@@ -1101,7 +1130,7 @@ class shop {
           // This is a category line
           const categoryMatch = line.match(/\*\*(.*?)\*\*/); // Extract the category name
           if (!categoryMatch) {
-            return "ERROR: Invalid category format.";
+            return ("ERROR: Invalid category format." + "\n\nSubmitted layout string: \n " + layoutString);
           }
           const categoryName = categoryMatch[1];
     
@@ -1109,29 +1138,29 @@ class shop {
             onCategory = true;
             catMap = [];
           } else {
-            return "ERROR: The provided category does not match the layout.";
+            return ("ERROR: The provided category does not match the layout." + "\n\nSubmitted layout string: \n " + layoutString);
           }
         } else if (line.endsWith(";")) {
           // This is an item line
           if (!onCategory) {
-            return "ERROR: Items can only be within a category.";
+            return ("ERROR: Items can only be within a category." + "\n\nSubmitted layout string: \n " + layoutString);
           }
 
           const item = line.slice(0, -1); // Remove the trailing semicolon
 
           if (await this.getItemPrice(item) == "ERROR") {
-            return ("ERROR! Item " + item + " is not in shop");
+            return ("ERROR! Item " + item + " is not in shop" + "\n\nSubmitted layout string: \n " + layoutString);
           }
 
           catMap.push(item);
         } else if (line !== "") {
-          return "ERROR: Invalid line: " + line;
+          return ("ERROR: Invalid line: " + line + "\n\nSubmitted layout string: \n " + layoutString);
         }
       }
       let shopData = await dbm.loadCollection("shop");
       for (const item of catMap) {
         if (!shopData[item]) {
-          return ("ERROR! Item " + item + " is not in shop");
+          return ("ERROR! Item " + item + " is not in shop" + "\n\nSubmitted layout string: \n " + layoutString);
         } else {
           shopData[item].category = categoryToEdit;
         }
