@@ -13,15 +13,18 @@ module.exports = {
                 .setRequired(true)
         ),
     async execute(interaction) {
+        await interaction.deferReply();
         const message = interaction.options.getString('message');
-        const userTag = interaction.user.tag;
-        const userID = interaction.user.id;
-        let replyString = "The pope is sleeping right now. Please try again later.";
+        const userID = interaction.user.tag;
+
+        let replyString = await chatGPT.pope(message, userID);
         //if embed, display embed, otherwise display string
+        console.log(replyString);
+        console.log(typeof (replyString));
         if (typeof (replyString) == 'string') {
-            await interaction.reply(replyString);
+            await interaction.editReply(replyString);
         } else {
-            await interaction.reply({ embeds: [replyString] });
+            await interaction.editReply({ embeds: [replyString] });
         }
     },
 };
