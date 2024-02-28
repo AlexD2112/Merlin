@@ -20,7 +20,7 @@ module.exports = {
 			.setStyle(TextInputStyle.Short);
 		
 		const playerTemplateInput = new TextInputBuilder()
-			.setCustomId('gminstructions')
+			.setCustomId('playertemplate')
 			.setLabel('Player Template')
 			.setStyle(TextInputStyle.Paragraph);
 
