@@ -619,6 +619,20 @@ class shop {
 
     return returnString;
   }
+  
+  static async editRecipePlaceholders(itemName) {
+    itemName = await this.findItemName(itemName);
+
+    let itemData = await dbm.loadFile('shop', itemName);
+
+    //item takes must be restructured in form 'ITEM:AMOUNT;\nITEM2:AMOUNT2;'
+    let takesString = "";
+    for (let key in itemData.recipe.takes) {
+      takesString += (key + ":" + itemData.recipe.takes[key] + ";");
+    }
+    let returnArray = [itemName, takesString, itemData.recipe.countdown];
+    return returnArray;
+  }
 
   static async addUseDescription(itemName, itemDescription) {
     itemName = await this.findItemName(itemName);
@@ -720,6 +734,106 @@ class shop {
     
             // Create the formatted line
             return `${icon} \`${item}${alignSpaces}${price}\` :coin:`;
+          })
+          .join('\n');
+        descriptionText += '\n';
+      }
+      // Set the accumulated description
+      embed.setDescription(descriptionText);
+
+    if (pages > 1) {
+      embed.setFooter({text: `Page ${page} of ${pages}`});
+    }
+
+    const rows = [];
+
+    // Create a "Previous Page" button
+    const prevButton = new ButtonBuilder()
+      .setCustomId('switch_page' + (page-1))
+      .setLabel('<')
+      .setStyle(ButtonStyle.Secondary); // You can change the style to your preference
+
+    // Disable the button on the first page
+    if (page == 1) {
+      prevButton.setDisabled(true);
+    }
+
+    const nextButton = new ButtonBuilder()
+          .setCustomId('switch_page' + (page+1))
+          .setLabel('>')
+          .setStyle(ButtonStyle.Secondary); // You can change the style to your preference
+
+    // Create a "Next Page" button if not on the last page
+    if (page == pages) {
+      nextButton.setDisabled(true);
+    }
+    rows.push(new ActionRowBuilder().addComponents(prevButton, nextButton));
+
+    return [embed, rows];
+  }
+
+  static async createAllItemsEmbed(page) {
+    page = Number(page);
+    const itemsPerPage = 25;
+    // Load data from shop.json and shoplayout.json
+    const shopData = await dbm.loadCollection('shop');
+    //Turn shopData into an array of keys
+    let itemArray = Object.keys(shopData);
+    //Put the array into an array of categories each containing all items in the category, alphabetically
+    let itemCategories = {};
+    for (let i = 0; i < itemArray.length; i++) {
+      let category = shopData[itemArray[i]].category;
+      if (!itemCategories[category]) {
+        itemCategories[category] = [];
+      }
+      itemCategories[category].push(itemArray[i]);
+    }
+
+
+
+    let startIndices = [];
+    startIndices[0] = 0;
+
+    let currIndice = 0;
+    let currPageLength = 0;
+    let i = 0;
+    for (const category in itemCategories) {
+      let length = itemCategories[category].length;
+      currPageLength += length;
+      if (currPageLength > itemsPerPage) {
+        currPageLength = length;
+        currIndice++;
+        startIndices[currIndice] = i;
+      }
+      i++;
+    }
+
+    const pages = Math.ceil(startIndices.length);
+
+    console.log(itemCategories);
+
+    //Can't use slice because it's an object
+    const pageItems = Object.keys(itemCategories).slice(
+      startIndices[page-1],
+      startIndices[page] ? startIndices[page] : undefined
+    );
+
+    const embed = new Discord.EmbedBuilder()
+      .setTitle(':package: Items')
+      .setColor(0x36393e);
+
+      let descriptionText = '';
+
+      for (const category of pageItems) {
+        const endSpaces = "-".repeat(20 - category.length - 2);
+        descriptionText += `**\`--${category}${endSpaces}\`**\n`;
+        descriptionText += itemCategories[category]
+          .map((item) => {
+            const icon = shopData[item].icon;
+    
+            // Create the formatted line
+            console.log(`${icon} ${item}`);
+            return `${icon} ${item}`;
           })
           .join('\n');
         descriptionText += '\n';
