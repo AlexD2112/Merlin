@@ -24,10 +24,10 @@ module.exports = {
 
 		// Create action rows for each input
 		const nameActionRow = new ActionRowBuilder().addComponents(charNameInput);
-		const costActionRow = new ActionRowBuilder().addComponents(charBioInput);
+		const bioActionRow = new ActionRowBuilder().addComponents(charBioInput);
 
 		// Add the action rows to the modal
-		modal.addComponents(nameActionRow, costActionRow);
+		modal.addComponents(nameActionRow, bioActionRow);
 
 		// Show the modal to the user
 		await interaction.showModal(modal);
