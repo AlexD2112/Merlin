@@ -9,11 +9,19 @@ class shop {
   static usageOptions = [
       'Is Usable', 'Removed on Use', 'Need Role', 'Give Role', 'Take Role',
       'Show an Image', 'Show a Message', 'Give/Take Money', 'Cooldown',
-      'Give Item', 'Give Item 2', 'Give Item 3', 'Take Item', 'Take Item 2',
-      'Take Item 3', 'Give Item', 'Give Item 2', 'Give Item 3',
+      'Give Item', 'Give Item 2', 'Give Item 3', 'Give Item 4', 'Give Item 5',
+      'Take Item', 'Take Item 2', 'Take Item 3', 'Take Item 4', 'Take Item 5',
       'Change Prestige', 'Change Martial', 'Change Intrigue', 'Revive', 'Durability'
     ];
-  static craftingOptions = ['Is Craftable', 'Take Item 1', 'Take Item 2', 'Take Item 3', 'Craft Time'];
+  static recipeOptions = ['Ingredient 1', 'Ingreident 2', 'Ingredient 3', 'Ingredient 4', 'Ingredient 5', 'Ingredient 6',
+      'Craft Time', 'Role Blacklist', 'Role Whitelist'
+    ];
+  //
+  static statEmojis = {
+    "Prestige": "<:Prestige:1165722839228354610>",
+    "Martial": "<:Martial:1165722873248354425>",
+    "Intrigue": "<:Intrigue:1165722896522563715>",
+  }
   // Function to find an item by name in the shop
   //THIS IS INEFFICIENT BECAUSE IT MEANS CALLING IT MEANS TWO CALLS TO THE DATABASE- FIX LATER
   static async findItemName(itemName) {
@@ -63,11 +71,6 @@ class shop {
         return acc;
       }
       , {}),
-      "craftingOptions": this.craftingOptions.reduce((acc, option) => {
-        acc[option] = "";
-        return acc;
-      }
-      , {})
     };
     itemData.infoOptions.Name = itemName;
     //Given data is a map of some elements that have been set, though its unknown which option they are for. Iterate through and set the values
@@ -78,20 +81,49 @@ class shop {
         itemData.shopOptions[key] = value;
       } else if (this.usageOptions.includes(key)) {
         itemData.usageOptions[key] = value;
-      } else if (this.craftingOptions.includes(key)) {
-        itemData.craftingOptions[key] = value;
       }
     }
     await dbm.saveFile('shop', itemName, itemData);
   }
 
-  // Function to edit item placeholders
-  static async editItemPlaceholders(itemName) {
-    itemName = await this.findItemName(itemName);
+  static async updateAllItemVersions() {
+    //Update all item versions
+    let data = await dbm.loadCollection('shop');
+    let itemNames = Object.keys(data);
+    for (let i = 0; i < itemNames.length; i++) {
+      await this.updateItemVersion(itemNames[i]);
+    }
+    return "All items updated to the new version";
+  }
 
+  static async updateItemVersion(itemName) {
+    // Convert all item data to the new options. Carry over whatever new options it has
     let itemData = await dbm.loadFile('shop', itemName);
-    let returnArray = [itemName, itemData.icon, String(itemData.price), itemData.description, itemData.category];
-    return returnArray;
+
+    // Create a new itemData object with the new options
+    let newItemData = {
+      "infoOptions": this.infoOptions.reduce((acc, option) => {
+        acc[option] = itemData.infoOptions[option] || "";
+        return acc;
+      }
+      , {}),
+      "shopOptions": this.shopOptions.reduce((acc, option) => {
+        acc[option] = itemData.shopOptions[option] || "";
+        return acc;
+      }
+      , {}),
+      "usageOptions": this.usageOptions.reduce((acc, option) => {
+        acc[option] = itemData.usageOptions[option] || "";
+        return acc;
+      }
+      , {}),
+    };
+
+    // Save the new item data
+    await dbm.docDelete('shop', itemName);
+    await dbm.saveFile('shop', itemName, newItemData);
+
+    return `Item \`${itemName}\` updated to the new version`;
   }
 
   static async createShopEmbed(page) {
@@ -138,11 +170,11 @@ class shop {
         descriptionText += `**\`--${category}${endSpaces}\`**\n`;
         descriptionText += shopLayoutData[category]
           .map((item) => {
-            const icon = shopData[item].icon;
-            const price = shopData[item].price;
+            const icon = shopData[item].infoOptions.Icon;
+            const price = shopData[item].shopOptions.Price;
 
             const alignSpaces = ' '.repeat(30 - item.length - ("" + price).length);
-    
+            console.log(icon, item, price);
             // Create the formatted line
             return `${icon} \`${item}${alignSpaces}${price}\` :coin:`;
           })
@@ -193,7 +225,7 @@ class shop {
     //Put the array into an array of categories each containing all items in the category, alphabetically
     let itemCategories = {};
     for (let i = 0; i < itemArray.length; i++) {
-      let category = shopData[itemArray[i]].category;
+      let category = shopData[itemArray[i]].infoOptions.Category;
       if (!itemCategories[category]) {
         itemCategories[category] = [];
       }
@@ -221,8 +253,6 @@ class shop {
 
     const pages = Math.ceil(startIndices.length);
 
-    console.log(itemCategories);
-
     //Can't use slice because it's an object
     const pageItems = Object.keys(itemCategories).slice(
       startIndices[page-1],
@@ -240,10 +270,9 @@ class shop {
         descriptionText += `**\`--${category}${endSpaces}\`**\n`;
         descriptionText += itemCategories[category]
           .map((item) => {
-            const icon = shopData[item].icon;
+            const icon = shopData[item].infoOptions.Icon;
     
             // Create the formatted line
-            console.log(`${icon} ${item}`);
             return `${icon} ${item}`;
           })
           .join('\n');
@@ -298,7 +327,7 @@ class shop {
         delete charData[charID].inventory[item];
         continue;
       }
-      const category = shopData[item].category;
+      const category = shopData[item].infoOptions.Category;
       if (!inventory[category]) {
         inventory[category] = [];
       }
@@ -323,7 +352,7 @@ class shop {
       descriptionText += `**\`--${category}${endSpaces}\`**\n`;
       descriptionText += inventory[category]
         .map((item) => {
-          const icon = shopData[item].icon;
+          const icon = shopData[item].infoOptions.Icon;
           const quantity = charData[charID].inventory[item];
 
           const alignSpaces = ' '.repeat(30 - item.length - ("" + quantity).length);
@@ -345,15 +374,15 @@ class shop {
   }
 
   // Function to print item list
-  static async shop() {
-    // Load the data
-    let data = await dbm.loadCollection('shop');
-    let superstring = ""
-    for (let [key, value] of Object.entries(data)) {
-      superstring = superstring + (String(value["icon"]) + " " + key + " : " + String(value["price"]) + "\n");
-    }
-    return superstring;
-  }
+  // static async shop() {
+  //   // Load the data
+  //   let data = await dbm.loadCollection('shop');
+  //   let superstring = ""
+  //   for (let [key, value] of Object.entries(data)) {
+  //     superstring = superstring + (String(value["icon"]) + " " + key + " : " + String(value["price"]) + "\n");
+  //   }
+  //   return superstring;
+  // }
 
   // Function to remove items - removeItem(name)
   static removeItem(itemName) {
@@ -376,10 +405,10 @@ class shop {
     let data = await dbm.loadCollection('shop');
     var price;
     if (data[itemName]) {
-      if (data[itemName].price == undefined) {
+      if (data[itemName].shopOptions.Price == undefined) {
         return "No Price Item!";
       }
-      price = data[itemName].price;
+      price = data[itemName].shopOptions.Price;
     } else {
       return "ERROR";
     }
@@ -390,7 +419,7 @@ class shop {
     let data = await dbm.loadCollection('shop');
     var category;
     if (data[itemName]) {
-      category = data[itemName].category;
+      category = data[itemName].infoOptions.Category;
     } else {
       return "ERROR";
     }
@@ -401,7 +430,7 @@ class shop {
     let data = await dbm.loadCollection('shop');
     var icon;
     if (data[itemName]) {
-      icon = data[itemName].icon;
+      icon = data[itemName].infoOptions.Icon;
     } else {
       return "ERROR";
     }
@@ -409,9 +438,6 @@ class shop {
   }
 
   static async inspect(itemName) {
-    const PrestigeEmoji = '<:Prestige:1165722839228354610>';
-    const MartialEmoji = '<:Martial:1165722873248354425>';
-    const IntrigueEmoji = '<:Intrigue:1165722896522563715>';
     itemName = await this.findItemName(itemName);
 
     if (itemName == "ERROR") {
@@ -422,78 +448,70 @@ class shop {
     let itemData = data[itemName];
     
     const inspectEmbed = new Discord.EmbedBuilder()
-      .setTitle('**__Item:__ ' +  itemData.icon + " " + itemName + "**")
+      .setTitle('**__Item:__ ' +  itemData.infoOptions.Icon + " " + itemName + "**")
       .setColor(0x36393e);
 
     if (itemData) {
       let aboutString = "";
-      if (itemData.price) {
-        aboutString = "Price: :coin: " + itemData.price;
+      if (itemData.shopOptions.Price) {
+        aboutString = "Price: :coin: " + itemData.shopOptions.Price;
       }
-      let descriptionString = "**Description:\n**" + itemData.description;
-      if (itemData.usageCase) {
-        descriptionString += ("\nUsage type: ");
-        switch (itemData.usageCase.useType) {
-          case "INCOMEROLE":
-            descriptionString += "Income Role";
-            break;
-          case "STATBOOST":
-            descriptionString += "Statboost";
-            break;
-          default:
-            descriptionString += "ERROR";
-            break;
-        }
-
+      let descriptionString = "**Description:\n**" + itemData.infoOptions.Description;
+      if (itemData.usageOptions["Is Usable"] == "Yes") {
         aboutString += "\nGives:";
-        for (let key in itemData.usageCase.gives) {
-          let icon;
-          if (data[key]) {
-            icon = data[key].icon;
+        //Iterate through usageOptions to find any key that starts with "Give Item". If any exist, add them to the aboutString. The value will be a string "Number Name" that will have to be split (Name may contain spaces, such as Iron Spear)
+        //Also search for anything starting with Change, which will be a change in prestige, martial, or intrigue. If they're positive, add this. This value will just be an integer in string form
+        for (let key in itemData.usageOptions) {
+          //Check if value is blank
+          if (itemData.usageOptions[key] == "") {
+            continue;
           }
-          else {
-            switch (key) {
-              case "Martial":
-                icon = MartialEmoji;
-                break;
-              case "Prestige":
-                icon = PrestigeEmoji;
-                break;
-              case "Intrigue":
-                icon = IntrigueEmoji;
-                break;
-              default:
-                icon = ":coin:";
-                break;
+          if (key == "Give/Take Money") {
+            if (itemData.usageOptions[key] > 0) {
+              aboutString += ("\n`   `- :coin: " + itemData.usageOptions[key]);
             }
           }
-          aboutString += ("\n`   `- " + icon + " " + key + ": " + itemData.usageCase.gives[key]);
-        }
+          if (key.startsWith("Give Item")) {
+            let splitString = itemData.usageOptions[key].split(" ");
+            let quantity = splitString[0];
+            let name = splitString.slice(1).join(" ");
+            let icon = data[name].infoOptions.Icon;
+            aboutString += ("\n`   `- " + icon + " " + name + ": " + quantity);
+          }
+          if (key.startsWith("Change")) {
+            let quantity = itemData.usageOptions[key];
+            if (quantity > 0) {
+              let icon = this.statEmojis[key.split(" ")[1]];
+              aboutString += ("\n`   `- " + icon + " " + key.split(" ")[1] + ": " + quantity);
+            }
+          }
+          if (key == "Give Role") {
+            let role = itemData.usageOptions[key];
+            aboutString += ("\n" + role);
+          }
 
-        if (itemData.usageCase.takes) {
-          aboutString += "\nTakes:";
-          for (let key in itemData.usageCase.takes) {
-            let icon;
-            if (data[key]) {
-              icon = data[key].icon;
+          if (key == "Give/Take Money") {
+            if (itemData.usageOptions[key] < 0) {
+              aboutString += ("\n`   `- :coin: " + itemData.usageOptions[key]);
             }
-            else {
-              switch (key) {
-                case "Martial":
-                  icon = MartialEmoji;
-                  break;
-                case "Prestige":
-                  icon = PrestigeEmoji;
-                  break;
-                case "Intrigue":
-                  icon = IntrigueEmoji;
-                  break;
-                default:
-                  icon = ":coin:";
-                  break;
-              }
+          }
+          if (key.startsWith("Take Item")) {
+            let splitString = itemData.usageOptions[key].split(" ");
+            let quantity = splitString[0];
+            let name = splitString.slice(1).join(" ");
+            let icon = data[name].infoOptions.Icon;
+            aboutString += ("\n`   `- " + icon + " " + name + ": " + quantity);
+          }
+          if (key.startsWith("Change")) {
+            let quantity = itemData.usageOptions[key];
+            if (quantity < 0) {
+              let icon = this.statEmojis[key.split(" ")[1]];
+              aboutString += ("\n`   `- " + icon + " " + key.split(" ")[1] + ": " + quantity);
             }
-            aboutString += ("\n`   `- " + icon + " " + key + ": " + itemData.usageCase.takes[key]);
+          }
+          if (key == "Take Role") {
+            let role = itemData.usageOptions[key];
+            aboutString += ("\n" + role);
           }
         }
       }
@@ -503,36 +521,6 @@ class shop {
       if (aboutString.length > 0)
       {
         inspectEmbed.addFields({ name: '**About**', value: aboutString });
-      }
-
-      if (itemData.recipe) {
-        let recipeString = "";
-        if (itemData.recipe.takes) {
-          recipeString += "\nTakes:";
-          for (let key in itemData.recipe.takes) {
-            let icon;
-            if (data[key]) {
-              icon = data[key].icon;
-            } else {
-              switch (key) {
-                case "Martial":
-                  icon = MartialEmoji;
-                  break;
-                case "Prestige":
-                  icon = PrestigeEmoji;
-                  break;
-                case "Intrigue":
-                  icon = IntrigueEmoji;
-                  break;
-                default:
-                  icon = ":coin:";
-                  break;
-              }
-            }
-            recipeString += ("\n`   `- " + icon + " " + key + ": " + itemData.recipe.takes[key]);
-          }
-          inspectEmbed.addFields({ name: '**Recipe**', value: recipeString });
-        }
       }
       return inspectEmbed;
     } else {
@@ -548,14 +536,13 @@ class shop {
     Buttons will exist at the bottom to click to switch to the two other pages you are not currently on.
     Each field will have a number to the left of it that the user will be able to use in a separate command to edit that field.
     Below are all the pages and fields that exist
-    Three pages, one for Info and Shop Options, one for Usage Options, one for Crafting Options
+    Two pages, one for Info and Shop Options, one for Usage Options
     Page 1: Info and Shop Options- split between Info Options and Shop Options.
     Info Options: Name, Icon, Category, Image, Description
     Shop Options: Price, Need Role, Give Role, Take Role
     Page 2: Usage Options
     Usage Options: Is Usable, Removed on Use, Need Role, Give Role, Take Role, Show an Image, Show a Message, Give/Take Money, Cooldown, Give Item, Give Item 2, Give Item 3, Take Item, Take Item 2, Take Item 3, Give Item, Give Item 2, Give Item 3, Change Prestige, Change Martial, Change Intrigue
-    Page 3: Crafting Options
-    Crafting Options: Take Item 1, Take Item 2, Take Item 3, (if 3 or more take items exist, add enough options for all items currently being taken plus 1), Craft Time*/
+    */
   static async editMenu(itemName, pageNumber) {
     pageNumber = Number(pageNumber);
     itemName = await this.findItemName(itemName);
@@ -569,12 +556,10 @@ class shop {
     const infoOptions = this.infoOptions;
     const shopOptions = this.shopOptions;
     const usageOptions = this.usageOptions;
-    const craftingOptions = this.craftingOptions;
 
     const infoOptionsStartingIndex = 0;
     const shopOptionsStartingIndex = infoOptions.length;
     const usageOptionsStartingIndex = shopOptionsStartingIndex + shopOptions.length;
-    const craftingOptionsStartingIndex = usageOptionsStartingIndex + usageOptions.length;
 
     // Get item icon
     const itemIcon = itemData.infoOptions.Icon;
@@ -595,11 +580,6 @@ class shop {
         embed.addFields({ name : '💥 Usage Options', value: usageOptions.map((option, index) => `\`[${index + 1 + usageOptionsStartingIndex}] ${option}:\` ` + itemData.usageOptions[option]).join('\n')});
         embed.setFooter({text : 'Page 2 of 3, Usage Options'});
         break;
-      case 3:
-        // Add fields for Crafting Options
-        embed.addFields({name : '🔨 Crafting Options', value: craftingOptions.map((option, index) => `\`[${index + 1 + craftingOptionsStartingIndex}] ${option}:\` ` + itemData.craftingOptions[option]).join('\n')});
-        embed.setFooter({text : 'Page 3 of 3, Crafting Options'});
-        break;
       default:
         return "Invalid page number!";
     }
@@ -617,11 +597,6 @@ class shop {
         .setLabel('Usage Options')
         .setStyle('Primary')
         .setDisabled(pageNumber === 2),
-      new Discord.ButtonBuilder()
-        .setCustomId('switch_item3' + itemName)
-        .setLabel('Crafting Options')
-        .setStyle('Primary')
-        .setDisabled(pageNumber === 3)
     );
 
 
@@ -642,12 +617,10 @@ class shop {
     const infoOptions = this.infoOptions;
     const shopOptions = this.shopOptions;
     const usageOptions = this.usageOptions;
-    const craftingOptions = this.craftingOptions;
 
     const infoOptionsStartingIndex = 0;
     const shopOptionsStartingIndex = infoOptions.length;
     const usageOptionsStartingIndex = shopOptionsStartingIndex + shopOptions.length;
-    const craftingOptionsStartingIndex = usageOptionsStartingIndex + usageOptions.length;
 
     // Determine which category the field number belongs to
     let category;
@@ -659,9 +632,6 @@ class shop {
     } else if (fieldNumber >= usageOptionsStartingIndex + 1 && fieldNumber <= usageOptionsStartingIndex + usageOptions.length) {
       category = 'usageOptions';
       fieldNumber -= usageOptionsStartingIndex;
-    } else if (fieldNumber >= craftingOptionsStartingIndex + 1 && fieldNumber <= craftingOptionsStartingIndex + craftingOptions.length) {
-      category = 'craftingOptions';
-      fieldNumber -= craftingOptionsStartingIndex;
     } else {
       return "Invalid field number!";
     }
@@ -677,9 +647,6 @@ class shop {
         break;
       case 'usageOptions':
         fieldName = usageOptions[fieldNumber - 1];
-        break;
-      case 'craftingOptions':
-        fieldName = craftingOptions[fieldNumber - 1];
         break;
     }
 
@@ -743,7 +710,8 @@ class shop {
             return ("ERROR: Item outside a category." + "\n\nSubmitted layout string: \n " + layoutString);
           }
 
-          const item = line.slice(0, -1); // Remove the trailing semicolon
+          let item = line.slice(0, -1); // Remove the trailing semicolon
+          item = this.findItemName(item);
 
           if (await this.getItemPrice(item) == "ERROR") {
             return ("ERROR! Item " + item + " is not in shop" + "\n\nSubmitted layout string: \n " + layoutString);
@@ -822,7 +790,8 @@ class shop {
             return ("ERROR: Items can only be within a category." + "\n\nSubmitted layout string: \n " + layoutString);
           }
 
-          const item = line.slice(0, -1); // Remove the trailing semicolon
+          let item = line.slice(0, -1); // Remove the trailing semicolon
+          item = this.findItemName(item);
 
           if (await this.getItemPrice(item) == "ERROR") {
             return ("ERROR! Item " + item + " is not in shop" + "\n\nSubmitted layout string: \n " + layoutString);
@@ -838,7 +807,7 @@ class shop {
         if (!shopData[item]) {
           return ("ERROR! Item " + item + " is not in shop" + "\n\nSubmitted layout string: \n " + layoutString);
         } else {
-          shopData[item].category = categoryToEdit;
+          shopData[item].infoOptions.Category = categoryToEdit;
         }
       }
       dbm.saveCollection("shop", shopData);
@@ -1526,6 +1495,14 @@ class shop {
   //   } catch (error) {
   //     return "Unable to check the Avatar URL. " + error.message;
   //   }
+  // }
+  // Function to edit item placeholders
+  // static async editItemPlaceholders(itemName) {
+  //   itemName = await this.findItemName(itemName);
+
+  //   let itemData = await dbm.loadFile('shop', itemName);
+  //   let returnArray = [itemName, itemData.icon, String(itemData.price), itemData.description, itemData.category];
+  //   return returnArray;
   // }
 }
 

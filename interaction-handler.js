@@ -1,12 +1,14 @@
 const shop = require('./shop');
 const char = require('./char');
 const marketplace = require('./marketplace');
+//Import guildID from config.json
+const { guildID } = require('./config.json');
 
 // MODALS
 addItem = async (interaction) => {
   // Get the data entered by the user
   const itemName = interaction.fields.getTextInputValue('itemname');
-  const itemIcon = interaction.fields.getTextInputValue('itemicon');
+  let itemIcon = interaction.fields.getTextInputValue('itemicon');
   const itemPrice = interaction.fields.getTextInputValue('itemprice') || undefined;
   const itemDescription = interaction.fields.getTextInputValue('itemdescription');
   const itemCategory = interaction.fields.getTextInputValue('itemcategory');
@@ -19,6 +21,15 @@ addItem = async (interaction) => {
         await interaction.reply(`Item creation failed. Only one icon allowed;`);
         return;
       }
+    }
+  }
+  if (colonCounter > 0) {
+    //Get the guild
+    const guild = interaction.guild;
+    //Get the emoji ID
+    let guildEmoji = guild.emojis.cache?.find(emoji => emoji.name.toLowerCase() == itemIcon.substring(1, itemIcon.length - 1).toLowerCase());
+    if (guildEmoji != undefined) {
+      itemIcon = `<:${guildEmoji.name}:${guildEmoji.id}>`;
     }
   }
 

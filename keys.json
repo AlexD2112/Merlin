@@ -1,0 +1,22 @@
+{
+    "Shires" : {
+        "Shire1" : {
+            "name": "Shire1",
+            "keyword": "shire1",
+            "roleCode": "RC1",
+            "resource": "Resource1",
+            "resourceCode": "RC1"
+        },
+        "Shire2" : {
+            "name": "Shire2",
+            "keyword": "shire2",
+            "roleCode": "RC2",
+            "resource": "Resource2",
+            "resourceCode": "RC2"
+        }
+    },
+    "CustomEmojis" : {
+        "newwood" : "<:newwood:1228025787362312364>",
+        "iron" : "<:iron:1228026446287732870>"
+    }
+}

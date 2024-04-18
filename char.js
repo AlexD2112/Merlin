@@ -480,7 +480,7 @@ class char {
     dbm.saveCollection(collectionName, data);
   }
 
-  static async craft(charID, itemName) {
+  /*static async craft(charID, itemName) {
     itemName = await shop.findItemName(itemName);
     if (itemName === "ERROR") {
       return "Not a valid item";
@@ -811,7 +811,7 @@ class char {
     }
     dbm.saveFile(charactersCollection, charID, charData);
     return returnEmbed;
-  }
+  }*/
 
   static async setPlayerGold(player, gold) {
     let collectionName = 'characters';

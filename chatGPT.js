@@ -28,7 +28,6 @@ class chatGPT {
             prevMessages = [];
             prevMessagesExist = false;
         }
-        console.log(prevMessagesExist);
 
         let modelInputCost;
         let modelOutputCost;

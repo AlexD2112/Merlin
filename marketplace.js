@@ -4,13 +4,13 @@ const char = require('./char'); // Importing the database manager
 const { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
 class marketplace {
   /**Function for a player to post a sale.
-   * Will take the number of items, the item name, and the cost they want to sell it for.
+   * Will take the number of items, the item name, and the price they want to sell it for.
    * Will also be passed their user tag and ID
    * Will load the character.json file and check if they have enough of the item
    * If they do, it will take the items from their inventory and add them to the marketplace under a created unique ID
    * Items will be added to the marketplace according to their item name and category- i.e. all iron swords will be next to each other, and the iron swords will be next to steel swords
    * */ 
-  static async postSale(numberItems, itemName, cost, userTag, userID) {
+  static async postSale(numberItems, itemName, price, userTag, userID) {
     // Load the character.json and marketplace.json file
     let charData = await dbm.loadFile('characters', userTag);
     let marketData = await dbm.loadCollection('marketplace');
@@ -39,16 +39,16 @@ class marketplace {
 
     marketData.marketplace[itemCategory][itemName][itemID] = {
       "seller": userTag,
-      "cost": cost,
+      "price": price,
       "number": numberItems,
       "sellerID": userID
     }
     // Save the character.json file
     dbm.saveFile('characters', userTag, charData);
     dbm.saveCollection('marketplace', marketData);
-    // Create an embed to return on success. Will just say @user listed **numberItems :itemIcon: itemName** to the **/sales** page for :coin:**cost**.
+    // Create an embed to return on success. Will just say @user listed **numberItems :itemIcon: itemName** to the **/sales** page for :coin:**price**.
     let embed = new EmbedBuilder();
-    embed.setDescription(`<@${userID}> listed **${numberItems} ${await shop.getItemIcon(itemName)} ${itemName}** to the **/sales** page for :coin:**${cost}**.`);
+    embed.setDescription(`<@${userID}> listed **${numberItems} ${await shop.getItemIcon(itemName)} ${itemName}** to the **/sales** page for :coin:**${price}**.`);
     return embed;
   }
 
@@ -112,7 +112,7 @@ class marketplace {
     let descriptionText = '';
 
     
-    // Create the formatted line. `ID` :icon: **`Number ItemName [ALIGNSPACES]`**`Cost`**:coin:, with coin and cost aligned to right side (alignSpaces used to separate them and ensure all the coins and costs are aligned )
+    // Create the formatted line. `ID` :icon: **`Number ItemName [ALIGNSPACES]`**`Price`**:coin:, with coin and price aligned to right side (alignSpaces used to separate them and ensure all the coins and prices are aligned )
     for (const itemName in sales) {
       const salesList = sales[itemName];
       for (const saleID in salesList) {
@@ -120,9 +120,9 @@ class marketplace {
         const number = sale.number;
         const item = itemName;
         const icon = await shop.getItemIcon(itemName);
-        const cost = sale.cost;
-        const alignSpaces = ' '.repeat(30 - item.length - ("" + cost).length);
-        descriptionText += `\`${saleID}\` ${icon} **\`${number} ${item}${alignSpaces}${cost}\`**:coin:\n`;
+        const price = sale.price;
+        const alignSpaces = ' '.repeat(30 - item.length - ("" + price).length);
+        descriptionText += `\`${saleID}\` ${icon} **\`${number} ${item}${alignSpaces}${price}\`**:coin:\n`;
       }
     }
     
@@ -185,20 +185,20 @@ class marketplace {
       dbm.saveCollection('characters', charData);
       // Save the marketplace.json file
       dbm.saveCollection('marketplace', marketData);
-      // Create an embed to return on success. Will just say @user bought **numberItems :itemIcon: itemName** from @seller for :coin:**cost**.
+      // Create an embed to return on success. Will just say @user bought **numberItems :itemIcon: itemName** from @seller for :coin:**price**.
       let embed = new EmbedBuilder();
-      embed.setDescription(`<@${userID}> bought **${sale.number} ${await shop.getItemIcon(foundItemName)} ${foundItemName}** back from themselves. It was listed for :coin:**${sale.cost}**.`);
+      embed.setDescription(`<@${userID}> bought **${sale.number} ${await shop.getItemIcon(foundItemName)} ${foundItemName}** back from themselves. It was listed for :coin:**${sale.price}**.`);
       return embed;
     }
 
     // Check if the buyer has enough money
-    if (charData[userTag].balance < sale.cost) {
+    if (charData[userTag].balance < sale.price) {
       return "You don't have enough money to buy that!";
     }
     // Take the money from the buyer
-    charData[userTag].balance -= sale.cost;
+    charData[userTag].balance -= sale.price;
     // Give the money to the seller
-    charData[sale.seller].balance += sale.cost;
+    charData[sale.seller].balance += sale.price;
     // Give the buyer the items
     charData[userTag].inventory[foundItemName] += sale.number;
     // Remove the sale from the marketplace
@@ -207,9 +207,9 @@ class marketplace {
     dbm.saveCollection('characters', charData);
     // Save the marketplace.json file
     dbm.saveCollection('marketplace', marketData);
-    // Create an embed to return on success. Will just say @user bought **numberItems :itemIcon: itemName** from @seller for :coin:**cost**.
+    // Create an embed to return on success. Will just say @user bought **numberItems :itemIcon: itemName** from @seller for :coin:**price**.
     let embed = new EmbedBuilder();
-    embed.setDescription(`<@${userID}> bought **${sale.number} ${await shop.getItemIcon(foundItemName)} ${foundItemName}** from <@${sale.sellerID}> for :coin:**${sale.cost}**.`);
+    embed.setDescription(`<@${userID}> bought **${sale.number} ${await shop.getItemIcon(foundItemName)} ${foundItemName}** from <@${sale.sellerID}> for :coin:**${sale.price}**.`);
     return embed;
   }
 
@@ -225,7 +225,7 @@ class marketplace {
     let embed = new EmbedBuilder();
     embed.setTitle(`Sale ${saleID}`);
     embed.setColor(0x36393e);
-    embed.setDescription(`**${sale.number} ${await shop.getItemIcon(itemName)} ${itemName}** for :coin:**${sale.cost}**.`);
+    embed.setDescription(`**${sale.number} ${await shop.getItemIcon(itemName)} ${itemName}** for :coin:**${sale.price}**.`);
     embed.setFooter({text: `Seller: ${sale.seller}`});
     return embed;
   }
