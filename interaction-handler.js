@@ -159,7 +159,7 @@ newChar = async (interaction) => {
   // Call the newChar function from the char class with the info
   if (charName && charBio) {
     char.newChar(userID, charName, charBio, numericID);
-    await interaction.reply(`Character '${charName}' has been created in ${userKingdom}.`);
+    await interaction.reply(`Character '${charName}' has been created.`);
   } else {
     // Handle missing information
     await interaction.reply('Character creation failed. Please provide a name and bio.');
