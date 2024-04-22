@@ -55,7 +55,6 @@ client.on('messageCreate', async message => {
 client.on(Events.InteractionCreate, async interaction => {
 	if (interaction.isChatInputCommand()) {
 		const command = client.commands.get(interaction.commandName);
-
 		if (!command) return;
 
 		try {

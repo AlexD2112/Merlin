@@ -128,37 +128,37 @@ newChar = async (interaction) => {
   const charName = interaction.fields.getTextInputValue('charname');
   const charBio = interaction.fields.getTextInputValue('charbio');
 
-  const eastAngliaRole = interaction.guild.roles.cache.find(role => role.name === "East Anglia");
-  const eastAngliaID = eastAngliaRole.id;
-  const gwyneddRole = interaction.guild.roles.cache.find(role => role.name === "Gwynedd");
-  const gwyneddID = gwyneddRole.id;
-  const wessexRole = interaction.guild.roles.cache.find(role => role.name === "Wessex");
-  const wessexID = wessexRole.id;
+  // const eastAngliaRole = interaction.guild.roles.cache.find(role => role.name === "East Anglia");
+  // const eastAngliaID = eastAngliaRole.id;
+  // const gwyneddRole = interaction.guild.roles.cache.find(role => role.name === "Gwynedd");
+  // const gwyneddID = gwyneddRole.id;
+  // const wessexRole = interaction.guild.roles.cache.find(role => role.name === "Wessex");
+  // const wessexID = wessexRole.id;
 
-  var userKingdom = "Error";
+  //var userKingdom = "Error";
 
   // Check the user's roles
-  const userRoles = interaction.member.roles.cache;
-  if (userRoles.has(eastAngliaID)) {
-    userKingdom = "East Anglia";
-  }
-  if (userRoles.has(gwyneddID)) {
-    if (userKingdom != "Error") {
-      userKingdom = "WHY DO YOU HAVE TWO KINGDOMS? SERSKI THIS IS A PROBLEM WE DO NOT ALLOW DUAL CITIZENS HERE";
-    } else {
-      userKingdom = "Gwynedd";
-    }
-  } else if (userRoles.has(wessexID)) {
-    if (userKingdom != "Error") {
-      userKingdom = "WHY DO YOU HAVE TWO KINGDOMS? SERSKI THIS IS A PROBLEM WE DO NOT ALLOW DUAL CITIZENS HERE";
-    } else {
-      userKingdom = "Wessex";
-    }
-  }
+  // const userRoles = interaction.member.roles.cache;
+  // if (userRoles.has(eastAngliaID)) {
+  //   userKingdom = "East Anglia";
+  // }
+  // if (userRoles.has(gwyneddID)) {
+  //   if (userKingdom != "Error") {
+  //     userKingdom = "WHY DO YOU HAVE TWO KINGDOMS? SERSKI THIS IS A PROBLEM WE DO NOT ALLOW DUAL CITIZENS HERE";
+  //   } else {
+  //     userKingdom = "Gwynedd";
+  //   }
+  // } else if (userRoles.has(wessexID)) {
+  //   if (userKingdom != "Error") {
+  //     userKingdom = "WHY DO YOU HAVE TWO KINGDOMS? SERSKI THIS IS A PROBLEM WE DO NOT ALLOW DUAL CITIZENS HERE";
+  //   } else {
+  //     userKingdom = "Wessex";
+  //   }
+  // }
 
   // Call the newChar function from the char class with the info
   if (charName && charBio) {
-    char.newChar(userID, charName, charBio, userKingdom, numericID);
+    char.newChar(userID, charName, charBio, numericID);
     await interaction.reply(`Character '${charName}' has been created in ${userKingdom}.`);
   } else {
     // Handle missing information

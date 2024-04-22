@@ -5,7 +5,7 @@ const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, createWebhoo
 
 class char {
   // Function to add items
-  static async newChar(playerID, charName, charBio, charKingdom, numericID) {
+  static async newChar(playerID, charName, charBio, numericID) {
     // Set the collection name
     let collectionName = 'characters';
 
@@ -16,13 +16,11 @@ class char {
       // If the character already exists, update the fields
       charData.name = charName;
       charData.bio = charBio;
-      charData.kingdom = charKingdom;
     } else {
       // If the character does not exist, create a new character
       charData = {
         name: charName,
         bio: charBio,
-        kingdom: charKingdom,
         balance: 0,
         inventory: {},
         incomeList: {
