@@ -46,9 +46,9 @@ class marketplace {
     // Save the character.json file
     dbm.saveFile('characters', userTag, charData);
     dbm.saveCollection('marketplace', marketData);
-    // Create an embed to return on success. Will just say @user listed **numberItems :itemIcon: itemName** to the **/sales** page for :coin:**price**.
+    // Create an embed to return on success. Will just say @user listed **numberItems :itemIcon: itemName** to the **/sales** page for <:Talent:1232097113089904710>**price**.
     let embed = new EmbedBuilder();
-    embed.setDescription(`<@${userID}> listed **${numberItems} ${await shop.getItemIcon(itemName)} ${itemName}** to the **/sales** page for :coin:**${price}**.`);
+    embed.setDescription(`<@${userID}> listed **${numberItems} ${await shop.getItemIcon(itemName)} ${itemName}** to the **/sales** page for <:Talent:1232097113089904710>**${price}**.`);
     return embed;
   }
 
@@ -106,13 +106,13 @@ class marketplace {
 
     //Create embed
     let embed = new EmbedBuilder();
-    embed.setTitle(':coin: Sales');
+    embed.setTitle('<:Talent:1232097113089904710> Sales');
     embed.setColor(0x36393e);
 
     let descriptionText = '';
 
     
-    // Create the formatted line. `ID` :icon: **`Number ItemName [ALIGNSPACES]`**`Price`**:coin:, with coin and price aligned to right side (alignSpaces used to separate them and ensure all the coins and prices are aligned )
+    // Create the formatted line. `ID` :icon: **`Number ItemName [ALIGNSPACES]`**`Price`**<:Talent:1232097113089904710>, with coin and price aligned to right side (alignSpaces used to separate them and ensure all the coins and prices are aligned )
     for (const itemName in sales) {
       const salesList = sales[itemName];
       for (const saleID in salesList) {
@@ -122,7 +122,7 @@ class marketplace {
         const icon = await shop.getItemIcon(itemName);
         const price = sale.price;
         const alignSpaces = ' '.repeat(30 - item.length - ("" + price).length);
-        descriptionText += `\`${saleID}\` ${icon} **\`${number} ${item}${alignSpaces}${price}\`**:coin:\n`;
+        descriptionText += `\`${saleID}\` ${icon} **\`${number} ${item}${alignSpaces}${price}\`**<:Talent:1232097113089904710>\n`;
       }
     }
     
@@ -185,9 +185,9 @@ class marketplace {
       dbm.saveCollection('characters', charData);
       // Save the marketplace.json file
       dbm.saveCollection('marketplace', marketData);
-      // Create an embed to return on success. Will just say @user bought **numberItems :itemIcon: itemName** from @seller for :coin:**price**.
+      // Create an embed to return on success. Will just say @user bought **numberItems :itemIcon: itemName** from @seller for <:Talent:1232097113089904710>**price**.
       let embed = new EmbedBuilder();
-      embed.setDescription(`<@${userID}> bought **${sale.number} ${await shop.getItemIcon(foundItemName)} ${foundItemName}** back from themselves. It was listed for :coin:**${sale.price}**.`);
+      embed.setDescription(`<@${userID}> bought **${sale.number} ${await shop.getItemIcon(foundItemName)} ${foundItemName}** back from themselves. It was listed for <:Talent:1232097113089904710>**${sale.price}**.`);
       return embed;
     }
 
@@ -207,9 +207,9 @@ class marketplace {
     dbm.saveCollection('characters', charData);
     // Save the marketplace.json file
     dbm.saveCollection('marketplace', marketData);
-    // Create an embed to return on success. Will just say @user bought **numberItems :itemIcon: itemName** from @seller for :coin:**price**.
+    // Create an embed to return on success. Will just say @user bought **numberItems :itemIcon: itemName** from @seller for <:Talent:1232097113089904710>**price**.
     let embed = new EmbedBuilder();
-    embed.setDescription(`<@${userID}> bought **${sale.number} ${await shop.getItemIcon(foundItemName)} ${foundItemName}** from <@${sale.sellerID}> for :coin:**${sale.price}**.`);
+    embed.setDescription(`<@${userID}> bought **${sale.number} ${await shop.getItemIcon(foundItemName)} ${foundItemName}** from <@${sale.sellerID}> for <:Talent:1232097113089904710>**${sale.price}**.`);
     return embed;
   }
 
@@ -225,7 +225,7 @@ class marketplace {
     let embed = new EmbedBuilder();
     embed.setTitle(`Sale ${saleID}`);
     embed.setColor(0x36393e);
-    embed.setDescription(`**${sale.number} ${await shop.getItemIcon(itemName)} ${itemName}** for :coin:**${sale.price}**.`);
+    embed.setDescription(`**${sale.number} ${await shop.getItemIcon(itemName)} ${itemName}** for <:Talent:1232097113089904710>**${sale.price}**.`);
     embed.setFooter({text: `Seller: ${sale.seller}`});
     return embed;
   }

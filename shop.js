@@ -160,7 +160,7 @@ class shop {
     );
 
     const embed = new Discord.EmbedBuilder()
-      .setTitle(':coin: Shop')
+      .setTitle('<:Talent:1232097113089904710> Shop')
       .setColor(0x36393e);
 
       let descriptionText = '';
@@ -176,7 +176,7 @@ class shop {
             const alignSpaces = ' '.repeat(30 - item.length - ("" + price).length);
             console.log(icon, item, price);
             // Create the formatted line
-            return `${icon} \`${item}${alignSpaces}${price}\` :coin:`;
+            return `${icon} \`${item}${alignSpaces}${price}\` <:Talent:1232097113089904710>`;
           })
           .join('\n');
         descriptionText += '\n';
@@ -454,7 +454,7 @@ class shop {
     if (itemData) {
       let aboutString = "";
       if (itemData.shopOptions.Price) {
-        aboutString = "Price: :coin: " + itemData.shopOptions.Price;
+        aboutString = "Price: <:Talent:1232097113089904710> " + itemData.shopOptions.Price;
       }
       let descriptionString = "**Description:\n**" + itemData.infoOptions.Description;
       if (itemData.usageOptions["Is Usable"] == "Yes") {
@@ -468,7 +468,7 @@ class shop {
           }
           if (key == "Give/Take Money") {
             if (itemData.usageOptions[key] > 0) {
-              aboutString += ("\n`   `- :coin: " + itemData.usageOptions[key]);
+              aboutString += ("\n`   `- <:Talent:1232097113089904710> " + itemData.usageOptions[key]);
             }
           }
           if (key.startsWith("Give Item")) {
@@ -492,7 +492,7 @@ class shop {
 
           if (key == "Give/Take Money") {
             if (itemData.usageOptions[key] < 0) {
-              aboutString += ("\n`   `- :coin: " + itemData.usageOptions[key]);
+              aboutString += ("\n`   `- <:Talent:1232097113089904710> " + itemData.usageOptions[key]);
             }
           }
           if (key.startsWith("Take Item")) {

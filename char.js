@@ -88,7 +88,7 @@ class char {
           name: charData.name,
           icon_url: charData.icon ? charData.icon : 'https://images-ext-1.discordapp.net/external/xNBNeaCotnpdWVuj-r0wO8X87d34DAH4X58Bqs--vyQ/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1148265132791713802/a2637c14d39ff85a1ed89a6fa888ebbc.png',
         },
-        description: ":coin: **" + charData.balance + "**",
+        description: "<:Talent:1232097113089904710> **" + charData.balance + "**",
       };
       return charEmbed;
     } else {
@@ -380,7 +380,7 @@ class char {
         description: bioString,
         fields: [
           {
-            name: ":coin: Balance: " + (charData.balance ? charData.balance : 0),
+            name: "<:Talent:1232097113089904710> Balance: " + (charData.balance ? charData.balance : 0),
             value: "**`━━━━━━━Stats━━━━━━━`\n"+ PrestigeEmoji + prestigeString + " " + prestige + "**/" + maxPrestige +  
               "\n**"+ MartialEmoji + martialString + " " + martial + "**/" + maxMartial +
               "\n**"+ IntrigueEmoji + intrigueString  + " " + intrigue + "**/" + maxIntrigue + 
@@ -438,15 +438,15 @@ class char {
     let afterString = "";
     let total = 0;
     for (let [key, value] of Object.entries(charIncomeData)) {
-      superstring += (":coin: **" + key + "** : `" + String(value) + "`\n");
+      superstring += ("<:Talent:1232097113089904710> **" + key + "** : `" + String(value) + "`\n");
       if ((charData.incomeAvailable === true)) {
-        afterString += (":coin: **" + key + "** : `+" + String(value) + "`\n");
+        afterString += ("<:Talent:1232097113089904710> **" + key + "** : `+" + String(value) + "`\n");
       }
       total += value;
     }
-    superstring += ":coin: **__Total :__** `" + total + "`\n\n";
+    superstring += "<:Talent:1232097113089904710> **__Total :__** `" + total + "`\n\n";
     if ((charData.incomeAvailable === true)) {
-      afterString += (":coin: **__Total :__** `+" + total + "`");
+      afterString += ("<:Talent:1232097113089904710> **__Total :__** `+" + total + "`");
     }
     if (charData.incomeAvailable === false) {
       superstring += "You have already used income this income cycle!";
@@ -770,7 +770,7 @@ class char {
             for (let key in shopData[itemName].usageCase.gives) {
               let val = shopData[itemName].usageCase.gives[key];
               charData.incomeList[key] = val;
-              giveString += "`   +" + val + "` :coin: " + key + " per day\n";
+              giveString += "`   +" + val + "` <:Talent:1232097113089904710> " + key + " per day\n";
             }
             if (giveString && takeString) {
               returnEmbed.addFields(
