@@ -662,7 +662,8 @@ class shop {
   static async buyItem(itemName, charID, numToBuy) {
     itemName = await this.findItemName(itemName);
     const price = await this.getItemPrice(itemName);
-    if (price === "ERROR" || price === "No Price Item!") {
+    console.log(price);
+    if (price === "ERROR" || price === "No Price Item!" || price === undefined || price === null || price === NaN || !(price > 0)) {
       return "Not a valid item to purchase!";
     }
     let charCollection = 'characters';
