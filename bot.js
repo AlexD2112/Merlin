@@ -74,6 +74,14 @@ client.on(Events.InteractionCreate, async interaction => {
 	}
 });
 
+client.on('guildMemberAdd', member => {
+    // Assuming 'newchar' is a function you've defined to handle the new character creation
+	let memberID = member.id;
+	let memberName = member.user.tag;
+	let memberBio = "A new citizen of Massalia!";
+	char.newChar(memberID, memberID, memberName, memberBio);
+});
+
 //For commands that need to be run daily, and daily logging of infos and such
 function botMidnightLoop() {
 	var now = new Date();

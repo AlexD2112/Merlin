@@ -1,56 +1,41 @@
 //ADMIN COMMAND
 const { SlashCommandBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
-//const shop = require('../../shop'); // Importing shop
+const shop = require('../../shop'); // Importing shop
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('additem')
 		.setDescription('Add item to shop')
-		.setDefaultMemberPermissions(0),
+		.setDefaultMemberPermissions(0)
+		.addStringOption(option => option.setName('itemname').setDescription('The name of the item').setRequired(true))
+		.addStringOption(option => option.setName('itemicon').setDescription('The icon of the item').setRequired(true))
+		.addStringOption(option => option.setName('itemdescription').setDescription('The description of the item').setRequired(true))
+		.addStringOption(option => option.setName('itemcategory').setDescription('The category of the item').setRequired(true))
+		.addStringOption(option => option.setName('itemprice').setDescription('The price of the item').setRequired(false)),
 	async execute(interaction) {
-		// Create the modal
-		const modal = new ModalBuilder()
-			.setCustomId('additemmodal')
-			.setTitle('Add Item to Shop');
-
-		// Create the text input components
-		const itemNameInput = new TextInputBuilder()
-			.setCustomId('itemname')
-			.setLabel('Item Name')
-			.setStyle(TextInputStyle.Short);
-		
-		const itemIconInput = new TextInputBuilder()
-			.setCustomId('itemicon')
-			.setLabel('Item Icon- Emoji to go before name in shop')
-			.setStyle(TextInputStyle.Short);
-
-		const itemPriceInput = new TextInputBuilder()
-			.setCustomId('itemprice')
-			.setLabel('Item Price (Leave blank for none)')
-			.setRequired(false)
-			.setStyle(TextInputStyle.Short);
-
-		const itemDescriptionInput = new TextInputBuilder()
-			.setCustomId('itemdescription')
-			.setLabel('Item Description')
-			.setStyle(TextInputStyle.Paragraph);
-
-		const itemCategoryInput = new TextInputBuilder()
-			.setCustomId('itemcategory')
-			.setLabel('Item Category')
-			.setStyle(TextInputStyle.Short);
-
-		// Create action rows for each input
-		const nameActionRow = new ActionRowBuilder().addComponents(itemNameInput);
-		const iconActionRow = new ActionRowBuilder().addComponents(itemIconInput);
-		const priceActionRow = new ActionRowBuilder().addComponents(itemPriceInput);
-		const descriptionActionRow = new ActionRowBuilder().addComponents(itemDescriptionInput);
-		const categoryActionRow = new ActionRowBuilder().addComponents(itemCategoryInput);
-
-		// Add the action rows to the modal
-		modal.addComponents(nameActionRow, iconActionRow, priceActionRow, descriptionActionRow, categoryActionRow);
+		// Call the addItem function from the Shop class with the collected information
+		if (parseInt(interaction.options.getString('itemprice'))) {
+			shop.addItem(
+				interaction.options.getString('itemname'), 
+				{ 
+					Icon: interaction.options.getString('itemicon'), 
+					Price: parseInt(interaction.options.getString('itemprice')), 
+					Description: interaction.options.getString('itemdescription'), 
+					Category: interaction.options.getString('itemcategory') 
+				}
+			);
+		} else {
+			shop.addItem(
+				interaction.options.getString('itemname'), 
+				{ 
+					Icon: interaction.options.getString('itemicon'), 
+					Description: interaction.options.getString('itemdescription'), 
+					Category: interaction.options.getString('itemcategory') 
+				}
+			);
+		}
 
 		// Show the modal to the user
-		await interaction.showModal(modal);
+		await interaction.reply(`Item '${interaction.options.getString('itemname')}' has been added to the item list. Use /shoplayout or ping Alex to add to shop.`);
 	},
 };
