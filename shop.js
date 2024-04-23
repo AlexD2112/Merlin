@@ -259,6 +259,8 @@ class shop {
       startIndices[page] ? startIndices[page] : undefined
     );
 
+    console.log(pageItems)
+
     const embed = new Discord.EmbedBuilder()
       .setTitle(':package: Items')
       .setColor(0x36393e);

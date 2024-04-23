@@ -1,7 +1,7 @@
 {
     "Shires" : {
-        "Shire1" : {
-            "name": "Shire1",
+        "Massalia" : {
+            "name": "Massalia",
             "keyword": "shire1",
             "roleCode": "RC1",
             "resource": "Resource1",

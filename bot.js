@@ -9,6 +9,7 @@ const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.GuildMembers,
         GatewayIntentBits.MessageContent,
     ],
 });
@@ -79,7 +80,12 @@ client.on('guildMemberAdd', member => {
 	let memberID = member.id;
 	let memberName = member.user.tag;
 	let memberBio = "A new citizen of Massalia!";
-	char.newChar(memberID, memberID, memberName, memberBio);
+	char.newChar(memberName, memberName, memberBio, memberID);
+});
+
+client.on('guildMemberRemove', member => {
+	let memberID = member.id;
+	console.log("Member ID: " + memberID);
 });
 
 //For commands that need to be run daily, and daily logging of infos and such

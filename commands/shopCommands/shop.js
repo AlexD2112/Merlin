@@ -10,7 +10,7 @@ module.exports = {
 		// console.log("DATA");
 		// console.log(itemListString);
 		// await interaction.reply(itemListString);
-		let [embed, rows] = await shop.createShopEmbed(1, interaction);
-		await interaction.reply({ embeds: [embed], components: rows});
+		//let [embed, rows] = await shop.createShopEmbed(1, interaction);
+		//await interaction.reply({ embeds: [embed], components: rows});
 	},
 };
