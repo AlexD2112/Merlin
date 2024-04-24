@@ -131,8 +131,19 @@ class shop {
     const itemsPerPage = 25;
     // Load data from shop.json and shoplayout.json
     const shopData = await dbm.loadCollection('shop');
-    const rawShopLayoutData = await dbm.loadFile('shoplayout', 'shopLayout');
-    const shopLayoutData = await this.convertToShopMap(rawShopLayoutData);
+    // Convert the shop data to a an array of maps of category to items
+    let shopLayoutData = {};
+    for (let [key, value] of Object.entries(shopData)) {
+      let price = value.shopOptions.Price;
+      //Turn price into number
+      price = parseInt(price);
+      if (!(price == undefined || price == "" || price == null || isNaN(price) || price == 0)) {
+        if (!shopLayoutData[value.infoOptions.Category]) {
+          shopLayoutData[value.infoOptions.Category] = [];
+        }
+        shopLayoutData[value.infoOptions.Category].push(key);
+      }
+    }
 
     let startIndices = [];
     startIndices[0] = 0;
@@ -213,6 +224,18 @@ class shop {
     rows.push(new ActionRowBuilder().addComponents(prevButton, nextButton));
 
     return [embed, rows];
+  }
+
+  static async renameCategory(oldCategory, newCategory) {
+    let data = await dbm.loadCollection('shop');
+    let itemNames = Object.keys(data);
+    for (let i = 0; i < itemNames.length; i++) {
+      if (data[itemNames[i]].infoOptions.Category == oldCategory) {
+        data[itemNames[i]].infoOptions.Category = newCategory;
+      }
+    }
+    await dbm.saveCollection('shop', data);
+    return "Category renamed!";
   }
 
   static async createAllItemsEmbed(page) {

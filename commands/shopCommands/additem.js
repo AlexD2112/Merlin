@@ -36,6 +36,6 @@ module.exports = {
 		}
 
 		// Show the modal to the user
-		await interaction.reply(`Item '${interaction.options.getString('itemname')}' has been added to the item list. Use /shoplayout or ping Alex to add to shop.`);
+		await interaction.reply(`Item '${interaction.options.getString('itemname')}' has been added to the item list. Give it a price to add to shop.`);
 	},
 };
