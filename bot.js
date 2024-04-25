@@ -1,10 +1,12 @@
-const {clientId, GuildId, token} = require('./config.json');
+const {clientId, guildId, token} = require('./config.json');
 const Discord = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
 const interactionHandler = require('./interaction-handler')
 const { Client, GatewayIntentBits, Collection, Events } = require('discord.js');
 const char = require('./char');
+const emoji = require('./emoji');
+const dbm = require('./database-manager');
 const client = new Client({ 
     intents: [
         GatewayIntentBits.Guilds,
@@ -35,7 +37,7 @@ for (const folder of commandFolders) {
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
-	//client.user.setAvatar('https://images-ext-1.discordapp.net/external/xNBNeaCotnpdWVuj-r0wO8X87d34DAH4X58Bqs--vyQ/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1148265132791713802/a2637c14d39ff85a1ed89a6fa888ebbc.png');
+	//client.user.setAvatar('https://cdn.discordapp.com/attachments/1165739006923919431/1232019050205417624/Mas_LOGO_copy.png?ex=662a91a7&is=66294027&hm=2b4f0dfdf37864b1dee3ac2967f0cac1227a49cfaa9c8253d045e1672c383061&');
 });
 
 //message handler
@@ -49,6 +51,9 @@ client.on('messageCreate', async message => {
 		if (reply != "Message sent!") {
 			message.channel.send(reply);
 		}
+
+		//Delete message
+		message.delete();
     }
 });
 
@@ -100,11 +105,18 @@ function botMidnightLoop() {
 		- ((now.getUTCMilliseconds()));
 	setTimeout(function() {
 		char.resetIncomeCD();
-		botMidnightLoop;
+		dbm.logData();
+		initEmoji();
+		botMidnightLoop();
 	}, msToMidnight);
 	console.log(msToMidnight);
 }
 botMidnightLoop();
+
+function initEmoji(client, guildID) {
+	emoji.initEmoji(client, guildID);
+}
+initEmoji(client, guildId);
 
 client.login(token);
 

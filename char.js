@@ -1,7 +1,9 @@
 const dbm = require('./database-manager'); // Importing the database manager
 const shop = require ('./shop');
+const emoji = require('./emoji');
 const axios = require('axios');
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, createWebhook } = require('discord.js');
+const { clientId, guildId } = require('./config.json');
 
 class char {
   // Function to add items
@@ -28,9 +30,11 @@ class char {
         },
         incomeAvailable: true,
         stats: {
-          Martial: 0,
+          Military: 0,
           Intrigue: 0,
-          Prestige: 0
+          Prestige: 0,
+          Devotion: 0,
+          Health: 0
         },
         cooldowns: {},
         shireID: 0,
@@ -86,9 +90,9 @@ class char {
         color: 0x36393e,
         author: {
           name: charData.name,
-          icon_url: charData.icon ? charData.icon : 'https://images-ext-1.discordapp.net/external/xNBNeaCotnpdWVuj-r0wO8X87d34DAH4X58Bqs--vyQ/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1148265132791713802/a2637c14d39ff85a1ed89a6fa888ebbc.png',
+          icon_url: charData.icon ? charData.icon : 'https://cdn.discordapp.com/attachments/1165739006923919431/1232019050205417624/Mas_LOGO_copy.png?ex=662a91a7&is=66294027&hm=2b4f0dfdf37864b1dee3ac2967f0cac1227a49cfaa9c8253d045e1672c383061&',
         },
-        description: "<:Talent:1232097113089904710> **" + charData.balance + "**",
+        description: emoji.getEmoji("Talent") + " **" + charData.balance + "**",
       };
       return charEmbed;
     } else {
@@ -97,131 +101,17 @@ class char {
   }
 
   static async stats(userID) {
-    const PrestigeBar1Emoji = '<:PrestigeBar1:1165819978449158254>';
-    const PrestigeBar2Emoji = '<:PrestigeBar2:1165819993552850944>';
-    const PrestigeBar3Emoji = '<:PrestigeBar3:1165820399897034752>';
-    const IntrigueBar1Emoji = '<:IntrigueBar1:1165816319459999775>';
-    const IntrigueBar2Emoji = '<:IntrigueBar2:1165816373071585281>';
-    const IntrigueBar3Emoji = '<:IntrigueBar3:1165819807690657883>';
-    const MartialBar1Emoji = '<:MartialBar1:1165819832051191889>';
-    const MartialBar2Emoji = '<:MartialBar2:1165819861461631096>';
-    const MartialBar3Emoji = '<:MartialBar3:1165819900418330694>';
-    const EmptyBar1Emoji = '<:EmptyBar1:1165822661369270342>';
-    const EmptyBar2Emoji = '<:EmptyBar2:1165822682051387482>';
-    const EmptyBar3Emoji = '<:EmptyBar3:1165822700938346607>';
-    const PrestigeEmoji = '<:Prestige:1165722839228354610>';
-    const MartialEmoji = '<:Martial:1165722873248354425>';
-    const IntrigueEmoji = '<:Intrigue:1165722896522563715>';
-
     let collectionName = 'characters';
     let charData = await dbm.loadFile(collectionName, userID);
     if (charData) {
-      const prestige = charData.stats.Prestige;
-      const martial = charData.stats.Martial;
-      const intrigue = charData.stats.Intrigue;
-
-      const maxPrestige = prestige;
-      const maxMartial = martial;
-      const maxIntrigue = intrigue;
-      
-      let martialString = '';
-      let prestigeString = '';
-      let intrigueString = '';
-
-      for (let i = 0; i < 6; i++) {
-        if ((martial / maxMartial) > (i / 6)) {
-          switch (i) {
-            case 0:
-              martialString += MartialBar1Emoji;
-              break;
-            case 5:
-              martialString += MartialBar3Emoji;
-              break;
-            default:
-              martialString += MartialBar2Emoji;
-              break;
-          }
-        } else {
-          switch (i) {
-            case 0:
-              martialString += EmptyBar1Emoji;
-              break;
-            case 5:
-              martialString += EmptyBar3Emoji;
-              break;
-            default:
-              martialString += EmptyBar2Emoji;
-              break;
-          }
-        }
-      }
-      
-      for (let i = 0; i < 6; i++) {
-        if ((prestige / maxPrestige) > (i / 6)) {
-          switch (i) {
-            case 0:
-              prestigeString += PrestigeBar1Emoji;
-              break;
-            case 5:
-              prestigeString += PrestigeBar3Emoji;
-              break;
-            default:
-              prestigeString += PrestigeBar2Emoji;
-              break;
-          }
-        } else {
-          switch (i) {
-            case 0:
-              prestigeString += EmptyBar1Emoji;
-              break;
-            case 5:
-              prestigeString += EmptyBar3Emoji;
-              break;
-            default:
-              prestigeString += EmptyBar2Emoji;
-              break;
-          }
-        }
-      }
-    
-      for (let i = 0; i < 6; i++) {
-        if ((intrigue / maxIntrigue) > (i / 6)) {
-          switch (i) {
-            case 0:
-              intrigueString += IntrigueBar1Emoji;
-              break;
-            case 5:
-              intrigueString += IntrigueBar3Emoji;
-              break;
-            default:
-              intrigueString += IntrigueBar2Emoji;
-              break;
-          }
-        } else {
-          switch (i) {
-            case 0:
-              intrigueString += EmptyBar1Emoji;
-              break;
-            case 5:
-              intrigueString += EmptyBar3Emoji;
-              break;
-            default:
-              intrigueString += EmptyBar2Emoji;
-              break;
-          }
-        }
-      }
 
       const charEmbed = {
         color: 0x36393e,
         author: {
           name: charData.name,
-          icon_url: charData.icon ? charData.icon : 'https://images-ext-1.discordapp.net/external/xNBNeaCotnpdWVuj-r0wO8X87d34DAH4X58Bqs--vyQ/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1148265132791713802/a2637c14d39ff85a1ed89a6fa888ebbc.png',
+          icon_url: charData.icon ? charData.icon : 'https://cdn.discordapp.com/attachments/1165739006923919431/1232019050205417624/Mas_LOGO_copy.png?ex=662a91a7&is=66294027&hm=2b4f0dfdf37864b1dee3ac2967f0cac1227a49cfaa9c8253d045e1672c383061&',
         },
-        description: "**`━━━━━━━Stats━━━━━━━`\n" + PrestigeEmoji + prestigeString + " " + prestige + "**/" + maxPrestige +  
-              "\n**"+ MartialEmoji + martialString + " " + martial + "**/" + maxMartial +
-              "\n**"+ IntrigueEmoji + intrigueString  + " " + intrigue + "**/" + maxIntrigue + 
-              "\n**`━━━━━━━━━━━━━━━━━━━`**",
+        description: await this.getStatsBlock(charData),
       };
 
       return charEmbed;
@@ -236,17 +126,11 @@ class char {
     if (charData) {
       let bioString = charData.bio;
 
-      const charEmbed = {
-        color: 0x36393e,
-        author: {
-          name: charData.name,
-          icon_url: charData.icon ? charData.icon : 'https://images-ext-1.discordapp.net/external/xNBNeaCotnpdWVuj-r0wO8X87d34DAH4X58Bqs--vyQ/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1148265132791713802/a2637c14d39ff85a1ed89a6fa888ebbc.png',
-        },
-        description: bioString,
-        image: {
-          url: charData.icon ? charData.icon : 'https://images-ext-1.discordapp.net/external/xNBNeaCotnpdWVuj-r0wO8X87d34DAH4X58Bqs--vyQ/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1148265132791713802/a2637c14d39ff85a1ed89a6fa888ebbc.png',
-        },
-      };
+      const charEmbed = new EmbedBuilder()
+        .setColor(0x36393e)
+        .setAuthor({ name: charData.name, iconURL: charData.icon ? charData.icon : 'https://cdn.discordapp.com/attachments/1165739006923919431/1232019050205417624/Mas_LOGO_copy.png?ex=662a91a7&is=66294027&hm=2b4f0dfdf37864b1dee3ac2967f0cac1227a49cfaa9c8253d045e1672c383061&' })
+        .setDescription(bioString)
+        .setImage(charData.icon ? charData.icon : 'https://cdn.discordapp.com/attachments/1165739006923919431/1232019050205417624/Mas_LOGO_copy.png?ex=662a91a7&is=66294027&hm=2b4f0dfdf37864b1dee3ac2967f0cac1227a49cfaa9c8253d045e1672c383061&');
       return charEmbed;
     } else {
       return "You haven't made a character! Use /newchar first";
@@ -254,137 +138,23 @@ class char {
   }
 
   static async char(userID) {
-    const PrestigeBar1Emoji = '<:PrestigeBar1:1165819978449158254>';
-    const PrestigeBar2Emoji = '<:PrestigeBar2:1165819993552850944>';
-    const PrestigeBar3Emoji = '<:PrestigeBar3:1165820399897034752>';
-    const IntrigueBar1Emoji = '<:IntrigueBar1:1165816319459999775>';
-    const IntrigueBar2Emoji = '<:IntrigueBar2:1165816373071585281>';
-    const IntrigueBar3Emoji = '<:IntrigueBar3:1165819807690657883>';
-    const MartialBar1Emoji = '<:MartialBar1:1165819832051191889>';
-    const MartialBar2Emoji = '<:MartialBar2:1165819861461631096>';
-    const MartialBar3Emoji = '<:MartialBar3:1165819900418330694>';
-    const EmptyBar1Emoji = '<:EmptyBar1:1165822661369270342>';
-    const EmptyBar2Emoji = '<:EmptyBar2:1165822682051387482>';
-    const EmptyBar3Emoji = '<:EmptyBar3:1165822700938346607>';
-    const PrestigeEmoji = '<:Prestige:1165722839228354610>';
-    const MartialEmoji = '<:Martial:1165722873248354425>';
-    const IntrigueEmoji = '<:Intrigue:1165722896522563715>';
-
     let collectionName = 'characters';
     let charData = await dbm.loadFile(collectionName, userID);
     if (charData) {
       let bioString = charData.bio;
 
-      const prestige = charData.stats.Prestige;
-      const martial = charData.stats.Martial;
-      const intrigue = charData.stats.Intrigue;
-
-      const maxPrestige = prestige;
-      const maxMartial = martial;
-      const maxIntrigue = intrigue;
-      
-      let martialString = '';
-      let prestigeString = '';
-      let intrigueString = '';
-
-      for (let i = 0; i < 6; i++) {
-        if ((martial / maxMartial) > (i / 6)) {
-          switch (i) {
-            case 0:
-              martialString += MartialBar1Emoji;
-              break;
-            case 5:
-              martialString += MartialBar3Emoji;
-              break;
-            default:
-              martialString += MartialBar2Emoji;
-              break;
-          }
-        } else {
-          switch (i) {
-            case 0:
-              martialString += EmptyBar1Emoji;
-              break;
-            case 5:
-              martialString += EmptyBar3Emoji;
-              break;
-            default:
-              martialString += EmptyBar2Emoji;
-              break;
-          }
-        }
-      }
-      
-      for (let i = 0; i < 6; i++) {
-        if ((prestige / maxPrestige) > (i / 6)) {
-          switch (i) {
-            case 0:
-              prestigeString += PrestigeBar1Emoji;
-              break;
-            case 5:
-              prestigeString += PrestigeBar3Emoji;
-              break;
-            default:
-              prestigeString += PrestigeBar2Emoji;
-              break;
-          }
-        } else {
-          switch (i) {
-            case 0:
-              prestigeString += EmptyBar1Emoji;
-              break;
-            case 5:
-              prestigeString += EmptyBar3Emoji;
-              break;
-            default:
-              prestigeString += EmptyBar2Emoji;
-              break;
-          }
-        }
-      }
-    
-      for (let i = 0; i < 6; i++) {
-        if ((intrigue / maxIntrigue) > (i / 6)) {
-          switch (i) {
-            case 0:
-              intrigueString += IntrigueBar1Emoji;
-              break;
-            case 5:
-              intrigueString += IntrigueBar3Emoji;
-              break;
-            default:
-              intrigueString += IntrigueBar2Emoji;
-              break;
-          }
-        } else {
-          switch (i) {
-            case 0:
-              intrigueString += EmptyBar1Emoji;
-              break;
-            case 5:
-              intrigueString += EmptyBar3Emoji;
-              break;
-            default:
-              intrigueString += EmptyBar2Emoji;
-              break;
-          }
-        }
-      }
-
+      let iconUrl = charData.icon ? charData.icon : 'https://cdn.discordapp.com/attachments/1165739006923919431/1232019050205417624/Mas_LOGO_copy.png?ex=662a91a7&is=66294027&hm=2b4f0dfdf37864b1dee3ac2967f0cac1227a49cfaa9c8253d045e1672c383061&'
       const charEmbed = {
         color: 0x36393e,
         author: {
           name: charData.name,
-          icon_url: charData.icon ? charData.icon : 'https://images-ext-1.discordapp.net/external/xNBNeaCotnpdWVuj-r0wO8X87d34DAH4X58Bqs--vyQ/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1148265132791713802/a2637c14d39ff85a1ed89a6fa888ebbc.png',
+          icon_url: iconUrl,
         },
         description: bioString,
         fields: [
           {
-            name: "<:Talent:1232097113089904710> Balance: " + (charData.balance ? charData.balance : 0),
-            value: "**`━━━━━━━Stats━━━━━━━`\n"+ PrestigeEmoji + prestigeString + " " + prestige + "**/" + maxPrestige +  
-              "\n**"+ MartialEmoji + martialString + " " + martial + "**/" + maxMartial +
-              "\n**"+ IntrigueEmoji + intrigueString  + " " + intrigue + "**/" + maxIntrigue + 
-              "\n**`━━━━━━━━━━━━━━━━━━━`**",
+            name: emoji.getEmoji("Talent") + " Balance: " + (charData.balance ? charData.balance : 0),
+            value: await this.getStatsBlock(charData),
           },
         ],
       };
@@ -394,12 +164,34 @@ class char {
     }
   }
 
+  static async getStatsBlock(charData) {
+    const PrestigeEmoji = emoji.getEmoji("Prestige");
+    const MilitaryEmoji = emoji.getEmoji("Military");
+    const IntrigueEmoji = emoji.getEmoji("Intrigue");
+    const DevotionEmoji = emoji.getEmoji("Devotion");
+    const HealthEmoji = emoji.getEmoji("Health");
+
+    const prestige = charData.stats.Prestige;
+    const Military = charData.stats.Military;
+    const intrigue = charData.stats.Intrigue;
+    const devotion = charData.stats.Devotion;
+    const health = charData.stats.Health;
+
+    return "**`━━━━━━━Stats━━━━━━━`**\n"+ 
+            "**" + PrestigeEmoji + " Prestige: " + prestige + "**\n" +
+            "**" + MilitaryEmoji + " Military: " + Military + "**\n" +
+            "**" + IntrigueEmoji + " Intrigue: " + intrigue + "**\n" +
+            "**" + DevotionEmoji + " Devotion: " + devotion + "**\n" +
+            "**" + HealthEmoji + " Health: " + health + "**\n" +
+            "**`━━━━━━━━━━━━━━━━━━━`**";
+  }
+
   static async say(userID, message, channelID) {
     let charData = await dbm.loadFile('characters', userID);
     if (charData) {
       let webhookName = charData.name;
       //if charData.icon is undefined, set it to the default avatar
-      let webhookAvatar = charData.icon ? charData.icon : 'https://images-ext-1.discordapp.net/external/xNBNeaCotnpdWVuj-r0wO8X87d34DAH4X58Bqs--vyQ/%3Fsize%3D4096/https/cdn.discordapp.com/avatars/1148265132791713802/a2637c14d39ff85a1ed89a6fa888ebbc.png';
+      let webhookAvatar = charData.icon ? charData.icon : 'https://cdn.discordapp.com/attachments/1165739006923919431/1232019050205417624/Mas_LOGO_copy.png?ex=662a91a7&is=66294027&hm=2b4f0dfdf37864b1dee3ac2967f0cac1227a49cfaa9c8253d045e1672c383061&';
       let webhookMessage = message;
 
       (async () => {
@@ -437,26 +229,46 @@ class char {
     let superstring = "";
     let afterString = "";
     let total = 0;
+    //Declare a resourcemap
+    let resourceMap = {}
     for (let [key, value] of Object.entries(charIncomeData)) {
-      superstring += ("<:Talent:1232097113089904710> **" + key + "** : `" + String(value) + "`\n");
-      if ((charData.incomeAvailable === true)) {
-        afterString += ("<:Talent:1232097113089904710> **" + key + "** : `+" + String(value) + "`\n");
+      value = parseInt(value);
+      //Check if RESOURCE is beginning of key
+      if (key.startsWith("RESOURCE")) {
+        let resource = key.split("_")[1];
+        if (!resourceMap[resource]) {
+          resourceMap[resource] = 0;
+        }
+        resourceMap[resource] += value;
+
+        let icon = await shop.getItemIcon(resource);
+        superstring += (icon + " **" + resource + "** : `" + String(value) + "`\n");
+      } else {
+        superstring += (emoji.getEmoji("Talent") + " **" + key + "** : `" + String(value) + "`\n");
+        total += value;
       }
-      total += value;
     }
-    superstring += "<:Talent:1232097113089904710> **__Total :__** `" + total + "`\n\n";
-    if ((charData.incomeAvailable === true)) {
-      afterString += ("<:Talent:1232097113089904710> **__Total :__** `+" + total + "`");
+    superstring +=  emoji.getEmoji("Talent") + " **__Total :__** `" + total + "`\n\n";
+    if (charData.incomeAvailable === true) {
+      afterString = superstring;
     }
     if (charData.incomeAvailable === false) {
       superstring += "You have already used income this income cycle!";
     } else {
-      superstring += "Succesfully collected!"
+      superstring += "Successfully collected!";
     }
-    superstring += "\nNext cycle  <t:" + (now.getTime()/1000) + ":R>"
+    superstring += "\nNext cycle  <t:" + (now.getTime()/1000) + ":R>";
     
     charData.incomeAvailable = false;
+
     charData.balance += total;
+    for (let [resource, amount] of Object.entries(resourceMap)) {
+      if (charData.inventory[resource]) {
+        charData.inventory[resource] += amount;
+      } else {
+        charData.inventory[resource] = amount;
+      }
+    }
 
     dbm.saveFile(collectionName, userID, charData);
     
@@ -660,7 +472,7 @@ class char {
           }
 
           const PrestigeEmoji = '<:Prestige:1165722839228354610>';
-          const MartialEmoji = '<:Martial:1165722873248354425>';
+          const MilitaryEmoji = '<:Military:1165722873248354425>';
           const IntrigueEmoji = '<:Intrigue:1165722896522563715>';
 
           if (shopData[itemName].usageCase.gives) {
@@ -682,8 +494,8 @@ class char {
                   case "Prestige":
                     icon = PrestigeEmoji;
                     break;
-                  case "Martial":
-                    icon = MartialEmoji;
+                  case "Military":
+                    icon = MilitaryEmoji;
                     break;
                   case "Intrigue":
                     icon = IntrigueEmoji;
@@ -706,8 +518,8 @@ class char {
                 case "Prestige":
                   icon = PrestigeEmoji;
                   break;
-                case "Martial":
-                  icon = MartialEmoji;
+                case "Military":
+                  icon = MilitaryEmoji;
                   break;
                 case "Intrigue":
                   icon = IntrigueEmoji;

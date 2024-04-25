@@ -3,14 +3,15 @@
   const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, createWebhook, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } = require('discord.js');
   const keys = require('./keys.json');
   const shop = require('./shop');
+  const emoji = require('./emoji');
   class Admin {
     static async initShireSelect(channel) {
       let shires = await dbm.loadFile("keys", "shires");
       //get shires from keys, where it is an array
-      let shireNames = Object.keys(shires).map(key => "- <:Polis:1232097580817584190> " + shires[key].name  + " - " + shires[key].resource + " " + shires[key].resourceCode).join("\n");
+      let shireNames = Object.keys(shires).map(key => "- " + emoji.getEmoji("Polis") + " " + shires[key].name  + " - " + shires[key].resource + " " + shires[key].resourceCode).join("\n");
       //Send an embed with the title Massalia and the text Capital: Massalia \n The city has the following colonies \n and than a list of the colonies. There will also be a menu you can click to choose which colony. The colonies will come out of the shires.json file.
       let embed = new EmbedBuilder()
-        .setDescription("# <:Massalia:1231908680811675700> The League of Massalia" +
+        .setDescription("# " + emoji.getEmoji("Massalia") + " The League of Massalia" +
           "\n- Capital: :star: Massalia" +
           "\n- The League of Massalia controls the following cities: " +
           "\n \u200B----------------------------------------" +

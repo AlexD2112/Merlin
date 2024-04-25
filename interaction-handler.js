@@ -24,15 +24,6 @@ addItem = async (interaction) => {
       }
     }
   }
-  if (colonCounter > 0) {
-    //Get the guild
-    const guild = interaction.guild;
-    //Get the emoji ID
-    let guildEmoji = guild.emojis.cache?.find(emoji => emoji.name.toLowerCase() == itemIcon.substring(1, itemIcon.length - 1).toLowerCase());
-    if (guildEmoji != undefined) {
-      itemIcon = `<:${guildEmoji.name}:${guildEmoji.id}>`;
-    }
-  }
 
   // Call the addItem function from the Shop class with the collected information
   if (itemName && parseInt(itemPrice)) {
@@ -187,6 +178,22 @@ itemSwitch = async (interaction) => {
   let [edittedEmbed, rows] = await shop.editMenu(interaction.customId.substring(12), interaction.customId[11]);
   await interaction.update({ embeds: [edittedEmbed], components: [rows]});
 }
+helpSwitch = async (interaction) => {
+  //This one is odder, will either have the 11th character be "A" or "R" for admin or regular help. The 12th character will be the page number.
+  console.log("I'm here");
+  let isAdmin = false;
+  if (interaction.customId[11] == "A") {
+    isAdmin = true;
+  } else if (interaction.customId[11] == "R") {
+    isAdmin = false;
+  } else {
+    await interaction.reply("Error in helpSwitch");
+  }
+  console.log(isAdmin);
+  console.log(interaction.customId[12]);
+  let [edittedEmbed, rows] = await admin.generalHelpMenu(interaction.customId[12], isAdmin);
+  await interaction.update({ embeds: [edittedEmbed], components: rows});
+}
 
 exports.handle = async (interaction) => {
   if (interaction.isModalSubmit()) {
@@ -209,12 +216,15 @@ exports.handle = async (interaction) => {
     //   addUseDescription(interaction);
     // }
   } else if (interaction.isButton()) {
+    console.log(interaction.customId.substring(0, 11));
     if (interaction.customId.substring(0, 11) == 'switch_page') {
       shopSwitch(interaction);
     } else if (interaction.customId.substring(0, 11) == 'switch_sale') {
       salesSwitch(interaction);
     } else if (interaction.customId.substring(0, 11) == 'switch_item') {
       itemSwitch(interaction);
+    } else if (interaction.customId.substring(0, 11) == 'switch_help') {
+      helpSwitch(interaction);
     }
   } else if (interaction.isSelectMenu()) {
     if (interaction.customId === 'shireSelect') {

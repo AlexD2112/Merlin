@@ -1,6 +1,7 @@
 const dbm = require('./database-manager'); // Importing the database manager
 const Discord = require('discord.js');
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
+const emoji = require('./emoji');
 
 class shop {
   //Declare constants for class 
@@ -11,17 +12,11 @@ class shop {
       'Show an Image', 'Show a Message', 'Give/Take Money', 'Cooldown',
       'Give Item', 'Give Item 2', 'Give Item 3', 'Give Item 4', 'Give Item 5',
       'Take Item', 'Take Item 2', 'Take Item 3', 'Take Item 4', 'Take Item 5',
-      'Change Prestige', 'Change Martial', 'Change Intrigue', 'Revive', 'Durability'
+      'Change Prestige', 'Change Military', 'Change Intrigue', 'Revive', 'Durability'
     ];
   static recipeOptions = ['Ingredient 1', 'Ingreident 2', 'Ingredient 3', 'Ingredient 4', 'Ingredient 5', 'Ingredient 6',
       'Craft Time', 'Role Blacklist', 'Role Whitelist'
     ];
-  //
-  static statEmojis = {
-    "Prestige": "<:Prestige:1165722839228354610>",
-    "Martial": "<:Martial:1165722873248354425>",
-    "Intrigue": "<:Intrigue:1165722896522563715>",
-  }
   // Function to find an item by name in the shop
   //THIS IS INEFFICIENT BECAUSE IT MEANS CALLING IT MEANS TWO CALLS TO THE DATABASE- FIX LATER
   static async findItemName(itemName) {
@@ -171,7 +166,7 @@ class shop {
     );
 
     const embed = new Discord.EmbedBuilder()
-      .setTitle('<:Talent:1232097113089904710> Shop')
+      .setTitle(emoji.getEmoji("Talent") + ' Shop')
       .setColor(0x36393e);
 
       let descriptionText = '';
@@ -187,7 +182,7 @@ class shop {
             const alignSpaces = ' '.repeat(30 - item.length - ("" + price).length);
             console.log(icon, item, price);
             // Create the formatted line
-            return `${icon} \`${item}${alignSpaces}${price}\` <:Talent:1232097113089904710>`;
+            return `${icon} \`${item}${alignSpaces}${price}\` ${emoji.getEmoji("Talent")}`;
           })
           .join('\n');
         descriptionText += '\n';
@@ -477,15 +472,22 @@ class shop {
       .setColor(0x36393e);
 
     if (itemData) {
+      statEmojis = {
+        "Prestige": emoji.getEmoji("Prestige"),
+        "Military": emoji.getEmoji("Military"),
+        "Intrigue": emoji.getEmoji("Intrigue"),
+        "Devotion": emoji.getEmoji("Devotion"),
+        "Health": emoji.getEmoji("Health"),
+      }
       let aboutString = "";
       if (itemData.shopOptions.Price) {
-        aboutString = "Price: <:Talent:1232097113089904710> " + itemData.shopOptions.Price;
+        aboutString = "Price: " + emoji.getEmoji("Talent") + " " + itemData.shopOptions.Price;
       }
       let descriptionString = "**Description:\n**" + itemData.infoOptions.Description;
       if (itemData.usageOptions["Is Usable"] == "Yes") {
         aboutString += "\nGives:";
         //Iterate through usageOptions to find any key that starts with "Give Item". If any exist, add them to the aboutString. The value will be a string "Number Name" that will have to be split (Name may contain spaces, such as Iron Spear)
-        //Also search for anything starting with Change, which will be a change in prestige, martial, or intrigue. If they're positive, add this. This value will just be an integer in string form
+        //Also search for anything starting with Change, which will be a change in prestige, Military, or intrigue. If they're positive, add this. This value will just be an integer in string form
         for (let key in itemData.usageOptions) {
           //Check if value is blank
           if (itemData.usageOptions[key] == "") {
@@ -493,7 +495,7 @@ class shop {
           }
           if (key == "Give/Take Money") {
             if (itemData.usageOptions[key] > 0) {
-              aboutString += ("\n`   `- <:Talent:1232097113089904710> " + itemData.usageOptions[key]);
+              aboutString += ("\n`   `- " + emoji.getEmoji("Talent") + " " + itemData.usageOptions[key]);
             }
           }
           if (key.startsWith("Give Item")) {
@@ -517,7 +519,7 @@ class shop {
 
           if (key == "Give/Take Money") {
             if (itemData.usageOptions[key] < 0) {
-              aboutString += ("\n`   `- <:Talent:1232097113089904710> " + itemData.usageOptions[key]);
+              aboutString += ("\n`   `- " + emoji.getEmoji("Talent") + " " + itemData.usageOptions[key]);
             }
           }
           if (key.startsWith("Take Item")) {
@@ -566,7 +568,7 @@ class shop {
     Info Options: Name, Icon, Category, Image, Description
     Shop Options: Price, Need Role, Give Role, Take Role
     Page 2: Usage Options
-    Usage Options: Is Usable, Removed on Use, Need Role, Give Role, Take Role, Show an Image, Show a Message, Give/Take Money, Cooldown, Give Item, Give Item 2, Give Item 3, Take Item, Take Item 2, Take Item 3, Give Item, Give Item 2, Give Item 3, Change Prestige, Change Martial, Change Intrigue
+    Usage Options: Is Usable, Removed on Use, Need Role, Give Role, Take Role, Show an Image, Show a Message, Give/Take Money, Cooldown, Give Item, Give Item 2, Give Item 3, Take Item, Take Item 2, Take Item 3, Give Item, Give Item 2, Give Item 3, Change Prestige, Change Military, Change Intrigue
     */
   static async editMenu(itemName, pageNumber) {
     pageNumber = Number(pageNumber);
@@ -929,8 +931,8 @@ class shop {
   //           return "ERROR IN GIVE SECTION";
   //         } else {
   //           if (useType == "STATBOOST") {
-  //             if (!((currKey == "Martial") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
-  //               return 'ERROR! DOES NOT BOOST "Martial", "Prestige", OR "Intrigue"';
+  //             if (!((currKey == "Military") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
+  //               return 'ERROR! DOES NOT BOOST "Military", "Prestige", OR "Intrigue"';
   //             }
   //           }
   //           onKey = false;
@@ -1081,8 +1083,8 @@ class shop {
   //           return "ERROR IN GIVE SECTION";
   //         } else {
   //           if (useType == "STATBOOST") {
-  //             if (!((currKey == "Martial") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
-  //               return 'ERROR! DOES NOT BOOST "Martial", "Prestige", OR "Intrigue"';
+  //             if (!((currKey == "Military") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
+  //               return 'ERROR! DOES NOT BOOST "Military", "Prestige", OR "Intrigue"';
   //             }
   //           }
   //           onKey = false;
@@ -1159,8 +1161,8 @@ class shop {
   //           return "ERROR IN GIVE SECTION";
   //         } else {
   //           if (useType == "STATBOOST")  {
-  //             if (!((currKey == "Martial") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
-  //               return 'ERROR! DOES NOT BOOST "Martial", "Prestige", OR "Intrigue"';
+  //             if (!((currKey == "Military") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
+  //               return 'ERROR! DOES NOT BOOST "Military", "Prestige", OR "Intrigue"';
   //             }
   //           }
   //           onKey = false;
@@ -1207,8 +1209,8 @@ class shop {
   //               return "ERROR! DOES NOT TAKE A REAL ITEM";
   //             }
   //           } else if (useType == "STATBOOST")  {
-  //             if (!((currKey == "Martial") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
-  //               return 'ERROR! DOES NOT REMOVE "Martial", "Prestige", OR "Intrigue"';
+  //             if (!((currKey == "Military") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
+  //               return 'ERROR! DOES NOT REMOVE "Military", "Prestige", OR "Intrigue"';
   //             }
   //           }
   //           onKey = false;
@@ -1288,8 +1290,8 @@ class shop {
   //           return "ERROR IN GIVE SECTION";
   //         } else {
   //           if (useType == "STATBOOST")  {
-  //             if (!((currKey == "Martial") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
-  //               return 'ERROR! DOES NOT BOOST "Martial", "Prestige", OR "Intrigue"';
+  //             if (!((currKey == "Military") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
+  //               return 'ERROR! DOES NOT BOOST "Military", "Prestige", OR "Intrigue"';
   //             }
   //           }
   //           onKey = false;
@@ -1336,8 +1338,8 @@ class shop {
   //               return "ERROR! DOES NOT TAKE A REAL ITEM";
   //             }
   //           } else if (useType == "STATBOOST")  { 
-  //             if (!((currKey == "Martial") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
-  //               return 'ERROR! DOES NOT REMOVE "Martial", "Prestige", OR "Intrigue"';
+  //             if (!((currKey == "Military") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
+  //               return 'ERROR! DOES NOT REMOVE "Military", "Prestige", OR "Intrigue"';
   //             }
   //           }
   //           onKey = false;

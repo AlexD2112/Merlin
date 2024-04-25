@@ -2,6 +2,7 @@ const admin = require('firebase-admin');
 
 // Replace 'path/to/serviceAccountKey.json' with the path to the JSON file you downloaded
 const serviceAccount = require('./firebaseKey.json');
+const fs = require('fs');
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
@@ -73,4 +74,28 @@ async function fieldDelete(collectionName, docName, deleteField) {
     .catch(error => console.error('Error deleting field:', error));
 }
 
-module.exports = { saveCollection, loadCollection, saveFile, loadFile, docDelete, fieldDelete };
+async function logData() {
+  try {
+    const collections = await db.listCollections();
+    let logData = {};
+    for (const collection of collections) {
+      if (collection.id === 'logs') {
+        continue;
+      }
+      const snapshot = await collection.get();
+      logData[collection.id] = {};
+      snapshot.forEach(doc => {
+        logData[collection.id][doc.id] = doc.data();
+      });
+    }
+    const date = new Date();
+    const dateString = date.toISOString().split('T')[0];
+
+    await saveFile('logs', dateString, logData);
+    console.log(`Log data for ${dateString} saved successfully in Firestore.`);
+  } catch (error) {
+    console.error('Error logging data:', error);
+  }
+}
+
+module.exports = { saveCollection, loadCollection, saveFile, loadFile, docDelete, fieldDelete, logData };
