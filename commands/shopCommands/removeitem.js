@@ -4,7 +4,7 @@ const shop = require('../../shop'); // Importing the database manager
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('removeitem')
-		.setDescription('Remove item from shop')
+		.setDescription('Delete an item. This is destructive and cannot be undone.')
 		.setDefaultMemberPermissions(0)
 		.addStringOption((option) =>
 		option.setName('itemname')

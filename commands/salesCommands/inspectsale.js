@@ -9,7 +9,7 @@ module.exports = {
         .setDescription('Inspect a sale')
         .addStringOption((option) =>
             option.setName('saleid')
-                .setDescription('ID of sale to buy')
+                .setDescription('ID of sale to inspect')
                 .setRequired(true)
         ),
     async execute(interaction) {

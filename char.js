@@ -100,11 +100,27 @@ class char {
     }
   }
 
+  static async getCharFromNumericID(numericID) {
+    let collectionName = 'characters';
+    let data = await dbm.loadCollection(collectionName);
+    for (let [charID, charData] of Object.entries(data)) {
+      if (charData.numericID === numericID) {
+        return charID;
+      }
+    }
+    return "ERROR";
+  }
+
   static async stats(userID) {
     let collectionName = 'characters';
-    let charData = await dbm.loadFile(collectionName, userID);
+    let charData;
+    try {
+      charData = await dbm.loadFile(collectionName, userID);
+    } catch (error) {
+      console.error(error);
+      return "Character not found- use /newchar first";
+    }
     if (charData) {
-
       const charEmbed = {
         color: 0x36393e,
         author: {

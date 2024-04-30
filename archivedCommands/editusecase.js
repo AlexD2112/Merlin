@@ -1,6 +1,6 @@
 //ADMIN COMMAND
 const { SlashCommandBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
-const shop = require('../../shop'); // Importing shop
+const shop = require('../shop'); // Importing shop
 //Edits use case for item. Has default values with current values of use case and such. Based off of:
 
 // static async editUseCasePlaceholders(itemName) {

@@ -14,9 +14,5 @@
             "resource": "Resource2",
             "resourceCode": "RC2"
         }
-    },
-    "CustomEmojis" : {
-        "newwood" : "<:newwood:1228025787362312364>",
-        "iron" : "<:iron:1228026446287732870>"
     }
 }

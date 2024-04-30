@@ -180,7 +180,6 @@ itemSwitch = async (interaction) => {
 }
 helpSwitch = async (interaction) => {
   //This one is odder, will either have the 11th character be "A" or "R" for admin or regular help. The 12th character will be the page number.
-  console.log("I'm here");
   let isAdmin = false;
   if (interaction.customId[11] == "A") {
     isAdmin = true;
@@ -189,8 +188,6 @@ helpSwitch = async (interaction) => {
   } else {
     await interaction.reply("Error in helpSwitch");
   }
-  console.log(isAdmin);
-  console.log(interaction.customId[12]);
   let [edittedEmbed, rows] = await admin.generalHelpMenu(interaction.customId[12], isAdmin);
   await interaction.update({ embeds: [edittedEmbed], components: rows});
 }
@@ -216,7 +213,6 @@ exports.handle = async (interaction) => {
     //   addUseDescription(interaction);
     // }
   } else if (interaction.isButton()) {
-    console.log(interaction.customId.substring(0, 11));
     if (interaction.customId.substring(0, 11) == 'switch_page') {
       shopSwitch(interaction);
     } else if (interaction.customId.substring(0, 11) == 'switch_sale') {

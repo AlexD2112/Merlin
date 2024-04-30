@@ -3,6 +3,8 @@
   const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, createWebhook, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } = require('discord.js');
   const keys = require('./keys.json');
   const shop = require('./shop');
+  const fs = require('node:fs');
+  const path = require('node:path');
   const emoji = require('./emoji');
   class Admin {
     static async initShireSelect(channel) {
@@ -64,7 +66,6 @@
         roleCode: roleID
       };
       shires[shireName] = shire;
-      console.log(shires);
       await dbm.saveFile("keys", "shires", shires);
 
       return "Shire " + shireName + " has been added with resource " + resource;
@@ -80,12 +81,6 @@
 
       let userTag = interaction.user.tag;
       let char = await dbm.loadFile("characters", userTag);
-      console.log(user);
-
-      console.log(parseInt(char.shireID) != 0);
-      console.log(parseInt(char.shireID));
-      console.log(char.shireID);
-      console.log(char);
       if (parseInt(char.shireID) != 0) {
         await interaction.reply({ content: "You are already a member of a city! You cannot switch cities", ephemeral: true });
         return;
@@ -113,6 +108,138 @@
         content: "You have selected " + shire.name + " with resource " + shire.resource, 
         ephemeral: true 
       });
+    }
+
+    static async generalHelpMenu(page, isAdminMenu) {
+      page = Number(page);
+      let folderToHelp = ""
+
+      let embed = new EmbedBuilder()
+        .setDescription("Use /help <command> to get help with a specific command");
+
+      switch (page) {
+        case 1:
+          folderToHelp = "charCommands";
+          embed.setTitle("Character Commands" + (isAdminMenu ? " (Admin)" : ""));
+          break;
+        case 2:
+          folderToHelp = "shopCommands";
+          embed.setTitle("Shop Commands" + (isAdminMenu ? " (Admin)" : ""));
+          break;
+        case 3:
+          folderToHelp = "salesCommands";
+          embed.setTitle("Sales Commands" + (isAdminMenu ? " (Admin)" : "")); 
+          break;
+        case 4:
+          folderToHelp = "adminCommands";
+          embed.setTitle("Admin Commands" + (isAdminMenu ? " (Admin)" : ""));
+          break;
+      }
+
+      const foldersPath = path.join(__dirname, 'commands');
+      const commandFolders = fs.readdirSync(foldersPath);
+
+      for (const folder of commandFolders) {
+        const commandsPath = path.join(foldersPath, folder);
+        const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+        if (folder == folderToHelp) {
+          for (const file of commandFiles) {
+            const filePath = path.join(commandsPath, file);
+            const command = require(filePath);
+            if ('data' in command && 'execute' in command) {
+              //put 
+              //Check if the command is an admin command
+              if ((command.data.default_member_permissions == 0) == isAdminMenu) {
+                let description = "";
+                if (command.data.description != undefined) {
+                  description = command.data.description;
+                }
+                embed.addFields({ name: "/" + command.data.name, value: description });
+              }
+            }
+          }
+        }
+      }
+
+      const rows = [];
+      // Create a "Previous Page" button
+      let baseID = 'switch_help';
+      if (isAdminMenu) {
+        baseID += 'A';
+        embed.setFooter({ text: 'Page ' + page + ' of ' + 4 });
+      } else {
+        baseID += 'R';
+        embed.setFooter({ text: 'Page ' + page + ' of ' + 3 });
+      }
+
+      let prevID = baseID;
+      if (page === 1) {
+        if (isAdminMenu) {
+          prevID += 4;
+        } else {
+          prevID += 3;
+        }
+      } else {
+        prevID += page - 1;
+      }
+
+      const prevButton = new ButtonBuilder()
+        .setCustomId(prevID)
+        .setLabel('<')
+        .setStyle(ButtonStyle.Secondary); // You can change the style to your preference
+
+      let nextID = baseID;
+      if (page === 4) { 
+        if (isAdminMenu) {
+          nextID += 1;
+        }
+      } else if (page === 3 && !isAdminMenu) {
+        nextID += 1;
+      } else {
+        nextID += page + 1;
+      }
+
+      const nextButton = new ButtonBuilder()
+            .setCustomId(nextID)
+            .setLabel('>')
+            .setStyle(ButtonStyle.Secondary); // You can change the style to your preference
+
+      rows.push(new ActionRowBuilder().addComponents(prevButton, nextButton));
+
+      return [embed, rows];
+    }
+
+    static async commandHelp(commandName) {
+      //Send an embed with the title, description, options and "help" field of the command. Options should be horizontally aligned. Read from keys/commandList in firebase.
+      let commandList = await dbm.loadFile("keys", "commandList");
+      let command = commandList[commandName];
+      if (command == undefined) {
+        for (const cmd in commandList) {
+          if (cmd.toLowerCase() == commandName.toLowerCase()) {
+            command = commandList[cmd];
+            commandName = cmd;
+          }
+        }
+        if (command == undefined) {
+          return null;
+        }
+      }
+      let embed = new EmbedBuilder()
+        .setDescription("## :hammer: </" + commandName + "> command");
+      let options = command.options;
+      embed.addFields({ name: "Basic Description: ", value: command.description, inline: false });
+      //Options will be a bunch of inline field values, i.e. no optionstring will be made
+      let optionsAdded = false;
+      for (const option in options) {
+        if (!optionsAdded) {
+          embed.addFields({ name: "Options: ", value: " ", inline: false });
+          optionsAdded = true;
+        }
+        embed.addFields({ name: "<" + option + ">", value: options[option], inline: true });
+      }
+      embed.addFields({ name: "Full info:", value: command.help });
+
+      return embed;
     }
   }
 

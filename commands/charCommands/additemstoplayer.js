@@ -8,7 +8,7 @@ module.exports = {
         .setName('additemstoplayer')
         .setDescription('Adds items to a player')
         .setDefaultMemberPermissions(0)
-        .addStringOption(option => option.setName('player').setDescription('The player to add items to').setRequired(true))
+        .addUserOption(option => option.setName('player').setDescription('The player to add items to').setRequired(true))
         .addStringOption(option => option.setName('item').setDescription('The item to add').setRequired(true))
         .addIntegerOption(option => option.setName('amount').setDescription('The amount of items to add').setRequired(true)),
     async execute(interaction) {

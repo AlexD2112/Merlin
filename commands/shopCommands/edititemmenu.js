@@ -3,7 +3,7 @@ const shop = require('../../shop'); // Importing the database manager
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('edititem')
+		.setName('edititemmenu')
 		.setDescription('Show the edit item menu')
 		.setDefaultMemberPermissions(0)
 		.addStringOption((option) =>
