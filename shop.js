@@ -6,17 +6,18 @@ const emoji = require('./emoji');
 class shop {
   //Declare constants for class 
   static infoOptions = ['Name', 'Icon', 'Category', 'Image', 'Description'];
-  static shopOptions = ['Price', 'Need Role', 'Give Role', 'Take Role', 'Quantity', 'Channels'];
+  static shopOptions = ['Price (#)', 'Need Role', 'Give Role', 'Take Role', 'Quantity (#)', 'Channels'];
   static usageOptions = [
-      'Is Usable', 'Removed on Use', 'Need Role', 'Give Role', 'Take Role',
-      'Show an Image', 'Show a Message', 'Give/Take Money', 'Cooldown',
+      'Is Usable (Y/N)', 'Removed on Use (Y/N)', 'Need Role', 'Give Role', 'Take Role',
+      'Show an Image (Y/N)', 'Show a Message (Y/N)', 'Give/Take Money (#)', 'Cooldown (#)',
       'Give Item', 'Give Item 2', 'Give Item 3', 'Give Item 4', 'Give Item 5',
       'Take Item', 'Take Item 2', 'Take Item 3', 'Take Item 4', 'Take Item 5',
-      'Change Prestige', 'Change Military', 'Change Intrigue', 'Revive', 'Durability'
+      'Change Prestige (#)', 'Change Military (#)', 'Change Intrigue (#)', 'Revive (Y/N)', 'Durability (#)'
     ];
-  static recipeOptions = ['Ingredient 1', 'Ingreident 2', 'Ingredient 3', 'Ingredient 4', 'Ingredient 5', 'Ingredient 6',
-      'Craft Time', 'Role Blacklist', 'Role Whitelist'
+  static recipeOptions = ['Ingredient 1', 'Ingredient 2', 'Ingredient 3', 'Ingredient 4', 'Ingredient 5', 'Ingredient 6',
+      'Craft Time (#)', 'Role Blacklist', 'Role Whitelist'
     ];
+
   // Function to find an item by name in the shop
   //THIS IS INEFFICIENT BECAUSE IT MEANS CALLING IT MEANS TWO CALLS TO THE DATABASE- FIX LATER
   static async findItemName(itemName) {
@@ -92,8 +93,17 @@ class shop {
   }
 
   static async updateItemVersion(itemName) {
+    let log = false;
+    if (itemName == "Horse") {
+      log = true;
+    }
     // Convert all item data to the new options. Carry over whatever new options it has
+    console.log("here?");
     let itemData = await dbm.loadFile('shop', itemName);
+    console.log("as in above?");
+    if (log) {
+      console.log(itemData);
+    }
 
     // Create a new itemData object with the new options
     let newItemData = {
@@ -114,11 +124,17 @@ class shop {
       , {}),
     };
 
+    console.log(newItemData);
     // Save the new item data
     await dbm.docDelete('shop', itemName);
     await dbm.saveFile('shop', itemName, newItemData);
 
-    return `Item \`${itemName}\` updated to the new version`;
+    //If no errors, return a success message
+    if (newItemData != undefined) {
+      return `Item \`${itemName}\` updated to the new version`;
+    } else {
+      return "Error updating item!";
+    }
   }
 
   static async createShopEmbed(page) {

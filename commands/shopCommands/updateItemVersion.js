@@ -17,7 +17,7 @@ module.exports = {
 		(async () => {
 			//shop.editMenu returns an array with the first element being the replyEmbed and the second element being the rows
 			let reply = await shop.updateItemVersion(itemName);
-            await interaction.reply(reply);
+            interaction.reply(reply);
 		})()
 	},
 };
