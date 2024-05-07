@@ -1,6 +1,6 @@
 const dbm = require('./database-manager'); // Importing the database manager
-const shop = require ('./shop');
-const emoji = require('./emoji');
+const shop = require('./shop');
+const clientManager = require('./clientManager');
 const axios = require('axios');
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, createWebhook } = require('discord.js');
 const { clientId, guildId } = require('./config.json');
@@ -23,27 +23,30 @@ class char {
       charData = {
         name: charName,
         bio: charBio,
-        balance: 0,
+        balance: 100,
         inventory: {},
         incomeList: {
           Daily: 40
         },
         incomeAvailable: true,
         stats: {
-          Military: 0,
+          Martial: 0,
           Intrigue: 0,
           Prestige: 0,
           Devotion: 0,
-          Health: 0
+          Health: 100
         },
-        cooldowns: {},
+        cooldowns: {
+          craftSlots: {},
+          usageCooldowns: {}
+        },
         shireID: 0,
         numericID: numericID,
       };
     }
 
     // Save the character data
-    dbm.saveFile(collectionName, playerID, charData);
+    await dbm.saveFile(collectionName, playerID, charData);
   }
 
   //returns player name and bio from playerID
@@ -70,7 +73,7 @@ class char {
   
         charData.icon = avatarURL;
   
-        dbm.saveFile(collectionName, userID, charData);
+        await dbm.saveFile(collectionName, userID, charData);
   
         return "Avatar has been set";
       } else {
@@ -92,23 +95,12 @@ class char {
           name: charData.name,
           icon_url: charData.icon ? charData.icon : 'https://cdn.discordapp.com/attachments/1165739006923919431/1232019050205417624/Mas_LOGO_copy.png?ex=662a91a7&is=66294027&hm=2b4f0dfdf37864b1dee3ac2967f0cac1227a49cfaa9c8253d045e1672c383061&',
         },
-        description: emoji.getEmoji("Talent") + " **" + charData.balance + "**",
+        description: clientManager.getEmoji("Talent") + " **" + charData.balance + "**",
       };
       return charEmbed;
     } else {
       return "You haven't made a character! Use /newchar first";
     }
-  }
-
-  static async getCharFromNumericID(numericID) {
-    let collectionName = 'characters';
-    let data = await dbm.loadCollection(collectionName);
-    for (let [charID, charData] of Object.entries(data)) {
-      if (charData.numericID === numericID) {
-        return charID;
-      }
-    }
-    return "ERROR";
   }
 
   static async stats(userID) {
@@ -127,7 +119,7 @@ class char {
           name: charData.name,
           icon_url: charData.icon ? charData.icon : 'https://cdn.discordapp.com/attachments/1165739006923919431/1232019050205417624/Mas_LOGO_copy.png?ex=662a91a7&is=66294027&hm=2b4f0dfdf37864b1dee3ac2967f0cac1227a49cfaa9c8253d045e1672c383061&',
         },
-        description: await this.getStatsBlock(charData),
+        description: await this.getStatsBlock(charData, userID),
       };
 
       return charEmbed;
@@ -169,8 +161,8 @@ class char {
         description: bioString,
         fields: [
           {
-            name: emoji.getEmoji("Talent") + " Balance: " + (charData.balance ? charData.balance : 0),
-            value: await this.getStatsBlock(charData),
+            name: clientManager.getEmoji("Talent") + " Balance: " + (charData.balance ? charData.balance : 0),
+            value: await this.getStatsBlock(charData, userID),
           },
         ],
       };
@@ -180,25 +172,57 @@ class char {
     }
   }
 
-  static async getStatsBlock(charData) {
-    const PrestigeEmoji = emoji.getEmoji("Prestige");
-    const MilitaryEmoji = emoji.getEmoji("Military");
-    const IntrigueEmoji = emoji.getEmoji("Intrigue");
-    const DevotionEmoji = emoji.getEmoji("Devotion");
-    const HealthEmoji = emoji.getEmoji("Health");
+  static async getStatsBlock(charData, userID) {
+    const PrestigeEmoji = clientManager.getEmoji("Prestige");
+    const MartialEmoji = clientManager.getEmoji("Martial");
+    const IntrigueEmoji = clientManager.getEmoji("Intrigue");
+    const DevotionEmoji = clientManager.getEmoji("Devotion");
+    const HealthEmoji = clientManager.getEmoji("Health");
 
     const prestige = charData.stats.Prestige;
-    const Military = charData.stats.Military;
+    const martial = charData.stats.Martial;
     const intrigue = charData.stats.Intrigue;
     const devotion = charData.stats.Devotion;
     const health = charData.stats.Health;
 
+    //If any are > 100, set them to 100
+    let valChanged = false;
+    if (prestige > 100) {
+      prestige = 100;
+      valChanged = true;
+    }
+    if (martial > 100) {
+      martial = 100;
+      valChanged = true;
+    }
+    if (intrigue > 100) {
+      intrigue = 100;
+      valChanged = true;
+    }
+    if (devotion > 100) {
+      devotion = 100;
+      valChanged = true;
+    }
+    if (health > 100) {
+      health = 100;
+      valChanged = true;
+    }
+
+    if (valChanged) {
+      charData.stats.Prestige = prestige;
+      charData.stats.Martial = martial;
+      charData.stats.Intrigue = intrigue;
+      charData.stats.Devotion = devotion;
+      charData.stats.Health = health;
+      await dbm.saveFile('characters', charData.userID, charData);
+    }
+
     return "**`━━━━━━━Stats━━━━━━━`**\n"+ 
-            "**" + PrestigeEmoji + " Prestige: " + prestige + "**\n" +
-            "**" + MilitaryEmoji + " Military: " + Military + "**\n" +
-            "**" + IntrigueEmoji + " Intrigue: " + intrigue + "**\n" +
-            "**" + DevotionEmoji + " Devotion: " + devotion + "**\n" +
-            "**" + HealthEmoji + " Health: " + health + "**\n" +
+            "**" + HealthEmoji + " Health: " + health + "**/100\n" +
+            "**" + PrestigeEmoji + " Prestige: " + prestige + "**/100\n" +
+            "**" + MartialEmoji + " Martial: " + martial + "**/100\n" +
+            "**" + IntrigueEmoji + " Intrigue: " + intrigue + "**/100\n" +
+            "**" + DevotionEmoji + " Devotion: " + devotion + "**/100\n" +
             "**`━━━━━━━━━━━━━━━━━━━`**";
   }
 
@@ -236,35 +260,48 @@ class char {
 
     // Load the data
     let charData = await dbm.loadFile(collectionName, userID);
+    let incomeListFromRoles = await dbm.loadFile('keys', 'incomeList');
 
     var now = new Date();
     now.setUTCDate(now.getUTCDate() + 1);
     now.setUTCHours(0, 0, 0, 0);
 
     let charIncomeData = charData.incomeList;
+
+    //Add on incomes from roles, 
+    let user = await clientManager.getUser(numericID);
+    let roles = user.roles.cache;
+    for (let [_, role] of roles) {
+      if (incomeListFromRoles[role.id]) {
+        charIncomeData[role.name] = incomeListFromRoles[role.id];
+      }
+    }
+
     let superstring = "";
     let afterString = "";
     let total = 0;
     //Declare a resourcemap
     let resourceMap = {}
     for (let [key, value] of Object.entries(charIncomeData)) {
-      value = parseInt(value);
-      //Check if RESOURCE is beginning of key
-      if (key.startsWith("RESOURCE")) {
-        let resource = key.split("_")[1];
+      //Value is either a number, in the case of a pure gold income, or a string in the form of RESOURCE_[resource]_[amount].
+      //Make sure value is a string to check if it includes "RESOURCE"
+      if (typeof value == "string" && value.includes("RESOURCE")) {
+        let resource = value.split("_")[1];
+        value = parseInt(value.split("_")[2]);
         if (!resourceMap[resource]) {
           resourceMap[resource] = 0;
         }
         resourceMap[resource] += value;
-
         let icon = await shop.getItemIcon(resource);
+        icon = icon ? icon : ":question:";
         superstring += (icon + " **" + resource + "** : `" + String(value) + "`\n");
       } else {
-        superstring += (emoji.getEmoji("Talent") + " **" + key + "** : `" + String(value) + "`\n");
+        value = parseInt(value);
+        superstring += (clientManager.getEmoji("Talent") + " **" + key + "** : `" + String(value) + "`\n");
         total += value;
       }
     }
-    superstring +=  emoji.getEmoji("Talent") + " **__Total :__** `" + total + "`\n\n";
+    superstring +=  clientManager.getEmoji("Talent") + " **__Total :__** `" + total + "`\n\n";
     if (charData.incomeAvailable === true) {
       afterString = superstring;
     }
@@ -286,7 +323,7 @@ class char {
       }
     }
 
-    dbm.saveFile(collectionName, userID, charData);
+    await dbm.saveFile(collectionName, userID, charData);
     
     const incomeEmbed = {
       color: 0x36393e,
@@ -303,8 +340,431 @@ class char {
     for (let [_, charData] of Object.entries(data)) {
       charData.incomeAvailable = true;
     }
-    dbm.saveCollection(collectionName, data);
+    await dbm.saveCollection(collectionName, data);
   }
+
+  static async useItem(itemName, charID, numToUse) {
+    //static usageOptions = [
+    //   'Is Usable (Y/N)', 'Removed on Use (Y/N)', 'Need Role', 'Give Role', 'Take Role',
+    //   'Show Image', 'Show Message', 'Give/Take Money (#)', 'Cooldown in Hours (#)',
+    //   'Give Item', 'Give Item 2', 'Give Item 3', 'Give Item 4', 'Give Item 5',
+    //   'Take Item', 'Take Item 2', 'Take Item 3', 'Take Item 4', 'Take Item 5',
+    //   'Change Health (#)', 'Change Prestige (#)', 'Change Martial (#)', 'Change Intrigue (#)', 'Change Devotion (#)', 'Revive (Y/N)', 'Durability (#)'
+    // ];
+    itemName = await shop.findItemName(itemName);
+    let shopData = await dbm.loadCollection('shop');
+
+    if (!numToUse) {
+      numToUse = 1;
+    } else if (numToUse < 1) {
+      return "Must use at least 1";
+    }
+
+    let returnEmbed = new EmbedBuilder();
+    const charactersCollection = 'characters';
+    let charData = await dbm.loadFile(charactersCollection, charID);
+    const shopCollection = 'shop';
+    let itemData = await dbm.loadFile(shopCollection, itemName);
+
+    let user = await clientManager.getUser(charData.numericID);
+
+    //Check if user has item
+
+    if (!charData.inventory[itemName] || charData.inventory[itemName] < numToUse) {
+      return "You do not have enough of this item!";
+    }
+
+    if (itemData.usageOptions["Can Use Multiple (Y/N)"] != "Yes" && numToUse > 1) {
+      return "You can only use one of this item!";
+    }
+
+    if (itemData.usageOptions["Is Usable (Y/N)"] != "Yes") {
+      return "Item is not usable!";
+    }
+
+    if (itemData.usageOptions["Removed on Use (Y/N)"] == "Yes") {
+      charData.inventory[itemName] -= numToUse;
+    }
+
+
+    //There are multiple role options, either Need Any of Roles or Need All Of Roles. If Need Any Of Roles, check if user has any of the roles. If Need All Of Roles, check if user has all of the roles
+    if (itemData.usageOptions["Need Any of Roles"]) {
+      //Roles are enclosed in <@& and >, and there may be multiple roles. They may not be comma separated but commas and spaces may exist
+      let roles = itemData.usageOptions["Need Any of Roles"].split("<@&");
+      roles = roles.map(role => role.replace(">", ""));
+      roles = roles.map(role => role.replace(",", ""));
+      roles = roles.map(role => role.replace(" ", ""));
+      roles = roles.filter(role => role.length > 0);
+      let hasRole = false;
+      for (let i = 0; i < roles.length; i++) {
+        if (user.roles.cache.some(role => role.id === roles[i])) {
+          hasRole = true;
+          break;
+        }
+      }
+      if (!hasRole) {
+        return "You do not have the required role to use this item! You must have " + itemData.usageOptions["Need Role"];
+      }
+    }
+
+    if (itemData.usageOptions["Need All Of Roles"]) {
+      let roles = itemData.usageOptions["Need All Of Roles"].split("<@&");
+      roles = roles.map(role => role.replace(">", ""));
+      roles = roles.map(role => role.replace(",", ""));
+      roles = roles.map(role => role.replace(" ", ""));
+      roles = roles.filter(role => role.length > 0);
+      let hasRole = true;
+      for (let i = 0; i < roles.length; i++) {
+        if (!user.roles.cache.some(role => role.id === roles[i])) {
+          hasRole = false;
+          break;
+        }
+      }
+      if (!hasRole) {
+        return "You do not have all the required roles to use this item! You must have " + itemData.usageOptions["Need Role"];
+      }
+    }
+
+    if (itemData.usageOptions["Give Role"]) {
+      let roles = itemData.usageOptions["Give Role"].split("<@&");
+      roles = roles.map(role => role.replace(">", ""));
+      roles = roles.map(role => role.replace(",", ""));
+      roles = roles.map(role => role.replace(" ", ""));
+      roles = roles.filter(role => role.length > 0);
+      for (let i = 0; i < roles.length; i++) {
+        user.roles.add(roles[i]);
+      }
+
+      returnEmbed.addFields({ name: '**Added Roles:**', value: itemData.usageOptions["Give Role"] });
+    }
+
+    if (itemData.usageOptions["Take Role"]) {
+      let roles = itemData.usageOptions["Take Role"].split("<@&");
+      roles = roles.map(role => role.replace(">", ""));
+      roles = roles.map(role => role.replace(",", ""));
+      roles = roles.map(role => role.replace(" ", ""));
+      roles = roles.filter(role => role.length > 0);
+      for (let i = 0; i < roles.length; i++) {
+        user.roles.remove(roles[i]);
+      }
+
+      returnEmbed.addFields({ name: '**Removed Roles:**', value: itemData.usageOptions["Take Role"] });
+    }
+
+    if (itemData.usageOptions["Cooldown in Hours (#)"]) {
+      if (charData.cooldowns.usageCooldowns[itemName] <= Math.round(Date.now() / 1000) || !charData.cooldowns.usageCooldowns[itemName]) {
+        charData.cooldowns.usageCooldowns[itemName] = Math.round(Date.now() / 1000) + (itemData.usageOptions["Cooldown in Hours (#)"] * 3600);
+      } else {
+        return "You have used this item recently! Can be used again <t:" + charData.cooldowns.usageCooldowns[itemName] + ":R>";
+      }
+    }
+
+    returnEmbed.setTitle("**__Used:__ " + (numToUse > 1 ? numToUse + " " : "") + itemData.infoOptions.Icon + " " + itemName + "**");
+
+    if (itemData.usageOptions["Show Image"].length > 0) {
+      returnEmbed.setImage(itemData.usageOptions["Show Image"]);
+    }
+    if (itemData.usageOptions["Show Message"].length > 0) {
+      returnEmbed.setDescription(itemData.usageOptions["Show Message"]);
+    }
+
+    if (itemData.usageOptions["Give/Take Money (#)"] && itemData.usageOptions["Give/Take Money (#)"] != 0 && itemData.usageOptions["Give/Take Money (#)"] != "") {
+      //If they are taking money, make sure they have enough
+      let totalGold = parseInt(itemData.usageOptions["Give/Take Money (#)"]) * numToUse;
+      if (charData.balance + totalGold < 0) {
+        return "You do not have enough money to use this item!";
+      }
+      charData.balance += totalGold;
+      //Add field for money loss/gain, with talent emoji
+      returnEmbed.addFields({ 
+        name: '**Talents:**', 
+        value: clientManager.getEmoji("Talent") + " " + (totalGold < 0 ? totalGold : "+" + totalGold)
+      })
+    }
+
+    //Cycle through options that begin with "Change"
+    let statChanged = false;
+    let statString = "";
+    let itemChanged = false;
+    let itemString = "";
+    for (let [key, value] of Object.entries(itemData.usageOptions)) {
+      if (value == 0 || value == "" || !value) {
+        continue;
+      }
+      if (key.startsWith("Change")) {
+        let stat = key.split(" ")[1];
+        value = parseInt(value) * numToUse;
+        charData.stats[stat] += parseInt(value);
+        if (charData.stats[stat] < 0) {
+          return ("You cannot have negative stats! You have " + charData.stats[stat] + " " + stat + " after using this item.")
+        }
+        statChanged = true;
+        statString += stat + ": " + clientManager.getEmoji(stat) + (parseInt(value) < 0 ? parseInt(value) : "+" + parseInt(value)) +  "\n";
+      }
+
+      if (key.startsWith("Give Item")) {
+        let item = value.split(" ").slice(1).join(" ");
+        let num = value.split(" ")[0];
+        num = parseInt(num) * numToUse;
+        if (!charData.inventory[item]) {
+          charData.inventory[item] = 0;
+        }
+        charData.inventory[item] += num;
+        itemChanged = true;
+        itemString = item + ": " +  shopData[item].infoOptions.Icon + "+" + parseInt(num) + "\n" + itemString;
+      }
+
+      if (key.startsWith("Take Item")) {
+        let item = value.split(" ").slice(1).join(" ");
+        let num = value.split(" ")[0];
+        num = parseInt(num) * numToUse;
+        if (!charData.inventory[item] || charData.inventory[item] < num) {
+          return "You do not have " + shopData[item].infoOptions.Icon + " " + num + " " + item;
+        }
+        charData.inventory[item] -= num;
+        itemChanged = true;
+        itemString += item + ": " + shopData[item].infoOptions.Icon + "-" + parseInt(num) + "\n";
+      }
+    }
+    if (statChanged) {
+      returnEmbed.addFields({ name: '**Stats:**', value: statString });
+    } 
+    if (itemChanged) {
+      returnEmbed.addFields({ name: '**Items:**', value: itemString });
+    }
+
+    await dbm.saveFile(charactersCollection, charID, charData);
+
+    return returnEmbed;
+  }
+
+  static async craft(charID, recipe) {
+    let recipeData = await dbm.loadFile('recipes', recipe);
+
+    if (!recipeData) {
+      return "Recipe not found!";
+    }
+
+    recipe = recipeData.recipeOptions.Name;
+
+    let charData = await dbm.loadCollection('characters');
+    let shopData = await dbm.loadCollection('shop');
+
+    // Check if the recipe exists
+    if (!recipeData) {
+      return "Recipe not found!";
+    }
+
+    // Check if the character exists
+    if (!charData[charID]) {
+      return "Character not found!";
+    }
+
+    if (recipeData.recipeOptions["Is Public (Y/N)"] == "No") {
+      return "This recipe is not public!";
+    }
+
+    // Check if the character has the required items
+    for (let i = 1; i <= 5; i++) {
+      let ingredient = recipeData.recipeOptions["Ingredient " + i];
+      if (ingredient) {
+        let ingredientName = ingredient.split(" ").slice(1).join(" ");
+        let ingredientQuantity = parseInt(ingredient.split(" ")[0]);
+        if (!charData[charID].inventory[ingredientName] || charData[charID].inventory[ingredientName] < ingredientQuantity) {
+          return "You do not have enough of the required items! You need " + ingredientQuantity + " " + ingredientName + " to craft this recipe.";
+        }
+        //Remove the ingredients from the character's inventory
+        charData[charID].inventory[ingredientName] -= ingredientQuantity;
+      }
+    }
+
+    //There are multiple role options, either Need Any of Roles or Need All Of Roles. If Need Any Of Roles, check if user has any of the roles. If Need All Of Roles, check if user has all of the roles
+    if (recipeData.recipeOptions["Need Any of Roles"]) {
+      //Roles are enclosed in <@& and >, and there may be multiple roles. They may not be comma separated but commas and spaces may exist
+      let roles = recipeData.recipeOptions["Need Any of Roles"].split("<@&");
+      roles = roles.map(role => role.replace(">", ""));
+      roles = roles.map(role => role.replace(",", ""));
+      roles = roles.map(role => role.replace(" ", ""));
+      roles = roles.filter(role => role.length > 0);
+      let hasRole = false;
+      for (let i = 0; i < roles.length; i++) {
+        if (user.roles.cache.some(role => role.id === roles[i])) {
+          hasRole = true;
+          break;
+        }
+      }
+      if (!hasRole) {
+        return "You do not have the required role to craft this recipe! You must have one role from " + recipeData.recipeOptions["Need Any of Roles"];
+      }
+    }
+
+    if (recipeData.recipeOptions["Need All of Roles"]) {
+      let roles = recipeData.recipeOptions.split("<@&");
+      roles = roles.map(role => role.replace(">", ""));
+      roles = roles.map(role => role.replace(",", ""));
+      roles = roles.map(role => role.replace(" ", ""));
+      roles = roles.filter(role => role.length > 0);
+      let hasRole = true;
+      for (let i = 0; i < roles.length; i++) {
+        if (!user.roles.cache.some(role => role.id === roles[i])) {
+          hasRole = false;
+          break;
+        }
+      }
+      if (!hasRole) {
+        return "You do not have all the required roles to craft this recipe! You must have all roles from " + recipeData.recipeOptions["Need All of Roles"];
+      }
+    }
+
+    if (recipeData.recipeOptions["Need None of Roles"]) {
+      let roles = recipeData.recipeOptions.split("<@&");
+      roles = roles.map(role => role.replace(">", ""));
+      roles = roles.map(role => role.replace(",", ""));
+      roles = roles.map(role => role.replace(" ", ""));
+      roles = roles.filter(role => role.length > 0);
+      let hasRole = false;
+      for (let i = 0; i < roles.length; i++) {
+        if (user.roles.cache.some(role => role.id === roles[i])) {
+          hasRole = true;
+          break;
+        }
+      }
+      if (hasRole) {
+        return "You have a role that is not allowed to craft this recipe! You must have none of the roles from " + recipeData.recipeOptions["Need None of Roles"];
+      }
+    }
+
+    let repeatNum = 0;
+    if (charData[charID].cooldowns.craftSlots) {
+      if (Object.keys(charData[charID].cooldowns.craftSlots).length >= 3) {
+        let returnEmbed = await this.craftingCooldowns(charID);
+        returnEmbed.setDescription(":warning: You have no open crafting slots! :warning:");
+        return returnEmbed;
+      }
+      if (charData[charID].cooldowns.craftSlots[recipe]) {
+        //Check if REPEAT_#_ exists
+        repeatNum = 1;
+        while (charData[charID].cooldowns.craftSlots["REPEAT_" + repeatNum + "_" + recipe]) {
+          repeatNum++;
+        }
+      }
+    }
+
+    // Add the recipe to the character's crafting slots
+    let finishTime = Math.round(Date.now() / 1000) + recipeData.recipeOptions["Craft Time in Hours (#)"] * 3600;
+    if (repeatNum > 0) {
+      charData[charID].cooldowns.craftSlots["REPEAT_" + repeatNum + "_" + recipe] = finishTime;
+    } else {
+      charData[charID].cooldowns.craftSlots[recipe] = finishTime;
+    }
+
+    await dbm.saveCollection('characters', charData);
+
+    let returnEmbed = await this.craftingCooldowns(charID);
+    if (typeof(returnEmbed) == 'string') {
+      return returnEmbed;
+    }
+
+    returnEmbed.setDescription("Began crafting " + recipeData.recipeOptions.Icon + " " + recipe);
+    return returnEmbed;
+  }
+
+  //Creates cooldowns embed, followed by a return string if any recipes are completed
+  static async craftingCooldowns(charID) {
+    let charData = await dbm.loadCollection('characters');
+    let shopData = await dbm.loadCollection('shop');
+    let recipeData = await dbm.loadCollection('recipes');
+    let finishedCrafts = [];
+
+    if (!charData[charID].cooldowns.craftSlots) {
+      return "No crafting ongoing";
+    }
+
+    let returnEmbed = new EmbedBuilder();
+    returnEmbed.setTitle("**:clipboard: Crafting Slots**");
+
+    let numSlots = 0;
+    for (let key in charData[charID].cooldowns.craftSlots) {
+      //Key may start with: REPEAT_1_, REPEAT_2_, REPEAT_3_, etc. Remove this, i.e. REPEAT_1_Blah = Blah
+      let oldKey = key;
+      let val = charData[charID].cooldowns.craftSlots[key];
+      //If more than 4 exist, delete the newest one and send an error message
+      if (Object.keys(charData[charID].cooldowns.craftSlots).length > 3) {
+        delete charData[charID].cooldowns.craftSlots[key];
+        await dbm.saveCollection('characters', charData);
+        return "ERROR: Too many crafting slots. Contact Alex immediately.";
+      }
+      if (key.startsWith("REPEAT_")) {
+        key = key.slice(9);
+        //Check if recipe still exists- if it doesn't, return an error
+      }
+      if (!recipeData[key]) {
+        //Remove the key from the character's cooldowns
+        delete charData[charID].cooldowns.craftSlots[oldKey];
+        await dbm.saveCollection('characters', charData);
+        return "ERROR: The following recipe was not found and has been removed: " + key + ". Contact Alex";
+      }
+      //If any recipes are finished, add them to the finishedCrafts array and remove them from the character's cooldowns. Skip the rest of the loop
+      if (val < Math.round(Date.now() / 1000)) {
+        finishedCrafts.push(key);
+
+        //Remove the key from the character's cooldowns
+        delete charData[charID].cooldowns.craftSlots[oldKey];
+        await dbm.saveCollection('characters', charData);
+
+        continue;
+      }
+      //Return embed naturally includes the recipe icon, name, and time remaining
+      let icon = recipeData[key].recipeOptions.Icon;
+      numSlots++;
+      returnEmbed.addFields({ name: '**`' + numSlots + ': `' + icon + " " + key + ":**", value: 'Finishes: <t:' + val + ':R>' });
+    }
+
+    while (numSlots < 3) {
+      numSlots++;
+      returnEmbed.addFields({ name: '**`' + numSlots + ': `**', value: 'Empty' });
+    }
+
+    if (finishedCrafts.length > 0) {
+      for (let i = 0; i < finishedCrafts.length; i++) {
+        let key = finishedCrafts[i];
+        let recipe = recipeData[key];
+
+        let valueString = "";
+
+        if (!recipe) {
+          return "The following recipe was not found and the error arrived later than expected: " + key + ". Contact Alex";
+        }
+
+        //Go through the recipe's results and add them to the character's inventory, as well as to value string
+        for (let i = 1; i <= 5; i++) {
+          let reward = recipe.recipeOptions["Result " + i];
+          if (reward) {
+            let rewardName = reward.split(" ").slice(1).join(" ");
+            let rewardQuantity = parseInt(reward.split(" ")[0]);
+            if (!charData[charID].inventory[rewardName]) {
+              charData[charID].inventory[rewardName] = 0;
+            }
+            charData[charID].inventory[rewardName] += rewardQuantity;
+
+            valueString += rewardName + ": " + shopData[rewardName].infoOptions.Icon + "+" + rewardQuantity + "\n";
+          }
+        }
+        if (valueString.length == 0) {
+          returnEmbed.addFields({ name: '**`Finished Crafting: `' + recipe.recipeOptions.Icon + " " + key + "**", value: "No results" });
+        } else {
+          returnEmbed.addFields({ name: '**`Finished Crafting: `' + recipe.recipeOptions.Icon + " " + key + "**", value: valueString });
+        }
+      }
+    }
+
+    await dbm.saveCollection('characters', charData);
+    return returnEmbed;
+  }
+
+
+
+
 
   /*static async craft(charID, itemName) {
     itemName = await shop.findItemName(itemName);
@@ -488,7 +948,7 @@ class char {
           }
 
           const PrestigeEmoji = '<:Prestige:1165722839228354610>';
-          const MilitaryEmoji = '<:Military:1165722873248354425>';
+          const MartialEmoji = '<:Martial:1165722873248354425>';
           const IntrigueEmoji = '<:Intrigue:1165722896522563715>';
 
           if (shopData[itemName].usageCase.gives) {
@@ -510,8 +970,8 @@ class char {
                   case "Prestige":
                     icon = PrestigeEmoji;
                     break;
-                  case "Military":
-                    icon = MilitaryEmoji;
+                  case "Martial":
+                    icon = MartialEmoji;
                     break;
                   case "Intrigue":
                     icon = IntrigueEmoji;
@@ -534,8 +994,8 @@ class char {
                 case "Prestige":
                   icon = PrestigeEmoji;
                   break;
-                case "Military":
-                  icon = MilitaryEmoji;
+                case "Martial":
+                  icon = MartialEmoji;
                   break;
                 case "Intrigue":
                   icon = IntrigueEmoji;
@@ -648,7 +1108,7 @@ class char {
     }
     if (charData) {
       charData.balance = gold;
-      dbm.saveFile(collectionName, player, charData);
+      await dbm.saveFile(collectionName, player, charData);
       return true;
     } else {
       return false;
@@ -682,7 +1142,7 @@ class char {
           charData.inventory[item] = 0;
         }
       }
-      dbm.saveFile(collectionName, player, charData);
+      await dbm.saveFile(collectionName, player, charData);
       return true;
     } else {
       return false;

@@ -40,9 +40,12 @@ async function loadCollection(collectionName) {
 }
 
 async function saveFile(collectionName, docId, data) {
-  db.collection(collectionName).doc(docId).set(data)
+  return db.collection(collectionName).doc(docId).set(data)
     .then(() => console.log('Document saved successfully'))
-    .catch(error => console.error('Error saving document:', error));
+    .catch(error => {
+        console.error('Error saving document:', error);
+        throw error; // Re-throw the error to ensure it can be caught by the calling function
+    });
 }
 
 async function loadFile(collectionName, docId) {
@@ -61,17 +64,23 @@ async function loadFile(collectionName, docId) {
 }
 
 async function docDelete(collectionName, docName) {
-  db.collection(collectionName).doc(docName).delete()
+  return db.collection(collectionName).doc(docName).delete()
     .then(() => console.log('Document deleted'))
-    .catch(error => console.error('Error deleting document:', error));
+    .catch(error => {
+        console.error('Error deleting document:', error);
+        throw error; // Re-throw the error to ensure it can be caught by the calling function
+    });
 }
 
 async function fieldDelete(collectionName, docName, deleteField) {
-  db.collection(collectionName).doc(docName).update({
+  return db.collection(collectionName).doc(docName).update({
     [deleteField]: admin.firestore.FieldValue.delete()
   })
     .then(() => console.log('Field deleted'))
-    .catch(error => console.error('Error deleting field:', error));
+    .catch(error => {
+        console.error('Error deleting field:', error);
+        throw error; // Re-throw the error to ensure it can be caught by the calling function
+    });
 }
 
 async function logData() {

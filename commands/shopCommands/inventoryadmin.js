@@ -12,7 +12,7 @@ module.exports = {
 				.setRequired(true)
 		),
 	async execute(interaction) {
-        const userID = interaction.user.tag;
+        const userID = interaction.options.getUser('user').id;
 		var replyEmbed = await shop.createInventoryEmbed(userID);
 		await interaction.reply(({ embeds: [replyEmbed] }));
 	},

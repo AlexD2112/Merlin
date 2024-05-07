@@ -11,10 +11,10 @@ const commandFolders = fs.readdirSync(foldersPath);
 
 let commandList = {};
 
-//Load commandlist from commandlist.json
-if (fs.existsSync('commandList.json')) {
-	commandList = JSON.parse(fs.readFileSync('commandList.json'));
-}
+// //Load commandlist from commandlist.json
+// if (fs.existsSync('commandList.json')) {
+// 	commandList = JSON.parse(fs.readFileSync('commandList.json'));
+// }
 
 for (const folder of commandFolders) {
 	// Grab all the command files from the commands directory you created earlier
@@ -27,45 +27,44 @@ for (const folder of commandFolders) {
 		const command = require(filePath);
 		if ('data' in command && 'execute' in command) {
 			commands.push(command.data.toJSON());
-			// Update commandList with the command's data, preserving existing "help" if available
-			const cmdData = command.data.toJSON();
-			if (!commandList[cmdData.name]) {
-				commandList[cmdData.name] = {
-					description: cmdData.description,
-					options: {},
-					help: "Further help info not added"  // Start with an empty help section
-				};
-				if (cmdData.options) {
-					for (const option of cmdData.options) {
-						commandList[cmdData.name].options[option.name] =  option.description;
-					}
-				}
-			} else {
-				commandList[cmdData.name].description = cmdData.description;
-				if (cmdData.options) {
-					commandList[cmdData.name].options = {};
-					for (const option of cmdData.options) {
-						commandList[cmdData.name].options[option.name] = option.description;
-					}
-				}
-			}
+			// // Update commandList with the command's data, preserving existing "help" if available
+			// const cmdData = command.data.toJSON();
+			// if (!commandList[cmdData.name]) {
+			// 	commandList[cmdData.name] = {
+			// 		description: cmdData.description,
+			// 		options: {},
+			// 		help: "Further help info not added"  // Start with an empty help section
+			// 	};
+			// 	if (cmdData.options) {
+			// 		for (const option of cmdData.options) {
+			// 			commandList[cmdData.name].options[option.name] =  option.description;
+			// 		}
+			// 	}
+			// } else {
+			// 	commandList[cmdData.name].description = cmdData.description;
+			// 	if (cmdData.options) {
+			// 		commandList[cmdData.name].options = {};
+			// 		for (const option of cmdData.options) {
+			// 			commandList[cmdData.name].options[option.name] = option.description;
+			// 		}
+			// 	}
+			// }
 		} else {
 			console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
 		}
 	}
 }
 
-console.log(commandList);
-dbm.saveFile('keys', 'commandList', commandList, (err, result) => {
-    if (err) {
-        console.error('Failed to save command list:', err);
-    } else {
-        console.log('Command list saved successfully:', result);
-    }
-});
+// dbm.saveFile('keys', 'commandList', commandList, (err, result) => {
+//     if (err) {
+//         console.error('Failed to save command list:', err);
+//     } else {
+//         console.log('Command list saved successfully:', result);
+//     }
+// });
 
 //Also save commandList to a local json
-fs.writeFileSync('commandList.json', JSON.stringify(commandList, null, 2));
+// fs.writeFileSync('commandList.json', JSON.stringify(commandList, null, 2));
 
 // Construct and prepare an instance of the REST module
 const rest = new REST().setToken(token);

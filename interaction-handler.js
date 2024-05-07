@@ -19,7 +19,7 @@ addItem = async (interaction) => {
     if (itemIcon[i] == ":") {
       colonCounter++;
       if (colonCounter >= 3) {
-        await interaction.reply(`Item creation failed. Only one icon allowed;`);
+        await interaction.reply({content: `Item creation failed. Invalid icon format.`, ephemeral: true});
         return;
       }
     }
@@ -31,7 +31,7 @@ addItem = async (interaction) => {
     await interaction.reply(`Item '${itemName}' has been added to the item list. Use /shoplayout or ping Alex to add to shop.`);
   } else {
     // Handle missing information
-    await interaction.reply('Item creation failed. Please provide a name and integer price.');
+    await interaction.reply({content: 'Item creation failed. Please provide a name and integer price.', ephemeral: true});
   }
 };
 // {
@@ -154,7 +154,7 @@ newChar = async (interaction) => {
     await interaction.reply(`Character '${charName}' has been created.`);
   } else {
     // Handle missing information
-    await interaction.reply('Character creation failed. Please provide a name and bio.');
+    await interaction.reply({content: 'Character creation failed. Please provide a name and bio.', ephemeral: true});
   }
 };
 
@@ -175,7 +175,7 @@ salesSwitch = async (interaction) => {
   await interaction.update({ embeds: [edittedEmbed], components: rows});
 }
 itemSwitch = async (interaction) => {
-  let [edittedEmbed, rows] = await shop.editMenu(interaction.customId.substring(12), interaction.customId[11]);
+  let [edittedEmbed, rows] = await shop.editItemMenu(interaction.customId.substring(12), interaction.customId[11], interaction.user.tag);
   await interaction.update({ embeds: [edittedEmbed], components: [rows]});
 }
 helpSwitch = async (interaction) => {

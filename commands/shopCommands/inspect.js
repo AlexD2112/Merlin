@@ -16,7 +16,7 @@ module.exports = {
 		(async () => {
             let replyEmbed = await shop.inspect(itemName);
             if (typeof(replyEmbed) == 'string') {
-                await interaction.reply(replyEmbed);
+                await interaction.reply({content: replyEmbed, ephemeral: true });
             } else {
                 await interaction.reply({ embeds: [replyEmbed] });
             }

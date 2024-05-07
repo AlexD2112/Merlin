@@ -15,9 +15,10 @@ module.exports = {
 		const itemName = interaction.options.getString('itemname');
 
 		(async () => {
+			await shop.removeItem(itemName);
+
 			await interaction.reply(`Item '${itemName}' has been removed from the shop.`);
 			// Call the addItem function from the Shop class
-			shop.removeItem(itemName);
 		})()
 	},
 };

@@ -15,8 +15,8 @@ module.exports = {
 		const itemName = interaction.options.getString('itemname');
 
 		(async () => {
-			//shop.editMenu returns an array with the first element being the replyEmbed and the second element being the rows
-			let reply = await shop.editMenu(itemName, 1);
+			//shop.editItemMenu returns an array with the first element being the replyEmbed and the second element being the rows
+			let reply = await shop.editItemMenu(itemName, 1, interaction.user.tag);
             if (typeof(reply) == 'string') {
                 await interaction.reply(reply);
             } else {

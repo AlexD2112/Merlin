@@ -5,7 +5,7 @@ const path = require('node:path');
 const interactionHandler = require('./interaction-handler')
 const { Client, GatewayIntentBits, Collection, Events } = require('discord.js');
 const char = require('./char');
-const emoji = require('./emoji');
+const clientManager = require('./clientManager');
 const dbm = require('./database-manager');
 const client = new Client({ 
     intents: [
@@ -106,17 +106,17 @@ function botMidnightLoop() {
 	setTimeout(function() {
 		char.resetIncomeCD();
 		dbm.logData();
-		initEmoji();
+		initClientManager();
 		botMidnightLoop();
 	}, msToMidnight);
 	console.log(msToMidnight);
 }
 botMidnightLoop();
 
-function initEmoji(client, guildID) {
-	emoji.initEmoji(client, guildID);
+function initClientManager(client, guildID) {
+	clientManager.initClientManager(client, guildID);
 }
-initEmoji(client, guildId);
+initClientManager(client, guildId);
 
 client.login(token);
 

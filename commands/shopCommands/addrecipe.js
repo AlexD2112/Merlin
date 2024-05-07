@@ -1,45 +1,34 @@
 //ADMIN COMMAND
 const { SlashCommandBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
+const shop = require('../../shop');
 //const shop = require('../../shop'); // Importing shop
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('addrecipe')
         .setDefaultMemberPermissions(0)
-        .setDescription('Add a recipe for the item')
-        .setDefaultMemberPermissions(0),
+        .setDescription('Create a new recipe')
+        .setDefaultMemberPermissions(0)
+        .addStringOption(option => option.setName('recipename')
+            .setDescription('The name of the recipe')
+            .setRequired(false)),
     async execute(interaction) {
-        // Create the modal
-        const modal = new ModalBuilder()
-            .setCustomId('addrecipemodal')
-            .setTitle('Add A Recipe');
+        let recipeName = interaction.options.getString('recipename');
+        if (!recipeName) {
+            recipeName = 'New Recipe';
+        }
 
-        // Create the text input components
-        const itemNameInput = new TextInputBuilder()
-            .setCustomId('itemname')
-            .setLabel('Item Name')
-            .setStyle(TextInputStyle.Short);
+        recipeName = await shop.addRecipe(recipeName);
         
-        const itemTakesInput = new TextInputBuilder()
-            .setCustomId('itemtakes')
-            .setLabel('What items are required to craft this item?')
-            .setPlaceholder('ITEM:AMOUNT;\nITEM2:AMOUNT2;')
-            .setStyle(TextInputStyle.Paragraph);
-            
-        const itemCrafttimeInput = new TextInputBuilder()
-            .setCustomId('itemcrafttime')
-            .setLabel('Item craft time in hours')
-            .setStyle(TextInputStyle.Short);
+        // Respons with an ephemeral message saying that recipe should appear below
+        await interaction.reply({ content: 'Edit recipe menu should appear below', ephemeral: true });
 
-        //Create action rows for each input
-        const nameActionRow = new ActionRowBuilder().addComponents(itemNameInput);
-        const takesActionRow = new ActionRowBuilder().addComponents(itemTakesInput);
-        const crafttimeActionRow = new ActionRowBuilder().addComponents(itemCrafttimeInput);
-
-        // Add the action rows to the modal
-        modal.addComponents(nameActionRow, takesActionRow, crafttimeActionRow);
-
-        // Show the modal to the user
-        await interaction.showModal(modal);
+        // Show the edit recipe menu
+        let reply = await shop.editRecipeMenu(recipeName, interaction.user.tag);
+        if (typeof(reply) == 'string') {
+            await interaction.followUp(reply);
+        } else {
+            await interaction.followUp({ embeds: [reply]});
+        }
     },
 };

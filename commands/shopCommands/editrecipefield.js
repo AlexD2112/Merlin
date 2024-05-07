@@ -4,14 +4,9 @@ const shop = require('../../shop'); // Importing the database manager
 ///editfield <field number> <new value>
 module.exports = {
 	data: new SlashCommandBuilder()
-        .setName('editfield')
-        .setDescription('Edit a field in the shop')
+        .setName('editrecipefield')
+        .setDescription('Edit a field of an recipe in the shop. Use /editrecipemenu first to see the fields of an recipe')
         .setDefaultMemberPermissions(0)
-        .addStringOption((option) =>
-            option.setName('itemname')
-                .setDescription('The item name')
-                .setRequired(true)
-        )
         .addIntegerOption((option) =>
             option.setName('fieldnumber')
                 .setDescription('The field number')
@@ -20,14 +15,13 @@ module.exports = {
         .addStringOption((option) =>
             option.setName('newvalue')
                 .setDescription('The new value')
-                .setRequired(true)
+                .setRequired(false)
         ),
     async execute(interaction) {
-        const itemName = interaction.options.getString('itemname');
         const fieldNumber = interaction.options.getInteger('fieldnumber');
         const newValue = interaction.options.getString('newvalue');
 
-        let reply = await shop.editField(itemName, fieldNumber, newValue);
+        let reply = await shop.editRecipeField(interaction.user.tag, fieldNumber, newValue);
         await interaction.reply(reply);
     }
 };

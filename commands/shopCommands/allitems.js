@@ -11,6 +11,7 @@ module.exports = {
 		// console.log(itemListString);
 		// await interaction.reply(itemListString);
 		let [embed, rows] = await shop.createAllItemsEmbed(1, interaction);
+		console.log(rows);
 		await interaction.reply({ embeds: [embed], components: rows});
 	},
 };

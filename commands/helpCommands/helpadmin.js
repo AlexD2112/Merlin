@@ -3,7 +3,7 @@ const admin = require('../../admin'); // Importing the database manager
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('adminhelp')
+		.setName('helpadmin')
 		.setDescription('Help with admin commands')
         .addStringOption(option =>
             option.setName('command')
@@ -20,7 +20,7 @@ module.exports = {
             } else {
                 let replyEmbed = admin.commandHelp(command);
                 if (replyEmbed == null) {
-                    await interaction.reply({ content: "Command not found", ephemeral: true });
+                    await interaction.reply({ content: "Command not found: if this command exists, contact Alex to add it to the help list", ephemeral: true });
                 } else {
                     await interaction.reply({ embeds: [replyEmbed] });
                 }

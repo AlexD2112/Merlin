@@ -4,17 +4,17 @@ const char = require('../../char'); // Importing the database manager
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('craft')
-		.setDescription('Craft an item')
+		.setDescription('Craft a recipe')
 		.addStringOption((option) =>
-		option.setName('itemname')
-			.setDescription('The item name')
+		option.setName('recipe')
+			.setDescription('The recipe name')
 			.setRequired(true)
 		),
 	execute(interaction) {
-		const itemName = interaction.options.getString('itemname');
+		const recipe = interaction.options.getString('recipe');
 
 		(async () => {
-            let reply = await char.craft(interaction.user.tag, itemName)
+            let reply = await char.craft(interaction.user.tag, recipe)
             if (typeof(reply) == 'string') {
                 await interaction.reply(reply);
             } else {

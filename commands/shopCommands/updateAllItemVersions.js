@@ -7,11 +7,16 @@ module.exports = {
 		.setDescription('Update the version of all items')
 		.setDefaultMemberPermissions(0),
 	execute(interaction) {
-
 		(async () => {
-			//shop.editMenu returns an array with the first element being the replyEmbed and the second element being the rows
-			let reply = await shop.updateAllItemVersions();
-            interaction.reply(reply);
-		})()
+			try {
+				await interaction.deferReply();
+				let response = await shop.updateAllItemVersions();
+				console.log(response);  // Log the response for debugging
+				await interaction.editReply({ content: response });
+			} catch (error) {
+				console.error('Failed to update item versions:', error);
+				await interaction.reply({ content: 'Error updating item versions.', ephemeral: true });
+			}
+		})();
 	},
 };

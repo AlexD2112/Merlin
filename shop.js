@@ -1,21 +1,25 @@
 const dbm = require('./database-manager'); // Importing the database manager
 const Discord = require('discord.js');
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
-const emoji = require('./emoji');
+const clientManager = require('./clientManager');
+const dataGetters = require('./dataGetters');
 
 class shop {
   //Declare constants for class 
   static infoOptions = ['Name', 'Icon', 'Category', 'Image', 'Description'];
   static shopOptions = ['Price (#)', 'Need Role', 'Give Role', 'Take Role', 'Quantity (#)', 'Channels'];
   static usageOptions = [
-      'Is Usable (Y/N)', 'Removed on Use (Y/N)', 'Need Role', 'Give Role', 'Take Role',
-      'Show an Image (Y/N)', 'Show a Message (Y/N)', 'Give/Take Money (#)', 'Cooldown (#)',
+      'Is Usable (Y/N)', 'Removed on Use (Y/N)', 'Can Use Multiple (Y/N)', 'Need Any Of Roles', 'Need All Of Roles', 'Give Role', 'Take Role',
+      'Show Image', 'Show Message', 'Give/Take Money (#)', 'Cooldown in Hours (#)',
       'Give Item', 'Give Item 2', 'Give Item 3', 'Give Item 4', 'Give Item 5',
       'Take Item', 'Take Item 2', 'Take Item 3', 'Take Item 4', 'Take Item 5',
-      'Change Prestige (#)', 'Change Military (#)', 'Change Intrigue (#)', 'Revive (Y/N)', 'Durability (#)'
+      'Change Health (#)', 'Change Prestige (#)', 'Change Martial (#)', 'Change Intrigue (#)', 'Change Devotion (#)', 'Revive (Y/N)', 'Durability (#)'
     ];
-  static recipeOptions = ['Ingredient 1', 'Ingredient 2', 'Ingredient 3', 'Ingredient 4', 'Ingredient 5', 'Ingredient 6',
-      'Craft Time (#)', 'Role Blacklist', 'Role Whitelist'
+  static recipeOptions = [
+      'Name', 'Icon', 'Show Image', 'Show Message',
+      'Ingredient 1', 'Ingredient 2', 'Ingredient 3', 'Ingredient 4', 'Ingredient 5',
+      'Result 1', 'Result 2', 'Result 3', 'Result 4', 'Result 5',
+      'Craft Time in Hours (#)', 'Need None Of Roles', 'Need All Of Roles', 'Need Any Of Roles', 'Is Public (Y/N)'
     ];
 
   // Function to find an item by name in the shop
@@ -82,6 +86,118 @@ class shop {
     await dbm.saveFile('shop', itemName, itemData);
   }
 
+  static async addRecipe(recipeName) {
+    //Go into the recipes file. First check if another copy of this recipe exists. If it does, add a space and number to recipe name and check again
+    let data = await dbm.loadCollection('recipes');
+    let recipeNames = Object.keys(data);
+    let i = 1;
+    let newRecipeName = recipeName;
+    while (recipeNames.includes(newRecipeName)) {
+      newRecipeName = recipeName + " " + i;
+      i++;
+    }
+    //Create a new recipe object with all fields blank
+    let recipeData = {
+      "recipeOptions": this.recipeOptions.reduce((acc, option) => {
+        acc[option] = "";
+        return acc;
+      }
+      , {}),
+    };
+
+    //Set option "Is Public (Y/N)" to No
+
+    recipeData.recipeOptions["Is Public (Y/N)"] = "No";
+    recipeData.recipeOptions.Name = newRecipeName;
+    recipeData.recipeOptions.Icon = ":hammer:";
+    recipeData.recipeOptions["Craft Time in Hours (#)"] = 0;
+    await dbm.saveFile('recipes', newRecipeName, recipeData); 
+
+    return newRecipeName;
+  }
+
+  static async recipesEmbed(isPublic, page) {
+    const itemsPerPage = 1000; // Number of recipes per page
+    let data = await dbm.loadCollection('recipes');
+    let publicRecipes = [];
+    let privateRecipes = [];
+  
+    //Loop through data 
+    for (let [key, value] of Object.entries(data)) {
+      if (value.recipeOptions["Is Public (Y/N)"] == "Yes") {
+        publicRecipes.push(value);
+      } else {
+        privateRecipes.push(value);
+      }
+    }
+
+
+    let recipesToShow;
+    if (isPublic) {
+      recipesToShow = publicRecipes;
+    } else {
+      recipesToShow = publicRecipes.concat(privateRecipes);
+    }
+  
+    // Pagination calculation
+    const pageStart = (page - 1) * itemsPerPage;
+    const pageEnd = pageStart + itemsPerPage;
+    const totalPages = Math.ceil(recipesToShow.length / itemsPerPage);
+  
+    let returnEmbed = new Discord.EmbedBuilder()
+      .setTitle(':hammer: Recipes')
+      .setColor(0x36393e)
+      .setFooter({ text: `Page ${page} of ${totalPages}` });
+
+    let descriptionText = '';
+    if (isPublic) {
+      for (let i = pageStart; i < pageEnd && i < publicRecipes.length; i++) {
+        descriptionText += (publicRecipes[i].recipeOptions.Icon ? publicRecipes[i].recipeOptions.Icon + " " : ":hammer: ") + publicRecipes[i].recipeOptions.Name + "\n";
+      }
+    } else {
+      if (pageStart < publicRecipes.length) {
+        descriptionText += "**Public Recipes**\n";
+        let endIndex = Math.min(pageEnd, publicRecipes.length);
+        for (let i = pageStart; i < endIndex; i++) {
+          descriptionText += (publicRecipes[i].recipeOptions.Icon ? publicRecipes[i].recipeOptions.Icon + " " : ":hammer: ") + publicRecipes[i].recipeOptions.Name + "\n";
+        }
+      }
+      if (pageEnd > publicRecipes.length) {
+        descriptionText += "**Private Recipes**\n";
+        let startPrivateIndex = Math.max(pageStart - publicRecipes.length, 0);
+        let endPrivateIndex = Math.min(pageEnd - publicRecipes.length, privateRecipes.length);
+        for (let i = startPrivateIndex; i < endPrivateIndex; i++) {
+          descriptionText += (privateRecipes[i].recipeOptions.Icon ? privateRecipes[i].recipeOptions.Icon + " " : ":hammer: ") + privateRecipes[i].recipeOptions.Name + "\n";
+        }
+      }
+
+      
+    }
+    if (descriptionText == '') {
+      descriptionText = 'No recipes found!';
+    }
+    returnEmbed.setDescription(descriptionText);
+  
+    // Buttons for navigation
+    const prevButton = new ButtonBuilder()
+      .setCustomId('prev_page')
+      .setLabel('<')
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(page === 1);
+  
+    const nextButton = new ButtonBuilder()
+      .setCustomId('next_page')
+      .setLabel('>')
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(page === totalPages);
+  
+    let actionRow = new ActionRowBuilder().addComponents(prevButton, nextButton);
+  
+    return [returnEmbed, actionRow];
+  }
+  
+
+
   static async updateAllItemVersions() {
     //Update all item versions
     let data = await dbm.loadCollection('shop');
@@ -93,17 +209,8 @@ class shop {
   }
 
   static async updateItemVersion(itemName) {
-    let log = false;
-    if (itemName == "Horse") {
-      log = true;
-    }
     // Convert all item data to the new options. Carry over whatever new options it has
-    console.log("here?");
     let itemData = await dbm.loadFile('shop', itemName);
-    console.log("as in above?");
-    if (log) {
-      console.log(itemData);
-    }
 
     // Create a new itemData object with the new options
     let newItemData = {
@@ -124,9 +231,6 @@ class shop {
       , {}),
     };
 
-    console.log(newItemData);
-    // Save the new item data
-    await dbm.docDelete('shop', itemName);
     await dbm.saveFile('shop', itemName, newItemData);
 
     //If no errors, return a success message
@@ -160,6 +264,9 @@ class shop {
     startIndices[0] = 0;
     const shopCategories = Object.keys(shopLayoutData);
 
+    //Sort categories alphabetically
+    shopCategories.sort();
+
     let currIndice = 0;
     let currPageLength = 0;
     let i = 0;
@@ -182,29 +289,34 @@ class shop {
     );
 
     const embed = new Discord.EmbedBuilder()
-      .setTitle(emoji.getEmoji("Talent") + ' Shop')
+      .setTitle(clientManager.getEmoji("Talent") + ' Shop')
       .setColor(0x36393e);
 
-      let descriptionText = '';
+    //If there are no items in the shop, set description as "No items have prices!" and return
+    if (pageItems.length == 0) {
+      embed.setDescription("No items have prices!");
+      return [embed, []];
+    }
 
-      for (const category of pageItems) {
-        const endSpaces = "-".repeat(20 - category.length - 2);
-        descriptionText += `**\`--${category}${endSpaces}\`**\n`;
-        descriptionText += shopLayoutData[category]
-          .map((item) => {
-            const icon = shopData[item].infoOptions.Icon;
-            const price = shopData[item].shopOptions.Price;
+    let descriptionText = '';
 
-            const alignSpaces = ' '.repeat(30 - item.length - ("" + price).length);
-            console.log(icon, item, price);
-            // Create the formatted line
-            return `${icon} \`${item}${alignSpaces}${price}\` ${emoji.getEmoji("Talent")}`;
-          })
-          .join('\n');
-        descriptionText += '\n';
-      }
-      // Set the accumulated description
-      embed.setDescription(descriptionText);
+    for (const category of pageItems) {
+      const endSpaces = "-".repeat(20 - category.length - 2);
+      descriptionText += `**\`--${category}${endSpaces}\`**\n`;
+      descriptionText += shopLayoutData[category]
+        .map((item) => {
+          const icon = shopData[item].infoOptions.Icon;
+          const price = shopData[item].shopOptions.Price;
+
+          const alignSpaces = ' '.repeat(30 - item.length - ("" + price).length);
+          // Create the formatted line
+          return `${icon} \`${item}${alignSpaces}${price}\` ${clientManager.getEmoji("Talent")}`;
+        })
+        .join('\n');
+      descriptionText += '\n';
+    }
+    // Set the accumulated description
+    embed.setDescription(descriptionText);
 
     if (pages > 1) {
       embed.setFooter({text: `Page ${page} of ${pages}`});
@@ -266,6 +378,12 @@ class shop {
       itemCategories[category].push(itemArray[i]);
     }
 
+    //Sort categories alphabetically
+    itemCategories = Object.keys(itemCategories).sort().reduce((acc, key) => { 
+      acc[key] = itemCategories[key];
+      return acc;
+    }, {});
+
 
 
     let startIndices = [];
@@ -293,29 +411,27 @@ class shop {
       startIndices[page] ? startIndices[page] : undefined
     );
 
-    console.log(pageItems)
-
     const embed = new Discord.EmbedBuilder()
       .setTitle(':package: Items')
       .setColor(0x36393e);
 
-      let descriptionText = '';
+    let descriptionText = '';
 
-      for (const category of pageItems) {
-        const endSpaces = "-".repeat(20 - category.length - 2);
-        descriptionText += `**\`--${category}${endSpaces}\`**\n`;
-        descriptionText += itemCategories[category]
-          .map((item) => {
-            const icon = shopData[item].infoOptions.Icon;
-    
-            // Create the formatted line
-            return `${icon} ${item}`;
-          })
-          .join('\n');
-        descriptionText += '\n';
-      }
-      // Set the accumulated description
-      embed.setDescription(descriptionText);
+    for (const category of pageItems) {
+      const endSpaces = "-".repeat(20 - category.length - 2);
+      descriptionText += `**\`--${category}${endSpaces}\`**\n`;
+      descriptionText += itemCategories[category]
+        .map((item) => {
+          const icon = shopData[item].infoOptions.Icon;
+  
+          // Create the formatted line
+          return `${icon} ${item}`;
+        })
+        .join('\n');
+      descriptionText += '\n';
+    }
+    // Set the accumulated description
+    embed.setDescription(descriptionText);
 
     if (pages > 1) {
       embed.setFooter({text: `Page ${page} of ${pages}`});
@@ -350,6 +466,7 @@ class shop {
 
   //function to create an embed of player inventory
   static async createInventoryEmbed(charID) {
+    charID = await dataGetters.getCharFromNumericID(charID);
     // load data from characters.json and shop.json
     const charData = await dbm.loadCollection('characters');
     const shopData = await dbm.loadCollection('shop');
@@ -421,7 +538,7 @@ class shop {
   // }
 
   // Function to remove items - removeItem(name)
-  static removeItem(itemName) {
+  static async removeItem(itemName) {
     // Set the database name
     let fileName = 'shop';
     itemName = this.findItemName(itemName);
@@ -430,7 +547,7 @@ class shop {
     }
     // Try to remove the item, and if it doesn't exist, catch the error
     try {
-      dbm.docDelete(fileName, itemName);
+      await dbm.docDelete(fileName, itemName);
     } catch (error) {
       // Handle the error or do nothing
       // In JavaScript, you might want to handle errors differently
@@ -489,21 +606,21 @@ class shop {
 
     if (itemData) {
       statEmojis = {
-        "Prestige": emoji.getEmoji("Prestige"),
-        "Military": emoji.getEmoji("Military"),
-        "Intrigue": emoji.getEmoji("Intrigue"),
-        "Devotion": emoji.getEmoji("Devotion"),
-        "Health": emoji.getEmoji("Health"),
+        "Prestige": clientManager.getEmoji("Prestige"),
+        "Martial": clientManager.getEmoji("Martial"),
+        "Intrigue": clientManager.getEmoji("Intrigue"),
+        "Devotion": clientManager.getEmoji("Devotion"),
+        "Health": clientManager.getEmoji("Health"),
       }
       let aboutString = "";
       if (itemData.shopOptions.Price) {
-        aboutString = "Price: " + emoji.getEmoji("Talent") + " " + itemData.shopOptions.Price;
+        aboutString = "Price: " + clientManager.getEmoji("Talent") + " " + itemData.shopOptions.Price;
       }
       let descriptionString = "**Description:\n**" + itemData.infoOptions.Description;
       if (itemData.usageOptions["Is Usable"] == "Yes") {
         aboutString += "\nGives:";
         //Iterate through usageOptions to find any key that starts with "Give Item". If any exist, add them to the aboutString. The value will be a string "Number Name" that will have to be split (Name may contain spaces, such as Iron Spear)
-        //Also search for anything starting with Change, which will be a change in prestige, Military, or intrigue. If they're positive, add this. This value will just be an integer in string form
+        //Also search for anything starting with Change, which will be a change in prestige, Martial, or intrigue. If they're positive, add this. This value will just be an integer in string form
         for (let key in itemData.usageOptions) {
           //Check if value is blank
           if (itemData.usageOptions[key] == "") {
@@ -511,7 +628,7 @@ class shop {
           }
           if (key == "Give/Take Money") {
             if (itemData.usageOptions[key] > 0) {
-              aboutString += ("\n`   `- " + emoji.getEmoji("Talent") + " " + itemData.usageOptions[key]);
+              aboutString += ("\n`   `- " + clientManager.getEmoji("Talent") + " " + itemData.usageOptions[key]);
             }
           }
           if (key.startsWith("Give Item")) {
@@ -535,7 +652,7 @@ class shop {
 
           if (key == "Give/Take Money") {
             if (itemData.usageOptions[key] < 0) {
-              aboutString += ("\n`   `- " + emoji.getEmoji("Talent") + " " + itemData.usageOptions[key]);
+              aboutString += ("\n`   `- " + clientManager.getEmoji("Talent") + " " + itemData.usageOptions[key]);
             }
           }
           if (key.startsWith("Take Item")) {
@@ -572,7 +689,71 @@ class shop {
 
   }
 
-  /**editMenu: Essentially, this returns a large embed with various fields describing aspects of the item. 
+  static async inspectRecipe(recipeName) {
+    let recipeData = await dbm.loadCollection('recipes');
+    if (!recipeData[recipeName]) {
+      //Check if lower case version of recipeName exists
+      let recipeNames = Object.keys(recipeData);
+      for (let i = 0; i < recipeNames.length; i++) {
+        if (recipeNames[i].toLowerCase() == recipeName.toLowerCase()) {
+          recipeName = recipeNames[i];
+          break;
+        }
+      }
+      if (!recipeData[recipeName]) {
+        return "Recipe not found!";
+      }
+    }
+
+    const inspectEmbed = new Discord.EmbedBuilder()
+      .setTitle('**__Recipe:__ ' + recipeData[recipeName].recipeOptions.Icon + " " + recipeName + "**")
+      .setColor(0x36393e);
+
+    let aboutString = "";
+
+    //If its a private recipe, say so
+    if (recipeData[recipeName].recipeOptions["Is Public (Y/N)"] == "No") {
+      aboutString += "\n:warning: Private Recipe! Will not be craftable :warning:\n";
+    }
+    if (recipeData[recipeName].recipeOptions["Craft Time in Hours (#)"]) {
+      aboutString = "\nCraft Time: :clock9:" + recipeData[recipeName].recipeOptions["Craft Time in Hours (#)"] + " hours\n";
+    }
+    aboutString += "\nIngredients:\n";
+    for (let i = 1; i <= 5; i++) {
+      let ingredient = recipeData[recipeName].recipeOptions["Ingredient " + i];
+      if (ingredient) {
+        let splitString = ingredient.split(" ");
+        let quantity = splitString[0];
+        let name = splitString.slice(1).join(" ");
+        let icon = recipeData[name].infoOptions.Icon;
+        aboutString += ("`   `- " + icon + " " + name + ": " + quantity + "\n");
+      }
+    }
+    aboutString += "\nResults:\n";
+    for (let i = 1; i <= 5; i++) {
+      let result = recipeData[recipeName].recipeOptions["Result " + i];
+      if (result) {
+        let splitString = result.split(" ");
+        let quantity = splitString[0];
+        let name = splitString.slice(1).join(" ");
+        let icon = recipeData[name].infoOptions.Icon;
+        aboutString += ("`   `- " + icon + " " + name + ": " + quantity + "\n");
+      }
+    }
+
+    if (recipeData[recipeName].recipeOptions["Show Message"]) {
+      inspectEmbed.setDescription(recipeData[recipeName].recipeOptions["Show Message"]);
+    }
+
+    inspectEmbed.addFields({ name: '**About: **', value: aboutString });
+    if (recipeData[recipeName].recipeOptions["Show Image"]) {
+      inspectEmbed.setImage(recipeData[recipeName].recipeOptions["Show Image"]);
+    }
+
+    return inspectEmbed;
+  }
+
+  /**edititemmenu: Essentially, this returns a large embed with various fields describing aspects of the item. 
     The title of the embed will be the item icon and name
     At the bottom of each page will be a description describing what to do and the command to use (/editfield <field number> <new value>)
     The footer will tell you what page you are on
@@ -584,14 +765,22 @@ class shop {
     Info Options: Name, Icon, Category, Image, Description
     Shop Options: Price, Need Role, Give Role, Take Role
     Page 2: Usage Options
-    Usage Options: Is Usable, Removed on Use, Need Role, Give Role, Take Role, Show an Image, Show a Message, Give/Take Money, Cooldown, Give Item, Give Item 2, Give Item 3, Take Item, Take Item 2, Take Item 3, Give Item, Give Item 2, Give Item 3, Change Prestige, Change Military, Change Intrigue
+    Usage Options: Is Usable, Removed on Use, Need Role, Give Role, Take Role, Show an Image, Show a Message, Give/Take Money, Cooldown, Give Item, Give Item 2, Give Item 3, Take Item, Take Item 2, Take Item 3, Give Item, Give Item 2, Give Item 3, Change Prestige, Change Martial, Change Intrigue
     */
-  static async editMenu(itemName, pageNumber) {
+  static async editItemMenu(itemName, pageNumber, tag) {
     pageNumber = Number(pageNumber);
     itemName = await this.findItemName(itemName);
     if (itemName == "ERROR") {
       return "Item not found!";
     }
+
+    //Load user data, check if user has attribute "Item Edited" and if so change the value to the item name. If not, create the attribute
+    let userData = await dbm.loadCollection('characters');
+    if (!userData[tag].editingFields) {
+      userData[tag].editingFields = {};
+    }
+    userData[tag].editingFields["Item Edited"] = itemName;
+    await dbm.saveCollection('characters', userData);
 
     //Loatd item data
     let itemData = await dbm.loadFile('shop', itemName);
@@ -609,19 +798,19 @@ class shop {
     // Construct the edit menu embed
     const embed = new Discord.EmbedBuilder()
       .setTitle("**" + itemIcon + " " + itemName + "**")
-      .setDescription('Edit the fields using the command /editfield <item name> <field number> <new value>');
+      .setDescription('Edit the fields using the command /edititemfield <field number> <new value>');
     
     switch (pageNumber) {
       case 1:
         // Add fields for Info Options and Shop Options
         embed.addFields({ name: '❓ Info Options', value: infoOptions.map((option, index) => `\`[${index + 1}] ${option}:\` ` + itemData.infoOptions[option]).join('\n') }, 
                         { name: '🪙 Shop Options', value: shopOptions.map((option, index) => `\`[${index + 1 + shopOptionsStartingIndex}] ${option}:\` ` + itemData.shopOptions[option]).join('\n') });
-        embed.setFooter({text : 'Page 1 of 3, Info and Shop Options'});
+        embed.setFooter({text : 'Page 1 of 2, Info and Shop Options'});
         break;
       case 2:
         // Add fields for Usage Options
         embed.addFields({ name : '💥 Usage Options', value: usageOptions.map((option, index) => `\`[${index + 1 + usageOptionsStartingIndex}] ${option}:\` ` + itemData.usageOptions[option]).join('\n')});
-        embed.setFooter({text : 'Page 2 of 3, Usage Options'});
+        embed.setFooter({text : 'Page 2 of 2, Usage Options'});
         break;
       default:
         return "Invalid page number!";
@@ -648,7 +837,45 @@ class shop {
     return [embed, rows];
   }
 
-  static async editField(itemName, fieldNumber, newValue) {
+  static async editRecipeMenu(recipeName, tag) {
+    // Load the recipe data
+    let recipeData = await dbm.loadFile('recipes', recipeName);
+
+    if (recipeData == undefined) {
+      return "Recipe not found!";
+    }
+
+    let userData = await dbm.loadCollection('characters');
+    if (!userData[tag].editingFields) {
+      userData[tag].editingFields = {};
+    }
+    userData[tag].editingFields["Recipe Edited"] = recipeName;
+    await dbm.saveCollection('characters', userData);
+
+    const recipeOptions = this.recipeOptions;
+
+    // Construct the edit menu embed
+    const embed = new Discord.EmbedBuilder()
+      .setTitle("**" + recipeName + "**")
+      .setDescription('Edit the fields using the command /editrecipefield <field number> <new value>');
+
+    // Add fields for Recipe Options
+    embed.addFields({ name: '📜 Recipe Options', value: recipeOptions.map((option, index) => `\`[${index + 1}] ${option}:\` ` + recipeData.recipeOptions[option]).join('\n') });
+    embed.setFooter({text : 'Page 1 of 1, Recipe Options'});
+
+    //Return an array including the embed and the buttons to put at the bottom 
+    return embed;
+  }
+
+  static async editItemField(userTag, fieldNumber, newValue) {
+    // Load user data
+    let userData = await dbm.loadCollection('characters');
+    let itemName;
+    if (!userData[userTag].editingFields["Item Edited"]) {
+      return "You are not currently editing any items!";
+    } else {
+      itemName = userData[userTag].editingFields["Item Edited"];
+    }
     itemName = await this.findItemName(itemName);
     if (itemName == "ERROR") {
       return "Item not found!";
@@ -693,19 +920,180 @@ class shop {
         break;
     }
 
+    let nullValue = false;
+    if (newValue == null) {
+      newValue = "";
+      nullValue = true;
+    }
+
+    //If category contains #, convert newValue to number- if it's not a number, return an error
+    if (fieldName.includes("#")) {
+      let num = parseInt(newValue);
+      if (isNaN(num)) {
+        return "Invalid value for a number field!";
+      }
+      newValue = num;
+    }
+
+    if (fieldName.includes("Y/N")) {
+      if (newValue.toLowerCase() == "y" || newValue.toLowerCase() == "yes" || newValue.toLowerCase() == "true") {
+        newValue = "Yes";
+      } else if (newValue.toLowerCase() == "n" || newValue.toLowerCase() == "no" || newValue.toLowerCase() == "false") {
+        newValue = "No";
+      } else {
+        return "Invalid value for a Y/N field!";
+      }
+    }
+
+    if (fieldName.includes("Give Item") || fieldName.includes("Take Item")) {
+      //Should be in the form NUMBER ITEM NAME
+      let splitString = newValue.split(" ");
+      let num = parseInt(splitString[0]);
+      if (isNaN(num)) {
+        return "Invalid value for number! This should be given in the form <Number> <Item Name>";
+      }
+      //Check if item name is valid
+      let itemName = splitString.slice(1).join(" ");
+      if (await this.findItemName(itemName) == "ERROR") {
+        return "Invalid value for item name! This should be given in the form <Number> <Item Name>";
+      }
+    }
+
     // Update the item data
     itemData[category][fieldName] = newValue;
 
     // Save the updated item data
     await dbm.saveFile('shop', itemName, itemData);
 
-    return `Field \`${fieldName}\` updated to \`${newValue}\``;
+    if (nullValue) {
+      return `Field ${fieldName} reset to blank for item ${itemName}`;
+    }
+    return `Field ${fieldName} updated to ${newValue} for item ${itemName}`;
   }
+
+  static async editRecipeField(userTag, fieldNumber, newValue) {
+    // Load user data
+    let userData = await dbm.loadCollection('characters');
+    let recipeName;
+    if (!userData[userTag].editingFields["Recipe Edited"]) {
+      return "You are not currently editing any recipes!";
+    } else {
+      recipeName = userData[userTag].editingFields["Recipe Edited"];
+    }
+
+    // Load the recipe data
+    let recipeData = await dbm.loadFile('recipes', recipeName);
+
+    const recipeOptions = this.recipeOptions;
+
+    // Determine which category the field number belongs to
+    let category;
+    if (fieldNumber >= 1 && fieldNumber <= recipeOptions.length) {
+      category = 'recipeOptions';
+    } else {
+      return "Invalid field number!";
+    }
+
+    // Get the field name
+    let fieldName;
+    switch (category) {
+      case 'recipeOptions':
+        fieldName = recipeOptions[fieldNumber - 1];
+        break;
+    }
+
+    let nullValue = false;
+    if (newValue == null) {
+      newValue = "";
+      nullValue = true;
+    }
+
+    if (nullValue) {
+      recipeData[category][fieldName] = newValue;
+      await dbm.saveFile('recipes', recipeName, recipeData);
+      return `Field ${fieldName} reset to blank for recipe ${recipeName}`;
+    }
+
+    //If category contains #, convert newValue to number- if it's not a number, return an error
+    if (fieldName.includes("#")) {
+      let num = parseInt(newValue);
+      if (isNaN(num)) {
+        return "Invalid value for a number field!";
+      }
+      newValue = num;
+    }
+
+    if (fieldName.includes("Y/N")) {
+      if (newValue.toLowerCase() == "y" || newValue.toLowerCase() == "yes" || newValue.toLowerCase() == "true") {
+        newValue = "Yes";
+      } else if (newValue.toLowerCase() == "n" || newValue.toLowerCase() == "no" || newValue.toLowerCase() == "false") {
+        newValue = "No";
+      } else {
+        return "Invalid value for a Y/N field!";
+      }
+    }
+
+    if (fieldName.includes("Ingredient") || fieldName.includes("Result")) {
+      //Should be in the form NUMBER ITEM NAME
+      let splitString = newValue.split(" ");
+      let num = parseInt(splitString[0]);
+      if (isNaN(num)) {
+        return "Invalid value for number! This should be given in the form <Number> <Item Name>";
+      }
+      //Check if item name is valid
+      let itemName = splitString.slice(1).join(" ");
+      if (await this.findItemName(itemName) == "ERROR") {
+        return "Invalid value for item name! This should be given in the form <Number> <Item Name>";
+      }
+    }
+
+    // Update the recipe data
+    recipeData[category][fieldName] = newValue;
+
+    // If there is now only one result (Result 1), and no other recipes exist with the name of that result, change the recipe name and icon to that result
+    if (fieldName == "Result 1" && recipeName.includes("New Recipe") && recipeData.recipeOptions["Result 2"] == "" && recipeData.recipeOptions["Result 3"] == "" && recipeData.recipeOptions["Result 4"] == "" && recipeData.recipeOptions["Result 5"] == "") {
+      let result = newValue.split(" ").slice(1).join(" ");
+
+      if (!recipeData[result]) {
+        let data = await dbm.loadCollection('shop');
+        if (data[result]) {
+          recipeData.recipeOptions["Name"] = result;
+          recipeData.recipeOptions["Icon"] = data[result].infoOptions.Icon;
+          //Save new recipe
+          await dbm.saveFile('recipes', result, recipeData);
+          //Delete old recipe
+          await dbm.docDelete('recipes', recipeName);
+
+          //Return
+          return `This is now a recipe to craft ${result}, name and icon have been changed accordingly.`;
+        }   
+      }
+    }
+
+    // If the recipe name has changed, save the new recipe and delete the old one
+    if (fieldName == "Name") {
+      //Save new recipe
+      await dbm.saveFile('recipes', newValue, recipeData);
+      //Delete old recipe
+      await dbm.docDelete('recipes', recipeName);
+
+      //Change the recipe name in the user's editingFields
+      userData[userTag].editingFields["Recipe Edited"] = newValue;
+      await dbm.saveCollection('characters', userData);
+
+      return `Recipe name changed to ${newValue}`;
+    } else {
+      // Save the updated recipe data
+      await dbm.saveFile('recipes', recipeName, recipeData);
+    }
+    
+    
+    return `Field ${fieldName} updated to ${newValue} for recipe ${recipeName}`;
+  } 
 
   static async buyItem(itemName, charID, numToBuy) {
     itemName = await this.findItemName(itemName);
     const price = await this.getItemPrice(itemName);
-    console.log(price);
     if (price === "ERROR" || price === "No Price Item!" || price === undefined || price === null || price === NaN || !(price > 0)) {
       return "Not a valid item to purchase!";
     }
@@ -715,7 +1103,7 @@ class shop {
     let charData = await dbm.loadFile(charCollection, charID);
     if (charData.balance <= (price * numToBuy)) {
       returnString = "You do not have enough gold!";
-      dbm.saveFile(charCollection, charID, charData);
+      await dbm.saveFile(charCollection, charID, charData);
       return returnString;
     } else {
       charData.balance -= (price * numToBuy);
@@ -726,7 +1114,7 @@ class shop {
       charData.inventory[itemName] += numToBuy;
 
       returnString = "Succesfully bought " + numToBuy + " " + itemName;
-      dbm.saveFile(charCollection, charID, charData);
+      await dbm.saveFile(charCollection, charID, charData);
       return returnString;
     }
   }
@@ -854,7 +1242,7 @@ class shop {
           shopData[item].infoOptions.Category = categoryToEdit;
         }
       }
-      dbm.saveCollection("shop", shopData);
+      await dbm.saveCollection("shop", shopData);
 
       let layoutData = await dbm.loadFile("shoplayout", "shopLayout");
       // if (!layoutData.organizedLayout) {
@@ -873,7 +1261,7 @@ class shop {
       layoutData = {};
       layoutData.shopArray = shopArray;
 
-      dbm.saveFile("shoplayout", "shopLayout", layoutData);
+      await dbm.saveFile("shoplayout", "shopLayout", layoutData);
 
       let result = `Category "${categoryToEdit}" updated successfully. Items added:\n`;
       for (const item of catMap) {
@@ -947,8 +1335,8 @@ class shop {
   //           return "ERROR IN GIVE SECTION";
   //         } else {
   //           if (useType == "STATBOOST") {
-  //             if (!((currKey == "Military") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
-  //               return 'ERROR! DOES NOT BOOST "Military", "Prestige", OR "Intrigue"';
+  //             if (!((currKey == "Martial") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
+  //               return 'ERROR! DOES NOT BOOST "Martial", "Prestige", OR "Intrigue"';
   //             }
   //           }
   //           onKey = false;
@@ -1099,8 +1487,8 @@ class shop {
   //           return "ERROR IN GIVE SECTION";
   //         } else {
   //           if (useType == "STATBOOST") {
-  //             if (!((currKey == "Military") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
-  //               return 'ERROR! DOES NOT BOOST "Military", "Prestige", OR "Intrigue"';
+  //             if (!((currKey == "Martial") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
+  //               return 'ERROR! DOES NOT BOOST "Martial", "Prestige", OR "Intrigue"';
   //             }
   //           }
   //           onKey = false;
@@ -1177,8 +1565,8 @@ class shop {
   //           return "ERROR IN GIVE SECTION";
   //         } else {
   //           if (useType == "STATBOOST")  {
-  //             if (!((currKey == "Military") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
-  //               return 'ERROR! DOES NOT BOOST "Military", "Prestige", OR "Intrigue"';
+  //             if (!((currKey == "Martial") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
+  //               return 'ERROR! DOES NOT BOOST "Martial", "Prestige", OR "Intrigue"';
   //             }
   //           }
   //           onKey = false;
@@ -1225,8 +1613,8 @@ class shop {
   //               return "ERROR! DOES NOT TAKE A REAL ITEM";
   //             }
   //           } else if (useType == "STATBOOST")  {
-  //             if (!((currKey == "Military") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
-  //               return 'ERROR! DOES NOT REMOVE "Military", "Prestige", OR "Intrigue"';
+  //             if (!((currKey == "Martial") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
+  //               return 'ERROR! DOES NOT REMOVE "Martial", "Prestige", OR "Intrigue"';
   //             }
   //           }
   //           onKey = false;
@@ -1306,8 +1694,8 @@ class shop {
   //           return "ERROR IN GIVE SECTION";
   //         } else {
   //           if (useType == "STATBOOST")  {
-  //             if (!((currKey == "Military") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
-  //               return 'ERROR! DOES NOT BOOST "Military", "Prestige", OR "Intrigue"';
+  //             if (!((currKey == "Martial") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
+  //               return 'ERROR! DOES NOT BOOST "Martial", "Prestige", OR "Intrigue"';
   //             }
   //           }
   //           onKey = false;
@@ -1354,8 +1742,8 @@ class shop {
   //               return "ERROR! DOES NOT TAKE A REAL ITEM";
   //             }
   //           } else if (useType == "STATBOOST")  { 
-  //             if (!((currKey == "Military") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
-  //               return 'ERROR! DOES NOT REMOVE "Military", "Prestige", OR "Intrigue"';
+  //             if (!((currKey == "Martial") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
+  //               return 'ERROR! DOES NOT REMOVE "Martial", "Prestige", OR "Intrigue"';
   //             }
   //           }
   //           onKey = false;

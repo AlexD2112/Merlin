@@ -20,7 +20,7 @@ module.exports = {
             } else {
                 let replyEmbed = await admin.commandHelp(command);
                 if (replyEmbed == null) {
-                    await interaction.reply({ content: "Command not found", ephemeral: true });
+                    await interaction.reply({ content: "Command not found: if this command exists, contact Alex to add it to the help list", ephemeral: true });
                 } else {
                     await interaction.reply({ embeds: [replyEmbed] });
                 }

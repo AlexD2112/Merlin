@@ -1,7 +1,7 @@
 const dbm = require('./database-manager'); // Importing the database manager
 const shop = require('./shop'); // Importing the database manager
 const char = require('./char'); // Importing the database manager
-const emoji = require('./emoji'); // Importing the database manager
+const clientManager = require('./clientManager'); // Importing the database manager
 const { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
 class marketplace {
   /**Function for a player to post a sale.
@@ -45,11 +45,11 @@ class marketplace {
       "sellerID": userID
     }
     // Save the character.json file
-    dbm.saveFile('characters', userTag, charData);
-    dbm.saveCollection('marketplace', marketData);
+    await dbm.saveFile('characters', userTag, charData);
+    await dbm.saveCollection('marketplace', marketData);
     // Create an embed to return on success. Will just say @user listed **numberItems :itemIcon: itemName** to the **/sales** page for <:Talent:1232097113089904710>**price**.
     let embed = new EmbedBuilder();
-    embed.setDescription(`<@${userID}> listed **${numberItems} ${await shop.getItemIcon(itemName)} ${itemName}** to the **/sales** page for ${emoji.getEmoji("Talent")}**${price}**.`);
+    embed.setDescription(`<@${userID}> listed **${numberItems} ${await shop.getItemIcon(itemName)} ${itemName}** to the **/sales** page for ${clientManager.getEmoji("Talent")}**${price}**.`);
     return embed;
   }
 
@@ -107,7 +107,7 @@ class marketplace {
 
     //Create embed
     let embed = new EmbedBuilder();
-    embed.setTitle(emoji.getEmoji("Talent") + 'Sales');
+    embed.setTitle(clientManager.getEmoji("Talent") + 'Sales');
     embed.setColor(0x36393e);
 
     let descriptionText = '';
@@ -123,7 +123,7 @@ class marketplace {
         const icon = await shop.getItemIcon(itemName);
         const price = sale.price;
         const alignSpaces = ' '.repeat(30 - item.length - ("" + price + "" + number).length);
-        descriptionText += `\`${saleID}\` ${icon} **\`${number} ${item}${alignSpaces}${price}\`**${emoji.getEmoji("Talent")}\n`;
+        descriptionText += `\`${saleID}\` ${icon} **\`${number} ${item}${alignSpaces}${price}\`**${clientManager.getEmoji("Talent")}\n`;
       }
     }
     
@@ -183,12 +183,12 @@ class marketplace {
       // Remove the sale from the marketplace
       delete marketData.marketplace[foundCategory][foundItemName][saleID];
       // Save the character.json file
-      dbm.saveCollection('characters', charData);
+      await dbm.saveCollection('characters', charData);
       // Save the marketplace.json file
-      dbm.saveCollection('marketplace', marketData);
+      await dbm.saveCollection('marketplace', marketData);
       // Create an embed to return on success. Will just say @user bought **numberItems :itemIcon: itemName** from @seller for <:Talent:1232097113089904710>**price**.
       let embed = new EmbedBuilder();
-      embed.setDescription(`<@${userID}> bought **${sale.number} ${await shop.getItemIcon(foundItemName)} ${foundItemName}** back from themselves. It was listed for ${emoji.getEmoji("Talent")}**${sale.price}**.`);
+      embed.setDescription(`<@${userID}> bought **${sale.number} ${await shop.getItemIcon(foundItemName)} ${foundItemName}** back from themselves. It was listed for ${clientManager.getEmoji("Talent")}**${sale.price}**.`);
       return embed;
     }
 
@@ -205,12 +205,12 @@ class marketplace {
     // Remove the sale from the marketplace
     delete marketData.marketplace[foundCategory][foundItemName][saleID];
     // Save the character.json file
-    dbm.saveCollection('characters', charData);
+    await dbm.saveCollection('characters', charData);
     // Save the marketplace.json file
-    dbm.saveCollection('marketplace', marketData);
+    await dbm.saveCollection('marketplace', marketData);
     // Create an embed to return on success. Will just say @user bought **numberItems :itemIcon: itemName** from @seller for <:Talent:1232097113089904710>**price**.
     let embed = new EmbedBuilder();
-    embed.setDescription(`<@${userID}> bought **${sale.number} ${await shop.getItemIcon(foundItemName)} ${foundItemName}** from <@${sale.sellerID}> for ${emoji.getEmoji("Talent")}**${sale.price}**.`);
+    embed.setDescription(`<@${userID}> bought **${sale.number} ${await shop.getItemIcon(foundItemName)} ${foundItemName}** from <@${sale.sellerID}> for ${clientManager.getEmoji("Talent")}**${sale.price}**.`);
     return embed;
   }
 
@@ -226,7 +226,7 @@ class marketplace {
     let embed = new EmbedBuilder();
     embed.setTitle(`Sale ${saleID}`);
     embed.setColor(0x36393e);
-    embed.setDescription(`**${sale.number} ${await shop.getItemIcon(itemName)} ${itemName}** for ${emoji.getEmoji("Talent")}**${sale.price}**.`);
+    embed.setDescription(`**${sale.number} ${await shop.getItemIcon(itemName)} ${itemName}** for ${clientManager.getEmoji("Talent")}**${sale.price}**.`);
     embed.setFooter({text: `Seller: ${sale.seller}`});
     return embed;
   }

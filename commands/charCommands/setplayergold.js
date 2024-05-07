@@ -5,11 +5,11 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('setplayergold')
         .setDescription('Sets the gold of a player')
-        .addStringOption(option => option.setName('player').setDescription('The player to set the gold of').setRequired(true))
+        .addUserOption(option => option.setName('player').setDescription('The player to set the gold of').setRequired(true))
         .addIntegerOption(option => option.setName('gold').setDescription('The amount of gold to set').setRequired(true))
         .setDefaultMemberPermissions(0),
     async execute(interaction) {
-        const player = interaction.options.getString('player');
+        const player = interaction.options.getUser('player').toString();
         const gold = interaction.options.getInteger('gold');
         const response = await char.setPlayerGold(player, gold);
 

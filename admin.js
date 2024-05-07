@@ -5,15 +5,15 @@
   const shop = require('./shop');
   const fs = require('node:fs');
   const path = require('node:path');
-  const emoji = require('./emoji');
+  const clientManager = require('./clientManager');
   class Admin {
     static async initShireSelect(channel) {
       let shires = await dbm.loadFile("keys", "shires");
       //get shires from keys, where it is an array
-      let shireNames = Object.keys(shires).map(key => "- " + emoji.getEmoji("Polis") + " " + shires[key].name  + " - " + shires[key].resource + " " + shires[key].resourceCode).join("\n");
+      let shireNames = Object.keys(shires).map(key => "- " + clientManager.getEmoji("Polis") + " " + shires[key].name  + " - " + shires[key].resource + " " + shires[key].resourceCode).join("\n");
       //Send an embed with the title Massalia and the text Capital: Massalia \n The city has the following colonies \n and than a list of the colonies. There will also be a menu you can click to choose which colony. The colonies will come out of the shires.json file.
       let embed = new EmbedBuilder()
-        .setDescription("# " + emoji.getEmoji("Massalia") + " The League of Massalia" +
+        .setDescription("# " + clientManager.getEmoji("Massalia") + " The League of Massalia" +
           "\n- Capital: :star: Massalia" +
           "\n- The League of Massalia controls the following cities: " +
           "\n \u200B----------------------------------------" +
@@ -99,7 +99,18 @@
         await dbm.saveFile("keys", "shires", shires);
       }
 
+      //Make sure user has role for resource, and if it doesnt exist create it
+      let resourceRole = guild.roles.cache.find(role => role.name === shire.resource);
+      if (resourceRole == undefined) {
+        resourceRole = await guild.roles.create({
+          name: shire.resource,
+          color: '#FFFFFF',
+          reason: 'Added role for resource from selectShire command',
+        });
+      }
+
       await user.roles.add(role);
+      await user.roles.add(resourceRole);
       char.shireID = selectedShire;
       await dbm.saveFile("characters", userTag, char);
 
@@ -240,6 +251,23 @@
       embed.addFields({ name: "Full info:", value: command.help });
 
       return embed;
+    }
+
+    static async addIncome(roleID, incomeString) {
+      //Add an income to keys/incomeList
+      let incomeList = await dbm.loadFile("keys", "incomeList");
+      //income string is either a number, or a phrase such as 10 Wood or 10 Package Horse. In the first case, convert it to an integer and add it to the income list. In the second case, add the string RESOURCE_Income_Amount to the income list.
+      if (incomeString.includes(" ")) {
+        let incomeArray = incomeString.split(" ");
+        let income = incomeArray[0];
+        let resource = incomeArray.slice(1).join(" ");
+        incomeList[roleID] = "RESOURCE" + "_" + resource + "_" + income;
+      } else {
+        incomeList[roleID] = parseInt(incomeString);
+      }
+      await dbm.saveFile("keys", "incomeList", incomeList);
+
+      return "Income added: " + incomeString + " to role " + "<@&" + roleID + ">";
     }
   }
 
