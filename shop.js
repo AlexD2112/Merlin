@@ -108,9 +108,19 @@ class shop {
     //Set option "Is Public (Y/N)" to No
 
     recipeData.recipeOptions["Is Public (Y/N)"] = "No";
-    recipeData.recipeOptions.Name = newRecipeName;
-    recipeData.recipeOptions.Icon = ":hammer:";
-    recipeData.recipeOptions["Craft Time in Hours (#)"] = 0;
+    let itemName = this.findItemName(newRecipeName);
+    if (itemName != "ERROR") {
+      let shopData = await dbm.loadCollection('shop');
+      let itemData = shopData[itemName];
+      newRecipeName = itemName;
+      recipeData.recipeOptions.Name = itemName;
+      recipeData.recipeOptions.Icon = itemData.infoOptions.Icon;
+      recipeData.recipeOptions["Result 1"] = "1 " + itemName;
+    } else {
+      recipeData.recipeOptions.Name = newRecipeName;
+      recipeData.recipeOptions.Icon = ":hammer:";
+    }
+    recipeData.recipeOptions["Craft Time in Hours (#)"] = 1;
     await dbm.saveFile('recipes', newRecipeName, recipeData); 
 
     return newRecipeName;
