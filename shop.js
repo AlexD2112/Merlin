@@ -541,7 +541,7 @@ class shop {
   static async removeItem(itemName) {
     // Set the database name
     let fileName = 'shop';
-    itemName = this.findItemName(itemName);
+    itemName = await this.findItemName(itemName);
     if (itemName == "ERROR") {
       return "ERROR! NOT A REAL ITEM IN SHOP. DOUBLE CHECK NAME";
     }
@@ -549,6 +549,7 @@ class shop {
     try {
       await dbm.docDelete(fileName, itemName);
     } catch (error) {
+      console.log(error);
       // Handle the error or do nothing
       // In JavaScript, you might want to handle errors differently
     }
