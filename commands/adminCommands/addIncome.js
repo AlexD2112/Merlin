@@ -5,6 +5,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('addincome')
         .setDescription('Add an income attached to a role')
+        .setDefaultMemberPermissions(0)
         .addRoleOption((option) =>
             option.setName('role')
                 .setDescription('The role name')

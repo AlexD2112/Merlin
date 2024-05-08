@@ -8,7 +8,6 @@ module.exports = {
         .setName('addrecipe')
         .setDefaultMemberPermissions(0)
         .setDescription('Create a new recipe')
-        .setDefaultMemberPermissions(0)
         .addStringOption(option => option.setName('recipename')
             .setDescription('The name of the recipe')
             .setRequired(false)),
