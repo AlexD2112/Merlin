@@ -108,7 +108,7 @@ class shop {
     //Set option "Is Public (Y/N)" to No
 
     recipeData.recipeOptions["Is Public (Y/N)"] = "No";
-    let itemName = this.findItemName(newRecipeName);
+    let itemName = await this.findItemName(newRecipeName);
     if (itemName != "ERROR") {
       let shopData = await dbm.loadCollection('shop');
       let itemData = shopData[itemName];
@@ -1053,9 +1053,12 @@ class shop {
       }
       //Check if item name is valid
       let itemName = splitString.slice(1).join(" ");
-      if (await this.findItemName(itemName) == "ERROR") {
+      let foundItemName = await this.findItemName(itemName);
+      if (foundItemName == "ERROR") {
         return "Invalid value for item name! This should be given in the form <Number> <Item Name>";
-      }
+      } else {
+        newValue = num + " " + foundItemName;
+      } 
     }
 
     // Update the recipe data
@@ -1070,6 +1073,7 @@ class shop {
         if (data[result]) {
           recipeData.recipeOptions["Name"] = result;
           recipeData.recipeOptions["Icon"] = data[result].infoOptions.Icon;
+          
           //Save new recipe
           await dbm.saveFile('recipes', result, recipeData);
           //Delete old recipe
@@ -1154,7 +1158,7 @@ class shop {
           }
 
           let item = line.slice(0, -1); // Remove the trailing semicolon
-          item = this.findItemName(item);
+          item = await this.findItemName(item);
 
           if (await this.getItemPrice(item) == "ERROR") {
             return ("ERROR! Item " + item + " is not in shop" + "\n\nSubmitted layout string: \n " + layoutString);
@@ -1234,7 +1238,7 @@ class shop {
           }
 
           let item = line.slice(0, -1); // Remove the trailing semicolon
-          item = this.findItemName(item);
+          item = await this.findItemName(item);
 
           if (await this.getItemPrice(item) == "ERROR") {
             return ("ERROR! Item " + item + " is not in shop" + "\n\nSubmitted layout string: \n " + layoutString);
