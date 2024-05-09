@@ -122,7 +122,10 @@ class marketplace {
         const item = itemName;
         const icon = await shop.getItemIcon(itemName);
         const price = sale.price;
-        const alignSpaces = ' '.repeat(30 - item.length - ("" + price + "" + number).length);
+        let alignSpaces = ' '
+        if ((30 - item.length - ("" + price + "" + number).length) > 0) {
+          alignSpaces = ' '.repeat(30 - item.length - ("" + price + "" + number).length);
+        }
         descriptionText += `\`${saleID}\` ${icon} **\`${number} ${item}${alignSpaces}${price}\`**${clientManager.getEmoji("Talent")}\n`;
       }
     }

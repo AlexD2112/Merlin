@@ -7,7 +7,6 @@ class clientManager {
     static getEmoji(emojiName) {
         //Remove spaces
         emojiName = emojiName.replace(/\s/g, '');
-        console.log(this.client);
         const guild = this.client.guilds.cache.get(this.guildID);
         if (!guild) {
             console.log("Guild not found")

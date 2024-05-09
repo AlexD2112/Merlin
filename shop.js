@@ -259,7 +259,7 @@ class shop {
     // Convert the shop data to a an array of maps of category to items
     let shopLayoutData = {};
     for (let [key, value] of Object.entries(shopData)) {
-      let price = value.shopOptions.Price;
+      let price = value.shopOptions["Price (#)"];
       //Turn price into number
       price = parseInt(price);
       if (!(price == undefined || price == "" || price == null || isNaN(price) || price == 0)) {
@@ -309,16 +309,22 @@ class shop {
     }
 
     let descriptionText = '';
-
     for (const category of pageItems) {
-      const endSpaces = "-".repeat(20 - category.length - 2);
+      let endSpaces = "-";
+      if ((20 - category.length - 2) > 0) {
+        endSpaces = "-".repeat(20 - category.length - 2);
+      }
       descriptionText += `**\`--${category}${endSpaces}\`**\n`;
       descriptionText += shopLayoutData[category]
         .map((item) => {
           const icon = shopData[item].infoOptions.Icon;
-          const price = shopData[item].shopOptions.Price;
+          const price = shopData[item].shopOptions["Price (#)"];
+          console.log(shopData[item]);
 
-          const alignSpaces = ' '.repeat(30 - item.length - ("" + price).length);
+          let alignSpaces = ' '
+          if ((30 - item.length - ("" + price).length) > 0) {
+            alignSpaces = ' '.repeat(30 - item.length - ("" + price).length);
+          }
           // Create the formatted line
           return `${icon} \`${item}${alignSpaces}${price}\` ${clientManager.getEmoji("Talent")}`;
         })
@@ -428,7 +434,10 @@ class shop {
     let descriptionText = '';
 
     for (const category of pageItems) {
-      const endSpaces = "-".repeat(20 - category.length - 2);
+      let endSpaces = "-";
+      if ((20 - category.length - 2) > 0) {
+        endSpaces = "-".repeat(20 - category.length - 2);
+      }
       descriptionText += `**\`--${category}${endSpaces}\`**\n`;
       descriptionText += itemCategories[category]
         .map((item) => {
@@ -511,14 +520,20 @@ class shop {
     //create description text from the 2d array
     let descriptionText = '';
     for (const category in inventory) {
-      const endSpaces = "-".repeat(20 - category.length - 2);
+      let endSpaces = "-"
+      if ((20 - category.length - 2)> 0) {
+        endSpaces = "-".repeat(20 - category.length - 2);
+      }
       descriptionText += `**\`--${category}${endSpaces}\`**\n`;
       descriptionText += inventory[category]
         .map((item) => {
           const icon = shopData[item].infoOptions.Icon;
           const quantity = charData[charID].inventory[item];
 
-          const alignSpaces = ' '.repeat(30 - item.length - ("" + quantity).length);
+          let alignSpaces = ' ' 
+          if ((30 - item.length - ("" + quantity).length) > 0){
+            alignSpaces = ' '.repeat(30 - item.length - ("" + quantity).length);
+          }
   
           // Create the formatted line
           return `${icon} \`${item}${alignSpaces}${quantity}\``;
@@ -569,10 +584,10 @@ class shop {
     let data = await dbm.loadCollection('shop');
     var price;
     if (data[itemName]) {
-      if (data[itemName].shopOptions.Price == undefined) {
+      if (data[itemName].shopOptions["Price (#)"] == undefined) {
         return "No Price Item!";
       }
-      price = data[itemName].shopOptions.Price;
+      price = data[itemName].shopOptions["Price (#)"];
     } else {
       return "ERROR";
     }
@@ -624,8 +639,8 @@ class shop {
         "Health": clientManager.getEmoji("Health"),
       }
       let aboutString = "";
-      if (itemData.shopOptions.Price) {
-        aboutString = "Price: " + clientManager.getEmoji("Talent") + " " + itemData.shopOptions.Price;
+      if (itemData.shopOptions["Price (#)"] != "") {
+        aboutString = "Price: " + clientManager.getEmoji("Talent") + " " + itemData.shopOptions["Price (#)"] + "\n";
       }
       let descriptionString = "**Description:\n**" + itemData.infoOptions.Description;
       if (itemData.usageOptions["Is Usable"] == "Yes") {
