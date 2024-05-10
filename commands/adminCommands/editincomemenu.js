@@ -3,26 +3,20 @@ const admin = require('../../admin'); // Importing the database manager
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('addincome')
-        .setDescription('Add an income attached to a role')
+		.setName('editincomemenu')
+        .setDescription('Edit an income')
         .setDefaultMemberPermissions(0)
-        .addRoleOption((option) =>
-            option.setName('role')
-                .setDescription('The role name')
-                .setRequired(true)
-        )
         .addStringOption((option) =>
             option.setName('income')
-                .setDescription('The income value')
+                .setDescription('The income to edit')
                 .setRequired(true)
         ),
     async execute(interaction) {
-        const role = interaction.options.getRole('role');
-        const income = interaction.options.getString('income');
+        const role = interaction.options.getString('income');
 
         (async () => {
             //addIncome(roleID, incomeString)
-            let reply = await admin.addIncome(role, income);
+            let reply = await admin.editIncomeMenu(role, interaction.user.tag);
             if (typeof(reply) == 'string') {
                 await interaction.reply(reply);
             } else {

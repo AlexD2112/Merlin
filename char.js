@@ -266,16 +266,21 @@ class char {
     now.setUTCDate(now.getUTCDate() + 1);
     now.setUTCHours(0, 0, 0, 0);
 
-    let charIncomeData = charData.incomeList;
+    let charIncomeData = [];
 
-    //Add on incomes from roles, 
+    //Add on incomes from roles. role.id is a number that corresponds to the role's ID. Meanwhile, incomeList data is a list of incomes- within each income from that list, there is a "roles" array that contains the ids of roles that match that income
     let user = await clientManager.getUser(numericID);
     let roles = user.roles.cache;
-    for (let [_, role] of roles) {
-      if (incomeListFromRoles[role.id]) {
-        charIncomeData[role.name] = incomeListFromRoles[role.id];
+    for (let [income, incomeData] of Object.entries(incomeListFromRoles)) {
+      let incomeRoles = incomeData.roles;
+      for (let i = 0; i < incomeRoles.length; i++) {
+        if (roles.some(role => role.id === incomeRoles[i])) {
+          charIncomeData.push({ income, data: incomeData });
+          break;
+        }
       }
     }
+
 
     let superstring = "";
     let afterString = "";
@@ -283,25 +288,45 @@ class char {
     //Declare a resourcemap
     let resourceMap = {}
     for (let [key, value] of Object.entries(charIncomeData)) {
-      //Value is either a number, in the case of a pure gold income, or a string in the form of RESOURCE_[resource]_[amount].
-      //Make sure value is a string to check if it includes "RESOURCE"
-      if (typeof value == "string" && value.includes("RESOURCE")) {
-        let resource = value.split("_")[1];
-        value = parseInt(value.split("_")[2]);
-        if (!resourceMap[resource]) {
-          resourceMap[resource] = 0;
+      //Each value will include an emoji, goldGiven, itemGiven, and itemAmount field
+      //Should add goldGiven to total, and if itemGiven is not "" and itemAmount is not 0, add itemAmount to the resourceMap. 
+      //Should also add to the superString the icon and name of the command in bold, followed by enter and a tab, followed by the goldGiven (if greater than zero) and the itemGiven and itemAmount (if greater than zero)
+      let goldGiven = value.data.goldGiven;
+      let itemGiven = value.data.itemGiven;
+      let itemAmount = value.data.itemAmount;
+      let emoji = value.data.emoji;
+      total += goldGiven;
+      if (itemGiven != "" && itemAmount != 0) {
+        if (resourceMap[itemGiven]) {
+          resourceMap[itemGiven] += itemAmount;
+        } else {
+          resourceMap[itemGiven] = itemAmount;
         }
-        resourceMap[resource] += value;
-        let icon = await shop.getItemIcon(resource);
-        icon = icon ? icon : ":question:";
-        superstring += (icon + " **" + resource + "** : `" + String(value) + "`\n");
-      } else {
-        value = parseInt(value);
-        superstring += (clientManager.getEmoji("Talent") + " **" + key + "** : `" + String(value) + "`\n");
-        total += value;
       }
+      superstring += emoji + " **__" + value.income + "__**\n"; 
+      if (goldGiven > 0) {
+        superstring += clientManager.getEmoji("Talent") + " Gold : `" + goldGiven + "`\n";
+      }
+      if (itemGiven != "" && itemAmount > 0) {
+        superstring += clientManager.getEmoji(itemGiven) + " " + itemGiven + " : `" + itemAmount + "`\n";
+      }
+      superstring += "\n";
     }
-    superstring +=  clientManager.getEmoji("Talent") + " **__Total :__** `" + total + "`\n\n";
+
+    charData.balance += total;
+    superstring +=  clientManager.getEmoji("Talent") + " **__Total Gold :__** `" + total + "`\n";
+
+    for (let [resource, amount] of Object.entries(resourceMap)) {
+      if (charData.inventory[resource]) {
+        charData.inventory[resource] += amount;
+      } else {
+        charData.inventory[resource] = amount;
+      }
+      superstring += clientManager.getEmoji(resource) + " **__Total " + resource + " :__** `" + amount + "`\n";
+    }
+
+    superstring += "\n";
+
     if (charData.incomeAvailable === true) {
       afterString = superstring;
     }
@@ -313,15 +338,6 @@ class char {
     superstring += "\nNext cycle  <t:" + (now.getTime()/1000) + ":R>";
     
     charData.incomeAvailable = false;
-
-    charData.balance += total;
-    for (let [resource, amount] of Object.entries(resourceMap)) {
-      if (charData.inventory[resource]) {
-        charData.inventory[resource] += amount;
-      } else {
-        charData.inventory[resource] = amount;
-      }
-    }
 
     await dbm.saveFile(collectionName, userID, charData);
     

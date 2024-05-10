@@ -6,6 +6,7 @@
   const fs = require('node:fs');
   const path = require('node:path');
   const clientManager = require('./clientManager');
+
   class Admin {
     static async initShireSelect(channel) {
       let shires = await dbm.loadFile("keys", "shires");
@@ -158,8 +159,6 @@
             const filePath = path.join(commandsPath, file);
             const command = require(filePath);
             if ('data' in command && 'execute' in command) {
-              //put 
-              //Check if the command is an admin command
               if ((command.data.default_member_permissions == 0) == isAdminMenu) {
                 let description = "";
                 if (command.data.description != undefined) {
@@ -253,21 +252,157 @@
       return embed;
     }
 
-    static async addIncome(roleID, incomeString) {
+    static async addIncome(role, incomeString) {
+      let roleID = role.id;
+      let roleName = role.name;
+
       //Add an income to keys/incomeList
       let incomeList = await dbm.loadFile("keys", "incomeList");
-      //income string is either a number, or a phrase such as 10 Wood or 10 Package Horse. In the first case, convert it to an integer and add it to the income list. In the second case, add the string RESOURCE_Income_Amount to the income list.
-      if (incomeString.includes(" ")) {
-        let incomeArray = incomeString.split(" ");
-        let income = incomeArray[0];
-        let resource = incomeArray.slice(1).join(" ");
-        incomeList[roleID] = "RESOURCE" + "_" + resource + "_" + income;
+      //income string is either a number, or a phrase such as 10 Wood or 10 Package Horse.
+      //Must be used to create a field with a name, usually based on the role name, and than a map of various values, including goldGiven, itemGiven and itemAmount. Will also have a list of roles that have this income under "Roles"
+      let income = {
+        goldGiven: 0,
+        itemGiven: "",
+        itemAmount: 0,
+        emoji: clientManager.getEmoji("Talent"),
+        roles: []
+      };
+      let incomeSplit = incomeString.split(" ");
+      if (incomeSplit.length == 1) {
+        income.goldGiven = parseInt(incomeSplit[0]);
       } else {
-        incomeList[roleID] = parseInt(incomeString);
+        income.itemAmount = parseInt(incomeSplit[0]);
+        income.itemGiven = incomeSplit[1];
+        if (await shop.findItemName(income.itemGiven) == "ERROR") {
+          return "Item not found";
+        }
       }
+      income.roles.push(roleID);
+      incomeList[roleName] = income;
+
       await dbm.saveFile("keys", "incomeList", incomeList);
 
-      return "Income added: " + incomeString + " to role " + "<@&" + roleID + ">";
+      return "Income added: " + incomeString + " income under name " + roleName + " <@&" + roleID + ">";
+    }
+
+    static async  allIncomes() {
+      let returnEmbed = new EmbedBuilder();
+      returnEmbed.setTitle("Incomes");
+      let incomeList = await dbm.loadFile("keys", "incomeList");
+      let incomeString = "";
+      if (Object.keys(incomeList).length == 0) {
+        return "No incomes found";
+      }
+      for (const income in incomeList) {
+        let incomeValue = incomeList[income];
+        let roles = incomeValue.roles;
+        let rolesString = "";
+        if (roles.length > 0) {
+          rolesString = "<@&" + roles.join(">, <@&") + ">";
+        }
+        incomeString += "**" + income + "**: " + rolesString + "\n";
+      }
+      returnEmbed.setDescription(incomeString);
+      return returnEmbed;
+    }
+
+    static async editIncomeMenu(income, charTag) {
+      let incomeList = await dbm.loadFile("keys", "incomeList");
+      let incomeValue = incomeList[income];
+      if (incomeValue == undefined) {
+        for (const incomeName in incomeList) {
+          if (incomeName.toLowerCase() == income.toLowerCase()) {
+            incomeValue = incomeList[incomeName];
+            income = incomeName;
+          }
+        }
+        if (incomeValue == undefined) {
+          return "Income not found";
+        }
+      }
+      let roles = incomeValue.roles;
+      let rolesString = "";
+      if (roles.length > 0) {
+        rolesString = "<@&" + roles.join(">, <@&") + ">";
+      }
+      let returnEmbed = new EmbedBuilder()
+        .setTitle("Income: " + income)
+        //Description is name, emoji, roles, gold given, item given. Each should have a number coming before, starting at 0, enclosed as `[1] `. Codewise, this should be formatted on separate lines to be easy to read.
+        .setDescription(
+          "`[1] Name:         ` " + income + 
+          //emoji below
+          "\n`[2] Emoji:        ` " + incomeValue.emoji +
+          "\n`[3] Roles:        ` " + rolesString + 
+          "\n`[4] Gold Given:   ` " + incomeValue.goldGiven + 
+          "\n`[5] Item Given:   ` " + incomeValue.itemGiven + 
+          "\n`[6] Amount Given: ` " + incomeValue.itemAmount
+        );
+
+      let userData = await dbm.loadCollection('characters');
+      if (!userData[charTag].editingFields) {
+        userData[charTag].editingFields = {};
+      }
+      userData[charTag].editingFields["Income Edited"] = income;
+      await dbm.saveCollection('characters', userData);
+
+      return returnEmbed;
+    }
+
+    static async editIncomeField(fieldNumber, charTag, newValue) {
+      let userData = await dbm.loadCollection('characters');
+      let editingFields = userData[charTag].editingFields;
+      let income = editingFields["Income Edited"];
+      let incomeList = await dbm.loadFile("keys", "incomeList");
+      let incomeValue = incomeList[income];
+      if (incomeValue == undefined) {
+        return "Income not found";
+      }
+      switch (fieldNumber) {
+        case 1:
+          delete incomeList[income];
+          income = newValue;
+          break;
+        case 2:
+          incomeValue.emoji = newValue;
+          break;
+        case 3:
+          //Find every series of numbers starting with <@& and ending with >, and add them to the roles array
+          let roles = newValue.match(/<@&\d+>/g);
+          if (roles == null) {
+            return "No roles found";
+          }
+          let roleIDs = [];
+
+          for (const role of roles) {
+            roleIDs.push(role.substring(3, role.length - 1));
+          }
+          incomeValue.roles = roleIDs;
+          break;
+        case 4:
+          incomeValue.goldGiven = parseInt(newValue);
+          if (isNaN(incomeValue.goldGiven)) {
+            return "Gold must be a number";
+          }
+          break;
+        case 5:
+          if (await shop.findItemName(newValue) == "ERROR") {
+            return "Item not found";
+          }
+          incomeValue.itemGiven = shop.findItemName(newValue);
+          break;
+        case 6:
+          incomeValue.itemAmount = parseInt(newValue);
+          if (isNaN(incomeValue.itemAmount)) {
+            return "Amount must be a number";
+          }
+          break;
+        default:
+          return "Field not found";
+      }
+      incomeList[income] = incomeValue;
+      await dbm.saveFile("keys", "incomeList", incomeList);
+
+      return "Field " + fieldNumber + " changed to " + newValue;
     }
   }
 
