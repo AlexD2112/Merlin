@@ -388,7 +388,7 @@
           if (await shop.findItemName(newValue) == "ERROR") {
             return "Item not found";
           }
-          incomeValue.itemGiven = shop.findItemName(newValue);
+          incomeValue.itemGiven = await shop.findItemName(newValue);
           break;
         case 6:
           incomeValue.itemAmount = parseInt(newValue);
