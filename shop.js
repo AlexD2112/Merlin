@@ -631,13 +631,6 @@ class shop {
       .setColor(0x36393e);
 
     if (itemData) {
-      statEmojis = {
-        "Prestige": clientManager.getEmoji("Prestige"),
-        "Martial": clientManager.getEmoji("Martial"),
-        "Intrigue": clientManager.getEmoji("Intrigue"),
-        "Devotion": clientManager.getEmoji("Devotion"),
-        "Health": clientManager.getEmoji("Health"),
-      }
       let aboutString = "";
       if (itemData.shopOptions["Price (#)"] != "") {
         aboutString = "Price: " + clientManager.getEmoji("Talent") + " " + itemData.shopOptions["Price (#)"] + "\n";
@@ -667,7 +660,7 @@ class shop {
           if (key.startsWith("Change")) {
             let quantity = itemData.usageOptions[key];
             if (quantity > 0) {
-              let icon = this.statEmojis[key.split(" ")[1]];
+              let icon = clientManager.getEmoji(key.split(" ")[1]);
               aboutString += ("\n`   `- " + icon + " " + key.split(" ")[1] + ": " + quantity);
             }
           }
@@ -691,7 +684,7 @@ class shop {
           if (key.startsWith("Change")) {
             let quantity = itemData.usageOptions[key];
             if (quantity < 0) {
-              let icon = this.statEmojis[key.split(" ")[1]];
+              let icon = clientManager.getEmoji(key.split(" ")[1]);
               aboutString += ("\n`   `- " + icon + " " + key.split(" ")[1] + ": " + quantity);
             }
           }
