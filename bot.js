@@ -5,7 +5,6 @@ const path = require('node:path');
 const interactionHandler = require('./interaction-handler')
 const { Client, GatewayIntentBits, Collection, Events } = require('discord.js');
 const char = require('./char');
-const clientManager = require('./clientManager');
 const dbm = require('./database-manager');
 const client = new Client({ 
     intents: [
