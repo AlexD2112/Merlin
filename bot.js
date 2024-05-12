@@ -120,13 +120,15 @@ initClientManager(client, guildId);
 
 client.login(token);
 
-export function getClient() {
+function getClient() {
 	return client;
 }
 
-export function getGuildID() {
+function getGuildID() {
 	return guildId;
 }
+
+module.exports = { getClient, getGuildID };
 
 // process.on('uncaughtException', function (err){ 
 // 	const channelID = "1163130565910868159";
