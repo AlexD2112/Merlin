@@ -1,10 +1,7 @@
-const dbm = require('./database-manager');
-const bot = require('./bot');
-
 class clientManager {
-    
 
     static getEmoji(emojiName) {
+        const bot = require('./bot');
         //Remove spaces
         emojiName = emojiName.replace(/\s/g, '');
         const client = bot.getClient();
@@ -27,6 +24,7 @@ class clientManager {
     }
 
     static async getUser(userID) {
+        const bot = require('./bot');
         const client = bot.getClient();
         const guildID = bot.getGuildID();
         const guild = client.guilds.cache.get(guildID);
