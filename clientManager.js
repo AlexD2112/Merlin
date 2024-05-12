@@ -1,13 +1,19 @@
+const dbm = require('./database-manager');
+const bot = require('./bot');
+
 class clientManager {
-    static initClientManager(client, guildID) {
-        this.client = client;
-        this.guildID = guildID;
-    }
+    
 
     static getEmoji(emojiName) {
         //Remove spaces
         emojiName = emojiName.replace(/\s/g, '');
-        const guild = this.client.guilds.cache.get(this.guildID);
+        const client = bot.getClient();
+        const guildID = bot.getGuildID();
+        if (!client) {
+            console.log("Client not found")
+            return null;
+        }
+        const guild = client.guilds.cache.get(guildID);
         if (!guild) {
             console.log("Guild not found")
             return null;
@@ -21,7 +27,9 @@ class clientManager {
     }
 
     static async getUser(userID) {
-        const guild = await this.client.guilds.cache.get(this.guildID);
+        const client = bot.getClient();
+        const guildID = bot.getGuildID();
+        const guild = client.guilds.cache.get(guildID);
         if (!guild) {
             console.log("Guild not found")
             return null;

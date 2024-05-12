@@ -120,6 +120,14 @@ initClientManager(client, guildId);
 
 client.login(token);
 
+export function getClient() {
+	return client;
+}
+
+export function getGuildID() {
+	return guildId;
+}
+
 // process.on('uncaughtException', function (err){ 
 // 	const channelID = "1163130565910868159";
 // 	console.log('Caught exception: ' + err);
