@@ -106,17 +106,11 @@ function botMidnightLoop() {
 	setTimeout(function() {
 		char.resetIncomeCD();
 		dbm.logData();
-		initClientManager();
 		botMidnightLoop();
 	}, msToMidnight);
 	console.log(msToMidnight);
 }
 botMidnightLoop();
-
-function initClientManager(client, guildID) {
-	clientManager.initClientManager(client, guildID);
-}
-initClientManager(client, guildId);
 
 client.login(token);
 
