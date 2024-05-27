@@ -248,7 +248,9 @@
       //Send welcome message to the party channel
       let partyChatID = party.chatID;
       let partyChat = guild.channels.cache.get(partyChatID);
-      await partyChat.send("Welcome to " + party.emoji + party.name + ", " + userTag + "!");
+      console.log(partyChat);
+      let userPing = "<@" + user.id + ">";
+      await partyChat.send("Welcome to " + party.emoji + party.name + ", " + userPing + "!");
     }
 
     static async generalHelpMenu(page, isAdminMenu) {
