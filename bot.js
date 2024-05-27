@@ -14,7 +14,6 @@ const client = new Client({
         GatewayIntentBits.MessageContent,
     ],
 });
-const helperFile = require('./helperFile');
 
 //sets up usage of commands from command folder
 client.commands = new Collection();
