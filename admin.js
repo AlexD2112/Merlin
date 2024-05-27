@@ -244,6 +244,11 @@
         content: "You have selected " + party.emoji + party.name + "\n\n" + party.motto, 
         ephemeral: true 
       });
+
+      //Send welcome message to the party channel
+      let partyChatID = party.chatID;
+      let partyChat = guild.channels.cache.get(partyChatID);
+      await partyChat.send("Welcome to " + party.emoji + party.name + ", " + userTag + "!");
     }
 
     static async generalHelpMenu(page, isAdminMenu) {
