@@ -212,6 +212,40 @@
         content: "You have selected " + house.emoji + house.name + "\n\n" + house.motto, 
         ephemeral: true 
       });
+
+      //Send welcome message to the house channel
+      let houseForumID = house.forumID;
+      let houseForum = guild.channels.cache.get(houseForumID);
+      //Find house general chat- it's a thread in the forum that already exists
+      const threads = await houseForum.threads.fetchActive();
+      let generalChat;
+      threads.threads.forEach(thread => {
+        if (thread.name === "The " + house.name + " House General Chat") {
+          generalChat = thread;
+          // If found, stop searching
+          return;
+        }
+      });
+
+      if (!generalChat) {
+        // If not found in active, search in archived
+        const archivedThreads = await houseForum.threads.fetchArchived();
+        archivedThreads.threads.forEach(thread => {
+          if (thread.name === "The " + house.name + " House General Chat") {
+            generalChat = thread;
+            // If found, stop searching
+            return;
+          }
+        });
+      }
+
+
+      let userPing = "<@" + user.id + ">";
+      if (generalChat) {
+        await generalChat.send("Welcome to " + house.emoji + house.name + ", " + userPing + "!");
+      } else {
+        console.log("General chat not found");
+      }
     }
 
     static async selectParty(interaction) {
@@ -248,7 +282,6 @@
       //Send welcome message to the party channel
       let partyChatID = party.chatID;
       let partyChat = guild.channels.cache.get(partyChatID);
-      console.log(partyChat);
       let userPing = "<@" + user.id + ">";
       await partyChat.send("Welcome to " + party.emoji + party.name + ", " + userPing + "!");
     }
