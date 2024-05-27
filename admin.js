@@ -225,7 +225,8 @@
       let userTag = interaction.user.tag;
       let char = await dbm.loadFile("characters", userTag);
       for (const role of user.roles.cache) {
-        if (Object.values(parties).some(party => party.roleCode == role[1].id)) {
+        //Check if 
+        if (Object.values(parties).some(party => party.name.toLowerCase() == role.name.toLowerCase())) {
           await interaction.reply({ content: "You are already a member of a party! You cannot switch parties", ephemeral: true });
           return;
         }
