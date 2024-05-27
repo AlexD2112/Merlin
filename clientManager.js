@@ -1,5 +1,4 @@
 class clientManager {
-
     static getEmoji(emojiName) {
         const bot = require('./bot');
         //Remove spaces

@@ -1,0 +1,59 @@
+{
+    "addincome": {
+        "description": "Add an income attached to a role",
+        "options": {
+            "role": "The role name",
+            "income": "The income value"
+        },
+        "help": "This adds an income attached to a role, that will give any players with that role the specified income whenever they use the /incomes command.\n\nA plain number will work for a gold income. For resource incomes, use  the format <NUMBER> <RESOURCE NAME>\n\nExample: '/addincome @role 100' creates a new income of 100 gold for the role @role.\n\nExample: '/addincome @role 10 wood' creates a new income of 10 wood for the role @role."
+    },
+    "craft": {
+        "description": "Craft a recipe",
+        "options": {
+            "recipe": "The recipe name"
+        },
+        "help": "Crafts the specified recipe. If the recipe is not in the recipe list, it will not work- the recipe list can be found with /allrecipes.\n\nYou must have the necessary prerequisites to craft a recipe- use /inspectrecipe for more information.\n\nYou can only have 3 recipes being crafted at once.\n\nNote: the recipe will take the ingredients when you start crafting it, but will not give you the results until you finish crafting it."
+    },
+    "allrecipes": {
+        "description": "List all recipes",
+        "options": {},
+        "help": "Lists all recipes that are available."
+    },
+    "inspectrecipe": {
+        "description": "Inspect a recipe",
+        "options": {
+            "recipe": "The recipe name"
+        },
+        "help": "Lists basic information about a recipe, including necessary roles, ingredients and results."
+    },
+    "addrecipe": {
+        "description": "Create a new recipe",
+        "options": {
+            "recipename": "The name of the recipe"
+        },
+        "help": "Creates a new recipe. If given a name, it will create a new recipe with that name.\n\nIf no name is given, it will create a new recipe with the name 'New Recipe' and a number added to the end to distinguish it. No two recipes can have identical names.\n\nIf the given name matches an item, and a recipe for that item does not already exist, this will automatically swap to a recipe to craft that item.\n\nRecipes are automatically hidden from users- edit the 'Is Public' field to make it visible."
+    },
+    "edititemfield": {
+        "description": "Edit a field of an item in the shop. Use /edititemmenu first to see the fields of an item",
+        "options": {
+            "fieldnumber": "The field number",
+            "newvalue": "The new value"
+        },
+        "help": "Edits the specified field of the item you most recently used /edititemmenu on.\n\nAny field with (#) at the end must be given a plain integer value.\n\nAny field with (Y/N) at the end must be given either 'Y', 'Yes', 'N', or 'No'.\n\nGive Item or Take Item fields should be in the format 'NUMBER' 'ITEM NAME'\nEx. '10 Wood'.\n\nImages must be submitted via a link to the image- pasting an image in discord and clicking 'Open in Browser' creates a working link\n\nRole fields must be submitted with a single message and all roles must be @ mentioned.\nEx. @Role1, @Role2, @Role3.\n\nItems are not automatically put in the shop- give them a price to place them in the shop."
+    },
+    "editrecipefield": {
+        "description": "Edit a field of an recipe in the shop. Use /editrecipemenu first to see the fields of an recipe",
+        "options": {
+            "fieldnumber": "The field number",
+            "newvalue": "The new value"
+        },
+        "help": "Edits the specified field of the recipe you most recently used /editrecipemenu on.\n\nAny field with (#) at the end must be given a plain integer value.\n\nAny field with (Y/N) at the end must be given either 'Y', 'Yes', 'N', or 'No'.\n\nIngredient or Result fields should be in the format 'NUMBER' 'ITEM NAME'\nEx. '10 Wood'.\n\nImages must be submitted via a link to the image- pasting an image in discord and clicking 'Open in Browser' creates a working link\n\nRole fields must be submitted with a single message and all roles must be @ mentioned.\nEx. @Role1, @Role2, @Role3.\n\nRecipes are automatically hidden from users- edit the 'Is Public' field to make it visible."
+    },
+    "editrecipemenu": {
+        "description": "Show the edit recipe menu",
+        "options": {
+            "recipename": "The recipe name"
+        },
+        "help": "Shows the edit recipe menu for the specified recipe. This will allow you to edit the fields of the recipe. Use /allrecipes to see a list of all recipes."
+    }
+}

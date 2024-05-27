@@ -1,7 +1,6 @@
   const dbm = require('./database-manager'); // Importing the database manager
   const axios = require('axios');
   const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, createWebhook, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } = require('discord.js');
-  const keys = require('./keys.json');
   const shop = require('./shop');
   const fs = require('node:fs');
   const path = require('node:path');
@@ -33,6 +32,57 @@
       let actionRow = new ActionRowBuilder().addComponents(select);
       
       await channel.send({ embeds: [embed], components: [actionRow] });
+    }
+
+    static async initHouseSelect(channel) {
+      let houses = await dbm.loadFile("keys", "houses");
+      //Houses is a map of house names to house objects, where each house object has a name, emoji, political stance and motto
+      let houseNames = Object.keys(houses).map(key => "- " + houses[key].emoji + " House " + houses[key].name + " - " + houses[key].stance).join("\n");
+      //Send an embed with the title Houses of the Realm and the text The following houses are available to join: and than a list of the houses. There will also be a menu you can click to choose which house. The houses will come out of the houses.json file.
+
+      let embed = new EmbedBuilder()
+        .setDescription("# Houses of Massalia" +
+          "\n- The following houses are available to join: " +
+          "\n \u200B----------------------------------------" +
+          "\n" + houseNames)
+        .setFooter({ text: 'Select a house below to join', iconURL: 'https://images-ext-1.discordapp.net/external/zNN-s-f41tPGzag5FxItzlLKuLKnAXiirTy3ke0nG-k/https/cdn.discordapp.com/emojis/620697454928723971.gif' })
+        .setImage('https://cdn.discordapp.com/attachments/1244030279199359077/1244034376757547070/Screenshot_2024-05-26_at_12.08.12_AM.png?ex=66544d8c&is=6652fc0c&hm=afbdf2cfd0776ca95946ddfc2a5cb4d3cf57b6f166b8623896bd873dc9ad0eae&');
+
+      let select = new StringSelectMenuBuilder().setCustomId('houseSelect').setPlaceholder('Select a house to join');
+      //Add a select menu option for each house in the houses.json file
+      Object.keys(houses).forEach(house => {
+        select.addOptions({
+          label: houses[house].name,
+          value: house
+        });
+      });
+
+      let actionRow = new ActionRowBuilder().addComponents(select);
+
+      await channel.send({ embeds: [embed], components: [actionRow] });
+    }
+
+    static async initPartySelect(channel) {
+      let parties = await dbm.loadFile("keys", "parties");
+      //Parties is a map of party names to party objects, where each party object has a name, emoji, political stance, roleID, motto and banner. All of that is irrelevant for this one, as we're just using the banner with a button underneath saying "Join [partyname]" for each party, i.e. multiple embeds and buttons
+
+      for (const party in parties) {
+        let partyData = parties[party];
+        let embed = new EmbedBuilder()
+          .setDescription("# " + partyData.emoji + " " + partyData.name + " (" + partyData.stance + ")" + 
+            "\n> " + partyData.motto +
+            "\n\n**Formation:** " + partyData.formation +
+            "\n**Ideology:** " + partyData.ideology +
+            "\n**Political Influence:** " + partyData.politicalInfluence)
+          .setImage(partyData.banner);
+        let button = new ButtonBuilder()
+          .setCustomId('partySelect' + party)
+
+          .setLabel('Join ' + partyData.name)
+          .setStyle(ButtonStyle.Secondary);
+        let actionRow = new ActionRowBuilder().addComponents(button);
+        await channel.send({ embeds: [embed], components: [actionRow] });
+      }
     }
 
     static async addShire(shireName, resource, guild) {
@@ -82,9 +132,12 @@
 
       let userTag = interaction.user.tag;
       let char = await dbm.loadFile("characters", userTag);
-      if (parseInt(char.shireID) != 0) {
-        await interaction.reply({ content: "You are already a member of a city! You cannot switch cities", ephemeral: true });
-        return;
+      //Sort through user roles, see if they have any that match the shire roles. If they do, return an error message
+      for (const role of user.roles.cache) {
+        if (Object.values(shires).some(shire => shire.roleCode == role[1].id)) {
+          await interaction.reply({ content: "You are already a member of a city! You cannot switch cities", ephemeral: true });
+          return;
+        }
       }
 
       let role = guild.roles.cache.find(role => role.name === shire.name);
@@ -112,12 +165,83 @@
 
       await user.roles.add(role);
       await user.roles.add(resourceRole);
-      char.shireID = selectedShire;
       await dbm.saveFile("characters", userTag, char);
 
 
       await interaction.reply({ 
         content: "You have selected " + shire.name + " with resource " + shire.resource, 
+        ephemeral: true 
+      });
+    }
+
+    static async selectHouse(interaction) {
+      const selectedHouse = interaction.values[0];
+      let houses = await dbm.loadFile("keys", "houses");
+      let house = houses[selectedHouse];
+
+      let guild = interaction.guild;
+      let user = await guild.members.fetch(interaction.user.id);
+
+      let userTag = interaction.user.tag;
+      let char = await dbm.loadFile("characters", userTag);
+      for (const role of user.roles.cache) {
+        if (Object.values(houses).some(house => house.roleCode == role[1].id)) {
+          await interaction.reply({ content: "You are already a member of a house! You cannot switch houses", ephemeral: true });
+          return;
+        }
+      }
+
+      let role = guild.roles.cache.find(role => role.name === house.name);
+      if (role == undefined) {
+        role = await guild.roles.create({
+          name: house.name,
+          color: '#FFFFFF',
+          reason: 'Added role for house from selectHouse command',
+        });
+
+        house.roleCode = role.id;
+        houses[selectedHouse] = house;
+        await dbm.saveFile("keys", "houses", houses);
+      }
+
+      await user.roles.add(role);
+      char.houseID = selectedHouse;
+      await dbm.saveFile("characters", userTag, char);
+
+      await interaction.reply({ 
+        content: "You have selected " + house.emoji + house.name + "\n\n" + house.motto, 
+        ephemeral: true 
+      });
+    }
+
+    static async selectParty(interaction) {
+      const selectedParty = interaction.customId.replace("partySelect", "");
+      let parties = await dbm.loadFile("keys", "parties");
+      let party = parties[selectedParty];
+
+      let guild = interaction.guild;
+      let user = await guild.members.fetch(interaction.user.id);
+
+      let userTag = interaction.user.tag;
+      let char = await dbm.loadFile("characters", userTag);
+      for (const role of user.roles.cache) {
+        if (Object.values(parties).some(party => party.roleCode == role[1].id)) {
+          await interaction.reply({ content: "You are already a member of a party! You cannot switch parties", ephemeral: true });
+          return;
+        }
+      }
+
+      let role = guild.roles.cache.find(role => role.name.toLowerCase() === party.name.toLowerCase());
+      if (role == undefined) {
+        console.log("ERROR! THIS IS A PROBLEM!")
+      }
+
+      await user.roles.add(role);
+      char.partyID = selectedParty;
+      await dbm.saveFile("characters", userTag, char);
+
+      await interaction.reply({ 
+        content: "You have selected " + party.emoji + party.name + "\n\n" + party.motto, 
         ephemeral: true 
       });
     }

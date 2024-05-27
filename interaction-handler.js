@@ -193,6 +193,7 @@ helpSwitch = async (interaction) => {
 }
 
 exports.handle = async (interaction) => {
+  console.log(interaction.customId);
   if (interaction.isModalSubmit()) {
     if (interaction.customId === 'additemmodal') {
       addItem(interaction);
@@ -221,10 +222,15 @@ exports.handle = async (interaction) => {
       itemSwitch(interaction);
     } else if (interaction.customId.substring(0, 11) == 'switch_help') {
       helpSwitch(interaction);
+    } else if (interaction.customId.substring(0, 11) === 'partySelect') {
+      await admin.selectParty(interaction);
     }
   } else if (interaction.isSelectMenu()) {
     if (interaction.customId === 'shireSelect') {
       await admin.selectShire(interaction);
+    }
+    if (interaction.customId === 'houseSelect') {
+      await admin.selectHouse(interaction);
     }
   }
 }
