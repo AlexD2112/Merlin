@@ -263,19 +263,26 @@ class char {
     let incomeListFromRoles = await dbm.loadFile('keys', 'incomeList');
 
     var now = new Date();
-    now.setUTCDate(now.getUTCDate() + 1);
-    now.setUTCHours(0, 0, 0, 0);
 
     let charIncomeData = [];
 
     //Add on incomes from roles. role.id is a number that corresponds to the role's ID. Meanwhile, incomeList data is a list of incomes- within each income from that list, there is a "roles" array that contains the ids of roles that match that income
     let user = await clientManager.getUser(numericID);
     let roles = user.roles.cache;
+
+    let incomeAvailableKey = "incomeAvailable";
     for (let [income, incomeData] of Object.entries(incomeListFromRoles)) {
       let incomeRoles = incomeData.roles;
       for (let i = 0; i < incomeRoles.length; i++) {
         if (roles.some(role => role.id === incomeRoles[i])) {
           charIncomeData.push({ income, data: incomeData });
+          let delay = incomeData.delay || "1D";
+          if (delay !== "1D") {
+            incomeAvailableKey = `incomeAvailable${delay}`;
+            if (charData[incomeAvailableKey] === undefined) {
+              charData[incomeAvailableKey] = true;
+            }
+          }
           break;
         }
       }
@@ -291,25 +298,62 @@ class char {
       //Each value will include an emoji, goldGiven, itemGiven, and itemAmount field
       //Should add goldGiven to total, and if itemGiven is not "" and itemAmount is not 0, add itemAmount to the resourceMap. 
       //Should also add to the superString the icon and name of the command in bold, followed by enter and a tab, followed by the goldGiven (if greater than zero) and the itemGiven and itemAmount (if greater than zero)
+      let delay = value.data.delay || "1D";
+      let incomeAvailableKey = delay === "1D" ? "incomeAvailable" : `incomeAvailable${delay}`;
+
       let goldGiven = value.data.goldGiven;
       let itemGiven = value.data.itemGiven;
       let itemAmount = value.data.itemAmount;
       let emoji = value.data.emoji;
-      total += goldGiven;
-      if (itemGiven != "" && itemAmount != 0) {
-        if (resourceMap[itemGiven]) {
-          resourceMap[itemGiven] += itemAmount;
-        } else {
-          resourceMap[itemGiven] = itemAmount;
-        }
-      }
-      superstring += emoji + " **__" + value.income + "__**\n"; 
+      let tempString = "";
+      tempString += emoji + " **__" + value.income + "__**\n"; 
       if (goldGiven > 0) {
-        superstring += clientManager.getEmoji("Talent") + " Gold : `" + goldGiven + "`\n";
+        tempString += clientManager.getEmoji("Talent") + " Gold : `" + goldGiven + "`\n";
       }
       if (itemGiven != "" && itemAmount > 0) {
-        superstring += clientManager.getEmoji(itemGiven) + " " + itemGiven + " : `" + itemAmount + "`\n";
+        tempString += clientManager.getEmoji(itemGiven) + " " + itemGiven + " : `" + itemAmount + "`\n";
       }
+      
+      //Check if the income is available
+      if (charData[incomeAvailableKey] === true) {
+        afterString += tempString;
+        total += goldGiven;
+        if (itemGiven != "" && itemAmount != 0) {
+          if (resourceMap[itemGiven]) {
+            resourceMap[itemGiven] += itemAmount;
+          } else {
+            resourceMap[itemGiven] = itemAmount;
+          }
+        }
+        charData[incomeAvailableKey] = false;
+      } else {
+        if (delay !== "1D") {
+          let startDate = new Date(0); // Unix epoch start date: January 1, 1970
+          let nextCycleTime = new Date(startDate);
+          let delayAmount = parseInt(delay.slice(0, -1));
+          let delayUnit = delay.slice(-1);
+
+          while (nextCycleTime <= now) {
+              switch (delayUnit) {
+                  case 'D':
+                      nextCycleTime.setDate(nextCycleTime.getDate() + delayAmount);
+                      break;
+                  case 'W':
+                      nextCycleTime.setDate(nextCycleTime.getDate() + 7 * delayAmount);
+                      break;
+                  case 'M':
+                      nextCycleTime.setMonth(nextCycleTime.getMonth() + delayAmount);
+                      break;
+                  case 'Y':
+                      nextCycleTime.setFullYear(nextCycleTime.getFullYear() + delayAmount);
+                      break;
+              }
+          }
+
+          tempString += "Income already collected for " + delay + " cycle. Next cycle <t:" + Math.floor(nextCycleTime.getTime() / 1000) + ":R>\n";
+        }
+      }
+      superstring += tempString;
       superstring += "\n";
     }
 
@@ -353,11 +397,57 @@ class char {
   static async resetIncomeCD() {
     let collectionName = 'characters';
     let data = await dbm.loadCollection(collectionName);
+    let now = new Date();
+    let nextResetTimes = new Map();
+
+    // Define the start date
+    let startDate = new Date(0); // Unix epoch start date: January 1, 1970
+
     for (let [_, charData] of Object.entries(data)) {
+      // Always reset the primary incomeAvailable field
       charData.incomeAvailable = true;
+      
+      // Reset additional incomeAvailable fields based on their intervals
+      for (let key in charData) {
+        if (key.startsWith('incomeAvailable') && key !== 'incomeAvailable') {
+          let delay = key.replace('incomeAvailable', '');
+
+          if (!nextResetTimes.has(delay)) {
+            let delayAmount = parseInt(delay.slice(0, -1));
+            let delayUnit = delay.slice(-1);
+            let nextCycleTime = new Date(startDate);
+
+            while (nextCycleTime <= now) {
+                switch (delayUnit) {
+                    case 'D':
+                        nextCycleTime.setUTCDate(nextCycleTime.getUTCDate() + delayAmount);
+                        break;
+                    case 'W':
+                        nextCycleTime.setUTCDate(nextCycleTime.getUTCDate() + 7 * delayAmount);
+                        break;
+                    case 'M':
+                        nextCycleTime.setUTCMonth(nextCycleTime.getUTCMonth() + delayAmount);
+                        break;
+                    case 'Y':
+                        nextCycleTime.setUTCFullYear(nextCycleTime.getUTCFullYear() + delayAmount);
+                        break;
+                }
+            }
+
+            nextResetTimes.set(delay, nextCycleTime.getUTCDate() === now.getUTCDate() &&
+                                      nextCycleTime.getUTCMonth() === now.getUTCMonth() &&
+                                      nextCycleTime.getUTCFullYear() === now.getUTCFullYear());
+          }
+          if (nextResetTimes.get(delay)) {
+            charData[key] = true;
+          }
+        }
+      }
     }
+    
     await dbm.saveCollection(collectionName, data);
   }
+
 
   static async useItem(itemName, charID, numToUse) {
     //static usageOptions = [
