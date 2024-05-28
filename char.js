@@ -294,6 +294,7 @@ class char {
     let total = 0;
     //Declare a resourcemap
     let resourceMap = {}
+    let incomesCollectedArray = [];
     for (let [key, value] of Object.entries(charIncomeData)) {
       //Each value will include an emoji, goldGiven, itemGiven, and itemAmount field
       //Should add goldGiven to total, and if itemGiven is not "" and itemAmount is not 0, add itemAmount to the resourceMap. 
@@ -317,6 +318,7 @@ class char {
       //Check if the income is available
       if (charData[incomeAvailableKey] === true) {
         afterString += tempString;
+        afterString += "\n";
         total += goldGiven;
         if (itemGiven != "" && itemAmount != 0) {
           if (resourceMap[itemGiven]) {
@@ -325,7 +327,8 @@ class char {
             resourceMap[itemGiven] = itemAmount;
           }
         }
-        charData[incomeAvailableKey] = false;
+        //Push to incomescollectedarray just the income name
+        incomesCollectedArray.push(incomeAvailableKey);
       } else {
         if (delay !== "1D") {
           let startDate = new Date(0); // Unix epoch start date: January 1, 1970
@@ -370,16 +373,21 @@ class char {
     }
 
     superstring += "\n";
-
-    if (charData.incomeAvailable === true) {
-      afterString = superstring;
-    }
     if (charData.incomeAvailable === false) {
       superstring += "You have already used income this income cycle!";
     } else {
       superstring += "Successfully collected!";
     }
-    superstring += "\nNext cycle  <t:" + (now.getTime()/1000) + ":R>";
+
+    for (let incomeAvailableKey of incomesCollectedArray) {
+      charData[incomeAvailableKey] = false;
+    }
+
+    //Cast now.getTime()/1000 to int
+    var tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    superstring += "\nNext cycle  <t:" + Math.floor(tomorrow.getTime() / 1000) + ":R>";
     
     charData.incomeAvailable = false;
 
