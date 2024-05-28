@@ -19,7 +19,12 @@ module.exports = {
         ),
     async execute(interaction) {
         const fieldNumber = interaction.options.getInteger('fieldnumber');
-        const newValue = interaction.options.getString('newvalue');
+        let newValue;
+        if (interaction.options.getString('newvalue') == null) {
+            newValue = 'DELETEFIELD';
+        } else {
+            newValue = interaction.options.getString('newvalue');
+        }
 
         console.log('new value: ' + newValue);
 

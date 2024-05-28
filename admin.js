@@ -551,13 +551,28 @@
       }
       switch (fieldNumber) {
         case 1:
+          if (newValue == "DELETEFIELD") {
+            return "This will remove the income permanently. If you are sure you want to do this, please try again to edit this field, and for the new value write DELETE all caps";
+          }
+          if (newValue == "DELETE") {
+            delete incomeList[income];
+            await dbm.saveFile("keys", "incomeList", incomeList);
+            return "Income " + income + " deleted";
+          }
           delete incomeList[income];
           income = newValue;
           break;
         case 2:
+          if (newValue == "DELETEFIELD") {
+            newValue = clientManager.getEmoji("Talent");
+          }
           incomeValue.emoji = newValue;
           break;
         case 3:
+          if (newValue == "DELETEFIELD") {
+            incomeValue.roles = [];
+            break;
+          }
           //Find every series of numbers starting with <@& and ending with >, and add them to the roles array
           let roles = newValue.match(/<@&\d+>/g);
           if (roles == null) {
@@ -571,24 +586,41 @@
           incomeValue.roles = roleIDs;
           break;
         case 4:
+          if (newValue == "DELETEFIELD") {
+            incomeValue.goldGiven = 0;
+            break;
+          }
           incomeValue.goldGiven = parseInt(newValue);
           if (isNaN(incomeValue.goldGiven)) {
             return "Gold must be a number";
           }
           break;
         case 5:
+          if (newValue == "DELETEFIELD") {
+            incomeValue.itemGiven = "";
+            incomeValue.itemAmount = 0;
+            break;
+          }
           if (await shop.findItemName(newValue) == "ERROR") {
             return "Item not found";
           }
           incomeValue.itemGiven = await shop.findItemName(newValue);
           break;
         case 6:
+          if (newValue == "DELETEFIELD") {
+            incomeValue.itemAmount = 0;
+            break;
+          }
           incomeValue.itemAmount = parseInt(newValue);
           if (isNaN(incomeValue.itemAmount)) {
             return "Amount must be a number";
           }
           break;
         case 7:
+          if (newValue == "DELETEFIELD") {
+            incomeValue.delay = "1D";
+            break;
+          }
           incomeValue.delay = parseInt(newValue);
           //Options are [Number] [Unit], i.e. 1 d, 1 w, 1 m, 1 y, or 1 day, 1 week, 1 month, 1 year
           let delaySplit = newValue.split(" ");
