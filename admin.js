@@ -552,9 +552,6 @@
       switch (fieldNumber) {
         case 1:
           if (newValue == "DELETEFIELD") {
-            return "This will remove the income permanently. If you are sure you want to do this, please try again to edit this field, and for the new value write DELETE all caps";
-          }
-          if (newValue == "DELETE") {
             delete incomeList[income];
             await dbm.saveFile("keys", "incomeList", incomeList);
             return "Income " + income + " deleted";

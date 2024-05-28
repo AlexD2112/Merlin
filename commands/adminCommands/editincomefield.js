@@ -21,12 +21,13 @@ module.exports = {
         const fieldNumber = interaction.options.getInteger('fieldnumber');
         let newValue;
         if (interaction.options.getString('newvalue') == null) {
-            newValue = 'DELETEFIELD';
+            return await interaction.reply('If you want to remove a field, please make the new value "DELETE" in all caps');
         } else {
             newValue = interaction.options.getString('newvalue');
         }
-
-        console.log('new value: ' + newValue);
+        if (newValue == 'DELETE') {
+            newValue = "DELETEFIELD";
+        }
 
         let reply = await admin.editIncomeField(fieldNumber, interaction.user.tag, newValue);
         if (typeof(reply) == 'string') {
