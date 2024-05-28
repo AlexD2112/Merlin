@@ -489,6 +489,33 @@
       if (roles.length > 0) {
         rolesString = "<@&" + roles.join(">, <@&") + ">";
       }
+      let delayString = "";
+      if (incomeValue.delay == undefined || incomeValue.delay == "") {
+        incomeValue.delay = "1D";
+        delayString = "1 Day";
+        dbm.saveFile("keys", "incomeList", incomeList);
+      } else {
+        let delayAmount = incomeValue.delay.match(/\d+/g);
+        let delayUnit = incomeValue.delay.match(/[A-Za-z]+/g);
+        delayString = "" + delayAmount;
+        switch (delayUnit[0].toLowerCase()) {
+          case "d":
+            delayString += " Day";
+            break;
+          case "w":
+            delayString += " Week";
+            break;
+          case "m":
+            delayString += " Month";
+            break;
+          case "y":
+            delayString += " Year";
+            break;
+        }
+        if (delayAmount > 1) {
+          delayString += "s";
+        }
+      }
       let returnEmbed = new EmbedBuilder()
         .setTitle("Income: " + income)
         //Description is name, emoji, roles, gold given, item given. Each should have a number coming before, starting at 0, enclosed as `[1] `. Codewise, this should be formatted on separate lines to be easy to read.
@@ -499,7 +526,8 @@
           "\n`[3] Roles:        ` " + rolesString + 
           "\n`[4] Gold Given:   ` " + incomeValue.goldGiven + 
           "\n`[5] Item Given:   ` " + incomeValue.itemGiven + 
-          "\n`[6] Amount Given: ` " + incomeValue.itemAmount
+          "\n`[6] Amount Given: ` " + incomeValue.itemAmount +
+          "\n`[7] Income Delay: ` " + delayString
         );
 
       let userData = await dbm.loadCollection('characters');
@@ -559,6 +587,45 @@
           if (isNaN(incomeValue.itemAmount)) {
             return "Amount must be a number";
           }
+          break;
+        case 7:
+          incomeValue.delay = parseInt(newValue);
+          //Options are [Number] [Unit], i.e. 1 d, 1 w, 1 m, 1 y, or 1 day, 1 week, 1 month, 1 year
+          let delaySplit = newValue.split(" ");
+          if (delaySplit.length != 2) {
+            return "Invalid delay format- must be [Number] [Unit], i.e. 1 d, 1 w, 1 m, 1 y, or 1 day, 1 week, 1 month, 1 year";
+          }
+          let delayAmount = parseInt(delaySplit[0]);
+          if (isNaN(delayAmount)) {
+            return "Delay amount must be a number, and the number must be first. i.e. '1 Day' or '1 d' is acceptable, but 'daily' or 'd 1' is not.";
+          }
+          let delayUnit = delaySplit[1];
+          let adjustedUnit = ""
+          switch (delayUnit.toLowerCase()) {
+            case "day":
+            case "days":
+            case "d":
+              adjustedUnit = "D";
+              break;
+            case "week":
+            case "weeks":
+            case "w":
+              adjustedUnit = "W";
+              break;
+            case "month":
+            case "months":
+            case "m":
+              adjustedUnit = "M";
+              break;
+            case "year":
+            case "years":
+            case "y":
+              adjustedUnit = "Y";
+              break;
+            default:
+              return "Invalid delay unit- must be day/days/d, week/weeks/w, month/months/m, or year/years/y. The unit must be second, i.e. 1 day";
+          }
+          incomeValue.delay = delayAmount + adjustedUnit;
           break;
         default:
           return "Field not found";
