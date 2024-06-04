@@ -1213,6 +1213,22 @@ class char {
     return returnEmbed;
   }*/
 
+  static async addPlayerGold(player, gold) {
+    let collectionName = 'characters';
+    let charData;
+    [player, charData] = await this.findPlayerData(player);
+    if (!player) {
+      return "Error: Player not found";
+    }
+    if (charData) {
+      charData.balance += gold;
+      await dbm.saveFile(collectionName, player, charData);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   static async setPlayerGold(player, gold) {
     let collectionName = 'characters';
     let charData;
