@@ -14,7 +14,8 @@ module.exports = {
         const response = await char.addPlayerGold(player, gold);
 
         if (response) {
-            return interaction.reply(`Set gold to ${gold} for ${player}`);
+            //make below ephemeral
+            return interaction.reply({ content: `Added ${gold} to ${player}`, ephemeral: true });
         } else {
             return interaction.reply('Something went wrong');
         }
