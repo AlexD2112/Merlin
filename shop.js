@@ -711,17 +711,26 @@ class shop {
         }
       }
 
+      let recipeEmbed = await this.inspectRecipe(itemName);
+      let recipeString = ""
+      if (recipeEmbed != "Recipe not found!") {
+        recipeString += recipeEmbed.data.fields[0].value;
+      }
+      
+
       inspectEmbed.setDescription(descriptionString);
       
       if (aboutString.length > 0)
       {
         inspectEmbed.addFields({ name: '**About**', value: aboutString });
       }
+      if (recipeString) { 
+        inspectEmbed.addFields({ name: '**Recipe**', value: recipeString });
+      }
       return inspectEmbed;
     } else {
       return "This is not an item in the shop! Make sure to include spaces and not include the emoji.";
     }
-
   }
 
   static async inspectRecipe(recipeName) {
