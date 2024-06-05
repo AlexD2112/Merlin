@@ -568,7 +568,7 @@ class shop {
     let fileName = 'shop';
     itemName = await this.findItemName(itemName);
     if (itemName == "ERROR") {
-      return "ERROR! NOT A REAL ITEM IN SHOP. DOUBLE CHECK NAME";
+      return "Error! Item not found! Make sure to include spaces and not include the emoji.";
     }
     // Try to remove the item, and if it doesn't exist, catch the error
     try {
@@ -578,6 +578,23 @@ class shop {
       // Handle the error or do nothing
       // In JavaScript, you might want to handle errors differently
     }
+  }
+
+  static async removeRecipe(recipeName) {
+    let recipes = await dbm.loadCollection('recipes');
+    if (!recipes[recipeName]) {
+      return "Recipe not found! You must retype the recipe name exactly as it appears to delete it.";
+    }
+    await dbm.docDelete('recipes', recipeName);
+  }
+
+  static async removeIncome(incomeName) {
+    let incomes = await dbm.loadFile('keys', 'incomeList');
+    if (!incomes[incomeName]) {
+      return "Income not found! You must retype the income name exactly as it appears to delete it.";
+    }
+    delete incomes[incomeName];
+    await dbm.saveFile('keys', 'incomeList', incomes);
   }
 
   static async getItemPrice(itemName) {
@@ -744,7 +761,10 @@ class shop {
         let splitString = ingredient.split(" ");
         let quantity = splitString[0];
         let name = splitString.slice(1).join(" ");
-        let icon = recipeData[name].infoOptions.Icon;
+        let icon = await shop.getItemIcon(name);
+        if (icon == "ERROR") {
+          icon = "";
+        }
         aboutString += ("`   `- " + icon + " " + name + ": " + quantity + "\n");
       }
     }
@@ -755,7 +775,10 @@ class shop {
         let splitString = result.split(" ");
         let quantity = splitString[0];
         let name = splitString.slice(1).join(" ");
-        let icon = recipeData[name].infoOptions.Icon;
+        let icon = await shop.getItemIcon(name);
+        if (icon == "ERROR") {
+          icon = "";
+        }
         aboutString += ("`   `- " + icon + " " + name + ": " + quantity + "\n");
       }
     }
@@ -858,11 +881,21 @@ class shop {
 
   static async editRecipeMenu(recipeName, tag) {
     // Load the recipe data
-    let recipeData = await dbm.loadFile('recipes', recipeName);
+    let recipeData = await dbm.loadCollection('recipes', recipeName);
 
-    if (recipeData == undefined) {
-      return "Recipe not found!";
+    if (recipeData[recipeName] == undefined) {
+      for (let key in recipeData) {
+        if (key.toLowerCase() == recipeName.toLowerCase()) {
+          recipeName = key;
+          break;
+        }
+      }
+      if (recipeData[recipeName] == undefined) {
+        return "Recipe not found!";
+      }
     }
+
+    recipeData = recipeData[recipeName];
 
     let userData = await dbm.loadCollection('characters');
     if (!userData[tag].editingFields) {

@@ -610,7 +610,7 @@ class char {
         value = parseInt(value) * numToUse;
         charData.stats[stat] += parseInt(value);
         if (charData.stats[stat] < 0) {
-          return ("You cannot have negative stats! You have " + charData.stats[stat] + " " + stat + " after using this item.")
+          charData.stats[stat] = 0;
         }
         statChanged = true;
         statString += stat + ": " + clientManager.getEmoji(stat) + (parseInt(value) < 0 ? parseInt(value) : "+" + parseInt(value)) +  "\n";
