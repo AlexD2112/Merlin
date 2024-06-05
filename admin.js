@@ -435,11 +435,12 @@
       if (incomeSplit.length == 1) {
         income.goldGiven = parseInt(incomeSplit[0]);
       } else {
-        income.itemAmount = parseInt(incomeSplit[0]);
-        income.itemGiven = incomeSplit[1];
         if (await shop.findItemName(income.itemGiven) == "ERROR") {
           return "Item not found";
+        } else {
+          income.itemGiven = await shop.findItemName(income.itemGiven);
         }
+        income.itemGiven = await shop.findItemName(incomeSplit[1]);
       }
       income.roles.push(roleID);
       incomeList[roleName] = income;
@@ -459,12 +460,24 @@
       }
       for (const income in incomeList) {
         let incomeValue = incomeList[income];
+        let emoji = incomeValue.emoji;
+        let delay = incomeValue.delay;
         let roles = incomeValue.roles;
         let rolesString = "";
         if (roles.length > 0) {
           rolesString = "<@&" + roles.join(">, <@&") + ">";
         }
-        incomeString += "**" + income + "**: " + rolesString + "\n";
+        let givenString = "";
+        if (incomeValue.goldGiven > 0) {
+          givenString += clientManager.getEmoji("Talent");
+          givenString += " " + incomeValue.goldGiven;
+          givenString += " "
+        }
+        if (incomeValue.itemGiven != "" && incomeValue.itemAmount != 0) {
+          givenString += await shop.getItemIcon(incomeValue.itemGiven);
+          givenString += " " + incomeValue.itemAmount + " " + incomeValue.itemGiven;
+        }
+        incomeString += emoji + " `" + delay + "` " +  "**" + income + "**: " + rolesString + " " + givenString + "\n";
       }
       returnEmbed.setDescription(incomeString);
       return returnEmbed;
