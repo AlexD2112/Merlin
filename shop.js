@@ -319,7 +319,6 @@ class shop {
         .map((item) => {
           const icon = shopData[item].infoOptions.Icon;
           const price = shopData[item].shopOptions["Price (#)"];
-          console.log(shopData[item]);
 
           let alignSpaces = ' '
           if ((30 - item.length - ("" + price).length) > 0) {
