@@ -232,7 +232,7 @@ exports.handle = async (interaction) => {
       helpSwitch(interaction);
     } else if (interaction.customId.substring(0, 11) == 'switch_inco') {
       incomeSwitch(interaction);
-    } else if (interaction.customId === 'switch_alit') {
+    } else if (interaction.customId.substring(0, 11) === 'switch_alit') {
       allItemSwitch(interaction);
     } else if (interaction.customId.substring(0, 11) === 'partySelect') {
       await admin.selectParty(interaction);
