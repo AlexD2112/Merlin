@@ -459,7 +459,7 @@ class shop {
 
     // Create a "Previous Page" button
     const prevButton = new ButtonBuilder()
-      .setCustomId('switch_page' + (page-1))
+      .setCustomId('switch_alit' + (page-1))
       .setLabel('<')
       .setStyle(ButtonStyle.Secondary); // You can change the style to your preference
 
@@ -469,7 +469,7 @@ class shop {
     }
 
     const nextButton = new ButtonBuilder()
-          .setCustomId('switch_page' + (page+1))
+          .setCustomId('switch_alit' + (page+1))
           .setLabel('>')
           .setStyle(ButtonStyle.Secondary); // You can change the style to your preference
 

@@ -178,6 +178,10 @@ salesSwitch = async (interaction) => {
   let [edittedEmbed, rows] = await marketplace.createSalesEmbed(interaction.customId[11]);
   await interaction.update({ embeds: [edittedEmbed], components: rows});
 }
+allItemSwitch = async (interaction) => {
+  let [edittedEmbed, rows] = await shop.createAllItemsEmbed(interaction.customId[11], interaction);
+  await interaction.update({ embeds: [edittedEmbed], components: rows});
+}
 itemSwitch = async (interaction) => {
   let [edittedEmbed, rows] = await shop.editItemMenu(interaction.customId.substring(12), interaction.customId[11], interaction.user.tag);
   await interaction.update({ embeds: [edittedEmbed], components: [rows]});
@@ -228,6 +232,8 @@ exports.handle = async (interaction) => {
       helpSwitch(interaction);
     } else if (interaction.customId.substring(0, 11) == 'switch_inco') {
       incomeSwitch(interaction);
+    } else if (interaction.customId === 'switch_alit') {
+      allItemSwitch(interaction);
     } else if (interaction.customId.substring(0, 11) === 'partySelect') {
       await admin.selectParty(interaction);
     }
