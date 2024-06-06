@@ -450,20 +450,48 @@
       return "Income added: " + incomeString + " income under name " + roleName + " <@&" + roleID + ">";
     }
 
-    static async  allIncomes() {
-      let returnEmbed = new EmbedBuilder();
-      returnEmbed.setTitle("Incomes");
+    static async allIncomes(page = 1) {
+      let maxLength = 10;
       let incomeList = await dbm.loadFile("keys", "incomeList");
-      let incomeString = "";
       if (Object.keys(incomeList).length == 0) {
         return "No incomes found";
       }
+
+      let goldList = [];
+      let itemList = [];
+      let miscList = [];
       for (const income in incomeList) {
+        let incomeValue = incomeList[income];
+        let gold = incomeValue.goldGiven;
+        let item = incomeValue.itemGiven;
+        let amount = incomeValue.itemAmount;
+        if (gold > 0 && item == "" && amount == 0) {
+          goldList.push(income);
+        } else if (gold == 0 && item != "" && amount > 0) {
+          itemList.push(income);
+        } else {
+          miscList.push(income);
+        }
+      }
+      //Sort goldList by gold given
+      goldList.sort((a, b) => incomeList[a].goldGiven - incomeList[b].goldGiven);
+
+      //Sort itemList by item given alphabetically, then by amount given, so that all items are grouped together but still sorted
+      itemList.sort((a, b) => incomeList[a].itemGiven.localeCompare(incomeList[b].itemGiven) || incomeList[a].itemAmount - incomeList[b].itemAmount);  
+  
+      let incomes = [];
+      let sortedIncomes = goldList.concat(itemList).concat(miscList);
+      //Combine all lists into one list
+      for (const income of sortedIncomes) {
         let incomeValue = incomeList[income];
         let emoji = incomeValue.emoji;
         let delay = incomeValue.delay;
         let roles = incomeValue.roles;
         let rolesString = "";
+
+        let justGold = false;
+        let justItem = false;
+
         if (roles.length > 0) {
           rolesString = "<@&" + roles.join(">, <@&") + ">";
         }
@@ -471,16 +499,50 @@
         if (incomeValue.goldGiven > 0) {
           givenString += clientManager.getEmoji("Talent");
           givenString += " " + incomeValue.goldGiven;
-          givenString += " "
+          givenString += " ";
         }
         if (incomeValue.itemGiven != "" && incomeValue.itemAmount != 0) {
           givenString += await shop.getItemIcon(incomeValue.itemGiven);
           givenString += " " + incomeValue.itemAmount + " " + incomeValue.itemGiven;
+          if (!justGold) {
+            justItem = true;
+          }
+          justGold = false;
         }
-        incomeString += emoji + " `" + delay + "` " +  "**" + income + "**: " + rolesString + " " + givenString + "\n";
+
+        let incomeEntry = emoji + " `" + delay + "` " + "**" + income + "**: " + rolesString + " " + givenString + "\n";
+        incomes.push(incomeEntry);
       }
-      returnEmbed.setDescription(incomeString);
-      return returnEmbed;
+  
+      // Calculate pagination
+      let totalPages = Math.ceil(incomes.length / maxLength);
+      page = Math.max(1, Math.min(page, totalPages));
+      let start = (page - 1) * maxLength;
+      let end = start + maxLength;
+  
+      let paginatedIncomes = incomes.slice(start, end).join('');
+      let returnEmbed = new EmbedBuilder().setTitle("Incomes")
+                                          .setDescription(paginatedIncomes)
+                                          .setFooter({text: `Page ${page} of ${totalPages}`});
+
+      let actionRow = new ActionRowBuilder();
+      let prevButton = new ButtonBuilder()
+        .setCustomId('switch_inco' + (page - 1))
+        .setLabel('Previous')
+        .setStyle(ButtonStyle.Secondary);
+      let nextButton = new ButtonBuilder()
+        .setCustomId('switch_inco' + (page + 1))
+        .setLabel('Next')
+        .setStyle(ButtonStyle.Secondary);
+      if (page <= 1) {
+        prevButton.setDisabled(true);
+      }
+      if (page >= totalPages) {
+        nextButton.setDisabled(true);
+      }
+      actionRow.addComponents(prevButton, nextButton);
+  
+      return [returnEmbed, [actionRow]];
     }
 
     static async editIncomeMenu(income, charTag) {

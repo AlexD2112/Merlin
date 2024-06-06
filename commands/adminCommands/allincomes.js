@@ -7,16 +7,18 @@ module.exports = {
 		.setDescription('List all incomes')
 		.setDefaultMemberPermissions(0),
 	async execute(interaction) {
+        interaction.deferReply();
 		try {
-            let reply = await admin.allIncomes();
+            let reply = await admin.allIncomes(1);
             if (typeof(reply) == 'string') {
-                await interaction.reply(reply);
+                await interaction.editReply(reply);
             } else {
-                await interaction.reply({ embeds: [reply] });
+                let [embed, rows] = reply;
+                await interaction.editReply(({ embeds: [embed], components: rows}));
             }
         } catch (error) {
             console.error("Failed to get incomes", error);
-            await interaction.reply({ content: "An error was caught. Contact Alex.", ephemeral: true });
+            await interaction.editReply({ content: "An error was caught. Contact Alex.", ephemeral: true });
         }
 	},
 };
