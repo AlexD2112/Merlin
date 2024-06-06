@@ -1279,6 +1279,77 @@ class char {
     }
   }
 
+  static async giveItemToPlayer(playerGiving, player, item, amount) {
+    if (amount < 1) {
+      return "Amount must be greater than 0";
+    }
+
+    //Check if player has item, if they do, remove it and give it to player
+    let collectionName = 'characters';
+    item = await shop.findItemName(item);
+    let charData;
+    [playerGiving, charData] = await this.findPlayerData(playerGiving);
+    if (!playerGiving) {
+      return "Error: Player not found";
+    }
+
+    let charData2;
+    [player, charData2] = await this.findPlayerData(player);
+    if (!player) {
+      return "Error: Player not found";
+    }
+
+    if (charData && charData2) {
+      if (charData.inventory[item] && charData.inventory[item] >= amount) {
+        charData.inventory[item] -= amount;
+        if (charData2.inventory[item]) {
+          charData2.inventory[item] += amount;
+        } else {
+          charData2.inventory[item] = amount;
+        }
+        await dbm.saveFile(collectionName, playerGiving, charData);
+        await dbm.saveFile(collectionName, player, charData2);
+        return true;
+      } else {
+        return "You don't have enough of that item!";
+      }
+    }
+  }
+
+  static async giveGoldToPlayer(playerGiving, player, gold) {
+    if (gold < 1) {
+      return "Amount must be greater than 0";
+    }
+
+    //Check if player has gold, if they do, remove it and give it to player
+    let collectionName = 'characters';
+    let charData;
+    [playerGiving, charData] = await this.findPlayerData(playerGiving);
+    if (!playerGiving) {
+      return "Error: Player not found";
+    }
+
+    let charData2;
+    [player, charData2] = await this.findPlayerData(player);
+    if (!player) {
+      return "Error: Player not found";
+    }
+
+    if (charData && charData2) {
+      if (charData.balance >= gold) {
+        charData.balance -= gold;
+        charData2.balance += gold;
+        await dbm.saveFile(collectionName, playerGiving, charData);
+        await dbm.saveFile(collectionName, player, charData2);
+        return true;
+      } else {
+        return "You don't have enough gold!";
+      }
+    }
+  }
+
+
+
   static async findPlayerData(player) {
     let collectionName = 'characters';
     //Load collection
