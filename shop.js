@@ -1022,6 +1022,23 @@ class shop {
     // Update the item data
     itemData[category][fieldName] = newValue;
 
+    // If the item name has changed, save the new item and delete the old one
+    if (fieldName == "Name") {
+      //Save new item
+      await dbm.saveFile('shop', newValue, itemData);
+      //Delete old item
+      await dbm.docDelete('shop', itemName);
+
+      //Change the item name in the user's editingFields
+      userData[userTag].editingFields["Item Edited"] = newValue;
+      await dbm.saveCollection('characters', userData);
+
+      return `Item name changed to ${newValue}`;
+    } else {
+      // Save the updated item data
+      await dbm.saveFile('shop', itemName, itemData);
+    }
+
     // Save the updated item data
     await dbm.saveFile('shop', itemName, itemData);
 
