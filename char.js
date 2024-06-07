@@ -1287,6 +1287,9 @@ class char {
     //Check if player has item, if they do, remove it and give it to player
     let collectionName = 'characters';
     item = await shop.findItemName(item);
+    if (item === "ERROR") {
+      return "Not a valid item";
+    }
     let charData;
     [playerGiving, charData] = await this.findPlayerData(playerGiving);
     if (!playerGiving) {
