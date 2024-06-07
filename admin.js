@@ -34,6 +34,51 @@
       await channel.send({ embeds: [embed], components: [actionRow] });
     }
 
+    static async initTradeNodeSelect(channel) {
+      let tradeNodes = await dbm.loadFile("keys", "tradeNodes");
+      //TradeNodes is a map of trade node names to trade node objects, where each trade node object has a name, and list of items that can be traded there, as well as a role code for the trade node. The role code may be blank, in which case it must be found.
+      //Ex. trade node: " - <polis emoji> North Sea Waters - <Item1> <Item1Emoji>, <Item2> <Item2Emoji>"
+
+      let tradeNodeNames = await Promise.all(
+        Object.keys(tradeNodes).map(async key => {
+          let itemsWithIcons = await Promise.all(
+              tradeNodes[key].items.map(async item => {
+                  let icon = await shop.getItemIcon(item);
+                  return `${item} ${icon}`;
+              })
+          );
+          return ` - ${clientManager.getEmoji("Polis")} ${tradeNodes[key].name} - ${itemsWithIcons.join(", ")}`;
+        })
+      );
+    
+      tradeNodeNames = tradeNodeNames.join("\n");
+    
+      //Send an embed with the title Trade Nodes of Massalia and the text The following trade nodes are available to trade in: and than a list of the trade nodes. There will also be a menu you can click to choose which trade node. The trade nodes will come out of the tradeNodes.json file.
+      let embed = new EmbedBuilder()
+        .setDescription("# " + clientManager.getEmoji("Massalia") + " Trade Node Selection" +
+          "\n- Within the trade menu, you are afforded the opportunity to select only one (1) trade region to engage with. " +
+          "\n- Eligibility for selection requires possession of the 'Trade Ship' role, symbolizing your maritime commercial capabilities." +
+          "\n- Upon selection, you will be granted exclusive access to a specialized trade channel. This channel is a marketplace for unique resources and items, specific to your chosen trade region." +
+          "\n- You can change your trade node by buying and using the item **Node Nullifier**" +
+          "\n- To initiate your trade region selection, utilize the menu provided below." +
+          "\n" + tradeNodeNames)
+        .setFooter({ text: 'Select a trade node below to trade in', iconURL: 'https://images-ext-1.discordapp.net/external/zNN-s-f41tPGzag5FxItzlLKuLKnAXiirTy3ke0nG-k/https/cdn.discordapp.com/emojis/620697454928723971.gif' })
+        .setImage('https://cdn.discordapp.com/attachments/1248563504772808736/1248646054384111707/Screenshot_2024-06-07_at_5.25.35_PM.png?ex=66646bc2&is=66631a42&hm=8a14092809ec776cc44e8950bd6b7f81f236d6c077d2bc91089dbfc0d5bc30bf&');
+
+      let select = new StringSelectMenuBuilder().setCustomId('tradeNodeSelect').setPlaceholder('Select a trade node to trade in');
+      //Add a select menu option for each trade node in the tradeNodes.json file
+      Object.keys(tradeNodes).forEach(tradeNode => {
+        select.addOptions({
+          label: tradeNodes[tradeNode].name,
+          value: tradeNode
+        });
+      });
+
+      let actionRow = new ActionRowBuilder().addComponents(select);
+
+      await channel.send({ embeds: [embed], components: [actionRow] });
+    }
+
     static async initHouseSelect(channel) {
       let houses = await dbm.loadFile("keys", "houses");
       //Houses is a map of house names to house objects, where each house object has a name, emoji, political stance and motto
@@ -170,6 +215,46 @@
 
       await interaction.reply({ 
         content: "You have selected " + shire.name + " with resource " + shire.resource, 
+        ephemeral: true 
+      });
+    }
+
+    static async selectTradeNode(interaction) {
+      const selectedTradeNode = interaction.values[0];
+      let tradeNodes = await dbm.loadFile("keys", "tradeNodes");
+      let tradeNode = tradeNodes[selectedTradeNode];
+
+      let guild = interaction.guild;
+      let user = await guild.members.fetch(interaction.user.id);
+
+      let userTag = interaction.user.tag;
+      let char = await dbm.loadFile("characters", userTag);
+      for (const role of user.roles.cache) {
+        if (Object.values(tradeNodes).some(tradeNode => tradeNode.roleCode == role[1].id)) {
+          await interaction.reply({ content: "You are already a member of a trade node! You cannot switch trade nodes", ephemeral: true });
+          return;
+        }
+      }
+
+      let role = guild.roles.cache.find(role => role.name === tradeNode.name);
+      if (role == undefined) {
+        role = await guild.roles.create({
+          name: tradeNode.name,
+          color: '#FFFFFF',
+          reason: 'Added role for trade node from selectTradeNode command',
+        });
+
+        tradeNode.roleCode = role.id;
+        tradeNodes[selectedTradeNode] = tradeNode;
+        await dbm.saveFile("keys", "tradeNodes", tradeNodes);
+      }
+
+      await user.roles.add(role);
+      char.tradeNodeID = selectedTradeNode;
+      await dbm.saveFile("characters", userTag, char);
+
+      await interaction.reply({ 
+        content: "You have selected " + tradeNode.name + " as your trade node", 
         ephemeral: true 
       });
     }

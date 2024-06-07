@@ -3,8 +3,8 @@ const admin = require('../../admin'); // Importing the database manager
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('initcityselectmenu')
-		.setDescription('Initialize a city select menu here')
+		.setName('inittradenodeselectmenu')
+		.setDescription('Initialize a trade node select menu here')
 		.setDefaultMemberPermissions(0),
 	async execute(interaction) {
 		try {
