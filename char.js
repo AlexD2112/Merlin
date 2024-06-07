@@ -1253,6 +1253,9 @@ class char {
     if (!player) {
       return "Error: Player not found";
     }
+    if (item === "ERROR") {
+      return "Not a valid item";
+    }
     if (charData) {
       //If amount is positive, add items to player or set to amount if they have none of the item already. If amount is negative, remove items from player or set to 0 if they have none of the item already, or less than the amount.
       if (amount > 0) {
