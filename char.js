@@ -23,11 +23,11 @@ class char {
       charData = {
         name: charName,
         bio: charBio,
-        balance: 100,
-        inventory: {},
-        incomeList: {
-          Daily: 40
+        balance: 200,
+        inventory: {
+          "Adventure Token": 1
         },
+        incomeList: {},
         incomeAvailable: true,
         stats: {
           Martial: 0,

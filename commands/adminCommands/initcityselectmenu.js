@@ -9,7 +9,7 @@ module.exports = {
 	async execute(interaction) {
 		try {
             // Call the method with the channel object directly
-            await admin.initTradeNodeSelect(interaction.channel);
+            await admin.initShireSelect(interaction.channel);
             await interaction.reply({ content: "Set! Select menu should appear just below this message", ephemeral: true });
         } catch (error) {
             console.error("Failed to initialize select menu:", error);
