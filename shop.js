@@ -489,11 +489,16 @@ class shop {
     const charData = await dbm.loadCollection('characters');
     const shopData = await dbm.loadCollection('shop');
 
-    // create a 2d of items in the player's inventory sorted by category. Remove items with 0 quantity
+    // create a 2d of items in the player's inventory sorted by category. Remove items with 0 quantity or that don't exist in the shop
     let deleted = false;
     let inventory = [];
     for (const item in charData[charID].inventory) {
       if (charData[charID].inventory[item] == 0) {
+        deleted = true;
+        delete charData[charID].inventory[item];
+        continue;
+      }
+      if (!shopData[item]) {
         deleted = true;
         delete charData[charID].inventory[item];
         continue;
@@ -652,8 +657,9 @@ class shop {
         aboutString = "Price: " + clientManager.getEmoji("Talent") + " " + itemData.shopOptions["Price (#)"] + "\n";
       }
       let descriptionString = "**Description:\n**" + itemData.infoOptions.Description;
-      if (itemData.usageOptions["Is Usable"] == "Yes") {
-        aboutString += "\nGives:";
+      console.log(itemData.usageOptions["Is Usable (Y/N)"] == "Yes");
+      if (itemData.usageOptions["Is Usable (Y/N)"] == "Yes") {
+        aboutString += "\n**On Usage:**\nGives:";
         //Iterate through usageOptions to find any key that starts with "Give Item". If any exist, add them to the aboutString. The value will be a string "Number Name" that will have to be split (Name may contain spaces, such as Iron Spear)
         //Also search for anything starting with Change, which will be a change in prestige, Martial, or intrigue. If they're positive, add this. This value will just be an integer in string form
         for (let key in itemData.usageOptions) {
@@ -661,9 +667,9 @@ class shop {
           if (itemData.usageOptions[key] == "") {
             continue;
           }
-          if (key == "Give/Take Money") {
+          if (key == "Give/Take Money (#)") {
             if (itemData.usageOptions[key] > 0) {
-              aboutString += ("\n`   `- " + clientManager.getEmoji("Talent") + " " + itemData.usageOptions[key]);
+              aboutString += ("\n- " + clientManager.getEmoji("Talent") + " " + itemData.usageOptions[key]);
             }
           }
           if (key.startsWith("Give Item")) {
@@ -671,23 +677,29 @@ class shop {
             let quantity = splitString[0];
             let name = splitString.slice(1).join(" ");
             let icon = data[name].infoOptions.Icon;
-            aboutString += ("\n`   `- " + icon + " " + name + ": " + quantity);
+            aboutString += ("\n- " + icon + " " + name + ": " + quantity);
           }
           if (key.startsWith("Change")) {
             let quantity = itemData.usageOptions[key];
             if (quantity > 0) {
               let icon = clientManager.getEmoji(key.split(" ")[1]);
-              aboutString += ("\n`   `- " + icon + " " + key.split(" ")[1] + ": " + quantity);
+              aboutString += ("\n- " + icon + " " + key.split(" ")[1] + ": " + quantity);
             }
           }
           if (key == "Give Role") {
             let role = itemData.usageOptions[key];
             aboutString += ("\n" + role);
           }
+        }
 
-          if (key == "Give/Take Money") {
+        aboutString += "\nTakes:";
+        for (let key in itemData.usageOptions) {
+          if (itemData.usageOptions[key] == "") {
+            continue;
+          }
+          if (key == "Give/Take Money (#)") {
             if (itemData.usageOptions[key] < 0) {
-              aboutString += ("\n`   `- " + clientManager.getEmoji("Talent") + " " + itemData.usageOptions[key]);
+              aboutString += ("\n- " + clientManager.getEmoji("Talent") + " " + itemData.usageOptions[key]);
             }
           }
           if (key.startsWith("Take Item")) {
@@ -695,13 +707,13 @@ class shop {
             let quantity = splitString[0];
             let name = splitString.slice(1).join(" ");
             let icon = data[name].infoOptions.Icon;
-            aboutString += ("\n`   `- " + icon + " " + name + ": " + quantity);
+            aboutString += ("\n- " + icon + " " + name + ": " + quantity);
           }
           if (key.startsWith("Change")) {
             let quantity = itemData.usageOptions[key];
             if (quantity < 0) {
               let icon = clientManager.getEmoji(key.split(" ")[1]);
-              aboutString += ("\n`   `- " + icon + " " + key.split(" ")[1] + ": " + quantity);
+              aboutString += ("\n- " + icon + " " + key.split(" ")[1] + ": " + quantity);
             }
           }
           if (key == "Take Role") {
@@ -773,7 +785,7 @@ class shop {
         if (icon == "ERROR") {
           icon = "";
         }
-        aboutString += ("`   `- " + icon + " " + name + ": " + quantity + "\n");
+        aboutString += ("- " + icon + " " + name + ": " + quantity + "\n");
       }
     }
     aboutString += "\nResults:\n";
@@ -787,7 +799,7 @@ class shop {
         if (icon == "ERROR") {
           icon = "";
         }
-        aboutString += ("`   `- " + icon + " " + name + ": " + quantity + "\n");
+        aboutString += ("- " + icon + " " + name + ": " + quantity + "\n");
       }
     }
 
@@ -986,36 +998,52 @@ class shop {
       nullValue = true;
     }
 
-    //If category contains #, convert newValue to number- if it's not a number, return an error
-    if (fieldName.includes("#")) {
-      let num = parseInt(newValue);
-      if (isNaN(num)) {
-        return "Invalid value for a number field!";
+    if (!nullValue) {
+      //If category contains #, convert newValue to number- if it's not a number, return an error
+      if (fieldName.includes("#")) {
+        let num = parseInt(newValue);
+        if (isNaN(num)) {
+          return "Invalid value for a number field!";
+        }
+        newValue = num;
       }
-      newValue = num;
-    }
 
-    if (fieldName.includes("Y/N")) {
-      if (newValue.toLowerCase() == "y" || newValue.toLowerCase() == "yes" || newValue.toLowerCase() == "true") {
-        newValue = "Yes";
-      } else if (newValue.toLowerCase() == "n" || newValue.toLowerCase() == "no" || newValue.toLowerCase() == "false") {
-        newValue = "No";
-      } else {
-        return "Invalid value for a Y/N field!";
+      if (fieldName.includes("Y/N")) {
+        if (newValue.toLowerCase() == "y" || newValue.toLowerCase() == "yes" || newValue.toLowerCase() == "true") {
+          newValue = "Yes";
+        } else if (newValue.toLowerCase() == "n" || newValue.toLowerCase() == "no" || newValue.toLowerCase() == "false") {
+          newValue = "No";
+        } else {
+          return "Invalid value for a Y/N field!";
+        }
       }
-    }
 
-    if (fieldName.includes("Give Item") || fieldName.includes("Take Item")) {
-      //Should be in the form NUMBER ITEM NAME
-      let splitString = newValue.split(" ");
-      let num = parseInt(splitString[0]);
-      if (isNaN(num)) {
-        return "Invalid value for number! This should be given in the form <Number> <Item Name>";
+      if (fieldName.includes("Give Item") || fieldName.includes("Take Item")) {
+        //Should be in the form NUMBER ITEM NAME
+        let splitString = newValue.split(" ");
+        let num = parseInt(splitString[0]);
+        if (isNaN(num)) {
+          return "Invalid value for number! This should be given in the form <Number> <Item Name>";
+        }
+        //Check if item name is valid
+        let itemName = splitString.slice(1).join(" ");
+        if (await this.findItemName(itemName) == "ERROR") {
+          return "Invalid value for item name! This should be given in the form <Number> <Item Name>";
+        }
       }
-      //Check if item name is valid
-      let itemName = splitString.slice(1).join(" ");
-      if (await this.findItemName(itemName) == "ERROR") {
-        return "Invalid value for item name! This should be given in the form <Number> <Item Name>";
+      
+      //Roles are enclosed in <@& and >, and there may be multiple roles. They may not be comma separated but commas and spaces may exist. Make sure at least one role is valid
+      if (fieldName.includes("Role")) {
+        let roles = newValue.split(" ");
+        let roleString = "";
+        for (let i = 0; i < roles.length; i++) {
+          if (roles[i].startsWith("<@&") && roles[i].endsWith(">")) {
+            roleString += roles[i] + " ";
+          }
+        }
+        if (roleString == "") {
+          return "Invalid value for roles! These should be given in the form @RoleName, @RoleName2, etc., and they should be a valid roles.";
+        }
       }
     }
 
@@ -1024,6 +1052,9 @@ class shop {
 
     // If the item name has changed, save the new item and delete the old one
     if (fieldName == "Name") {
+      if (nullValue) {
+        return "Field Name cannot be blank!";
+      }
       //Save new item
       await dbm.saveFile('shop', newValue, itemData);
       //Delete old item
@@ -1174,30 +1205,72 @@ class shop {
 
   static async buyItem(itemName, charID, numToBuy) {
     itemName = await this.findItemName(itemName);
-    const price = await this.getItemPrice(itemName);
-    if (price === "ERROR" || price === "No Price Item!" || price === undefined || price === null || price === NaN || !(price > 0)) {
+    if (itemName == "ERROR") {
+      return "Item not found!";
+    }
+    let itemData = await dbm.loadFile('shop', itemName);
+    let price = itemData.shopOptions["Price (#)"];
+
+    if (price === "ERROR" || price === "No Price Item!" || price === undefined || price === null || price === NaN || !(price > 0) || price == "") {
       return "Not a valid item to purchase!";
     }
     let charCollection = 'characters';
+    let charData = await dbm.loadFile(charCollection, charID);
+
+    //Get user object from clientmanager
+    let user = await clientManager.getUser(charData.numericID);
 
     let returnString;
-    let charData = await dbm.loadFile(charCollection, charID);
     if (charData.balance <= (price * numToBuy)) {
       returnString = "You do not have enough gold!";
       await dbm.saveFile(charCollection, charID, charData);
       return returnString;
-    } else {
-      charData.balance -= (price * numToBuy);
+    } else if (itemData.shopOptions["Need Role"]) {
+      //Need Role is a string that may include several roles. Roles are enclosed in <@& and >, and there may be multiple roles. They may not be comma separated but commas and spaces may exist (though not always! Sometimes it will just be six roles one after another). Make sure at least one role is valid
+      let roles = itemData.shopOptions["Need Role"].split("<@&");
+      roles = roles.map(role => role.replace(">", ""));
+      roles = roles.map(role => role.replace(",", ""));
+      roles = roles.map(role => role.replace(" ", ""));
+      roles = roles.filter(role => role.length > 0);
 
-      if (!charData.inventory[itemName]) {
-        charData.inventory[itemName] = 0;
+      //Check if the user has the role
+      let hasRole = false;
+      for (let i = 0; i < roles.length; i++) {
+        if (user.roles.cache.some(role => role.id === roles[i])) {
+          console.log(roles[i]);
+          hasRole = true;
+          break;
+        }
       }
-      charData.inventory[itemName] += numToBuy;
-
-      returnString = "Succesfully bought " + numToBuy + " " + itemName;
-      await dbm.saveFile(charCollection, charID, charData);
-      return returnString;
+      console.log(hasRole)
+      if (!hasRole) {
+        return "You do not have the required role to buy this item! You must have one of the following role(s): " + itemData.shopOptions["Need Role"];
+      }
     }
+    charData.balance -= (price * numToBuy);
+
+    if (!charData.inventory[itemName]) {
+      charData.inventory[itemName] = 0;
+    }
+    charData.inventory[itemName] += numToBuy;
+
+    returnString = "Succesfully bought " + numToBuy + " " + itemName;
+
+    let roles = itemData.shopOptions["Give Role"].split("<@&");
+    roles = roles.map(role => role.replace(">", ""));
+    roles = roles.map(role => role.replace(",", ""));
+    roles = roles.map(role => role.replace(" ", ""));
+    roles = roles.filter(role => role.length > 0);
+    for (let i = 0; i < roles.length; i++) {
+      user.roles.add(roles[i]);
+    }
+
+    if (itemData.shopOptions["Give Role"] != "") {
+      returnString += "\nAdded the following role(s): " + itemData.shopOptions["Give Role"];
+    }
+
+    await dbm.saveFile(charCollection, charID, charData);
+    return returnString;
   }
 
   static async shopLayout(categoryToEdit, layoutString) {
@@ -1387,636 +1460,6 @@ class shop {
       return returnArray;
     }
   }
-
-  // Retired use functions
-  // Function to add a use case to an item
-  // static async addUseCase(itemName, useType, gives) {
-  //   itemName = await this.findItemName(itemName);
-
-  //   // Validate the item
-  //   if (await itemName == "ERROR") {
-  //     return "ERROR! NOT A REAL ITEM IN SHOP. DOUBLE CHECK NAME";
-  //   }
-
-  //   // Validate the useType
-  //   if (!(useType == "INCOMEROLE" || useType == "STATBOOST")) {
-  //     return "ERROR! USE PROPER CASE KEYWORD.";
-  //   }
-
-  //   // Initialize the giveMap
-  //   let giveMap = {};
-  //   let currKey = "";
-  //   let onKey = true;
-
-  //   // Loop through the gives string
-  //   for (let i = 0; i < gives.length; i++) {
-  //     switch (gives[i]) {
-  //       case ":":
-  //         if (!onKey) {
-  //           return "ERROR IN GIVE SECTION";
-  //         } else {
-  //           if (useType == "STATBOOST") {
-  //             if (!((currKey == "Martial") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
-  //               return 'ERROR! DOES NOT BOOST "Martial", "Prestige", OR "Intrigue"';
-  //             }
-  //           }
-  //           onKey = false;
-  //         }
-  //         break;
-  //       case ";":
-  //         if (onKey) {
-  //           return "ERROR IN GIVE SECTION";
-  //         } else {
-  //           if (parseInt(giveMap[currKey])) {
-  //             giveMap[currKey] = parseInt(giveMap[currKey]);
-  //           } else {
-  //             return "ERROR! INTEGER VALUES NOT GIVEN FOR NUMBER";
-  //           }
-  //           currKey = "";
-  //           onKey = true;
-  //         }
-  //         break;
-  //       default:
-  //         if (onKey) {
-  //           currKey += gives[i];
-  //         } else {
-  //           if (!giveMap[currKey]) {
-  //             giveMap[currKey] = "";
-  //           }
-  //           giveMap[currKey] += gives[i];
-  //         }
-  //         break;
-  //     }
-  //   }
-
-  //   // Load the item data
-  //   let itemData = await dbm.loadFile('shop', itemName);
-
-  //   // Assigning parsed data to itemData
-  //   itemData.usageCase = { useType, gives: giveMap };
-
-  //   // Save the updated item data
-  //   await dbm.saveFile('shop', itemName, itemData);
-
-  //   // Constructing the return string
-  //   let returnString = "Added a " + useType + " usage case to " + itemName + "\n\n";
-  //   returnString += "On use, this item will give:\n";
-  //   for (let key in giveMap) {
-  //     returnString += ('"' + key + '" : "' + giveMap[key] + '"' + "\n");
-  //   }
-  //   returnString += "\n";
-  //   returnString += "On use, this item will take nothing, having no use cost";
-
-  //   return returnString;
-  // }
-
-  // // Function to remove a use case from an item
-  // static async removeUseCase(itemName) {
-  //   // Find the correct item name considering case sensitivity
-  //   itemName = await this.findItemName(itemName);
-
-  //   // Load the item data
-  //   let itemData = await dbm.loadFile('shop', itemName);
-
-  //   // Check if the item already has a use case
-  //   if (!itemData.usageCase) {
-  //     return "ERROR! DOES NOT ALREADY HAVE A USE CASE. USE /addusecase FIRST";
-  //   }
-
-  //   // Remove the use case
-  //   delete itemData.usageCase;
-
-  //   // Save the updated item data
-  //   await dbm.saveFile('shop', itemName, itemData);
-
-  //   return "Removed the usage case from " + itemName;
-  // }
-
-  // // Function to edit use case placeholders
-  // static async editUseCasePlaceholders(itemName) {
-  //   // Find the correct item name considering case sensitivity
-  //   itemName = await this.findItemName(itemName);
-
-  //   // Load the item data
-  //   let itemData = await dbm.loadFile('shop', itemName);
-
-  //   // Check if the item already has a use case
-  //   if (!itemData.usageCase) {
-  //     return "ERROR! DOES NOT ALREADY HAVE A USE CASE. USE /addusecase FIRST";
-  //   }
-
-  //   // Construct return array with use case details
-  //   let returnArray = [];
-  //   returnArray[0] = itemName;
-  //   returnArray[1] = itemData.usageCase.useType;
-    
-  //   // Construct givesString from the gives map
-  //   let givesString = "";
-  //   for (let key in itemData.usageCase.gives) {
-  //     givesString += (key + ":" + itemData.usageCase.gives[key] + ";");
-  //   }
-  //   returnArray[2] = givesString;
-
-  //   // Construct takesString if takes map is present
-  //   if (itemData.usageCase.takes) {
-  //     let takesString = "";
-  //     for (let key in itemData.usageCase.takes) {
-  //       takesString += (key + ":" + itemData.usageCase.takes[key] + ";");
-  //     }
-  //     returnArray[3] = takesString;
-  //   } else {
-  //     returnArray[3] = "";
-  //   }
-
-  //   // Add countdown details if present
-  //   if (itemData.usageCase.countdown) {
-  //     returnArray[4] = itemData.usageCase.countdown;
-  //   } else {
-  //     returnArray[4] = "";
-  //   }
-
-  //   return returnArray;
-  // }
-
-  // // Function to add a use case with countdown
-  // static async addUseCaseWithCountdown(itemName, useType, gives, countdown) {
-  //   itemName = await this.findItemName(itemName);
-
-  //   // Validate the item
-  //   if (itemName == "ERROR") {
-  //     return "ERROR! NOT A REAL ITEM IN SHOP. DOUBLE CHECK NAME";
-  //   }
-
-  //   // Validate the useType and countdown
-  //   if (!(useType == "INCOMEROLE" || useType == "STATBOOST")) {
-  //     return "ERROR! USE PROPER CASE KEYWORD.";
-  //   }
-  //   if (!parseInt(countdown)) {
-  //     return "ERROR! Countdown not a number.";
-  //   }
-
-  //   // Initialize the giveMap
-  //   let giveMap = {};
-  //   let currKey = "";
-  //   let onKey = true;
-
-  //   // Loop through the gives string for parsing
-  //   for (let i = 0; i < gives.length; i++) {
-  //     switch (gives[i]) {
-  //       case ":":
-  //         if (!onKey) {
-  //           return "ERROR IN GIVE SECTION";
-  //         } else {
-  //           if (useType == "STATBOOST") {
-  //             if (!((currKey == "Martial") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
-  //               return 'ERROR! DOES NOT BOOST "Martial", "Prestige", OR "Intrigue"';
-  //             }
-  //           }
-  //           onKey = false;
-  //         }
-  //         break;
-  //       case ";":
-  //         if (onKey) {
-  //           return "ERROR IN GIVE SECTION";
-  //         } else {
-  //           if (parseInt(giveMap[currKey])) {
-  //             giveMap[currKey] = parseInt(giveMap[currKey]);
-  //           } else {
-  //             return "ERROR! INTEGER VALUES NOT GIVEN FOR NUMBER";
-  //           }
-  //           currKey = "";
-  //           onKey = true;
-  //         }
-  //         break;
-  //       default:
-  //         if (onKey) {
-  //           currKey += gives[i];
-  //         } else {
-  //           if (!giveMap[currKey]) {
-  //             giveMap[currKey] = "";
-  //           }
-  //           giveMap[currKey] += gives[i];
-  //         }
-  //         break;
-  //     }
-  //   }
-
-  //   // Load the item data
-  //   let itemData = await dbm.loadFile('shop', itemName);
-
-  //   // Setting the usage case with countdown
-  //   itemData.usageCase = { useType: useType, gives: giveMap, countdown: parseInt(countdown) };
-
-  //   // Save the updated item data
-  //   await dbm.saveFile('shop', itemName, itemData);
-
-  //   // Constructing the return string
-  //   let returnString = "Added a " + useType + " usage case to " + itemName + "\n\n";
-  //   returnString += "On use, this item will give:\n";
-  //   for (let key in giveMap) {
-  //     returnString += ('"' + key + '" : "' + giveMap[key] + '"' + "\n");
-  //   }
-
-  //   returnString += "\n";
-  //   returnString += "On use, this item will take nothing, having no use cost";
-
-  //   returnString += "\n";
-  //   returnString += "This item can only be used once every " + parseInt(countdown) + " hours";
-
-  //   return returnString;
-  // }
-
-  // // Overloaded version with takes
-  // static async addUseCaseWithCost(itemName, useType, gives, takes) {
-  //   itemName = await this.findItemName(itemName);
-
-  //   if (itemName == "ERROR") {
-  //     return "ERROR! NOT A REAL ITEM IN SHOP. DOUBLE CHECK NAME"
-  //   }
-  //   if (!(useType == "INCOMEROLE"|| useType == "STATBOOST")) {
-  //     return "ERROR! USE PROPER CASE KEYWORD.";
-  //   }
-  //   let giveMap = {};
-  //   let currKey = "";
-  //   let onKey = true;
-  //   for (let i = 0; i < gives.length; i++) {
-  //     switch (gives[i]) {
-  //       case ":": 
-  //         if (!onKey) {
-  //           return "ERROR IN GIVE SECTION";
-  //         } else {
-  //           if (useType == "STATBOOST")  {
-  //             if (!((currKey == "Martial") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
-  //               return 'ERROR! DOES NOT BOOST "Martial", "Prestige", OR "Intrigue"';
-  //             }
-  //           }
-  //           onKey = false;
-  //         }
-  //         break;
-  //       case ";":
-  //         if (onKey) {
-  //           return "ERROR IN GIVE SECTION";
-  //         } else {
-  //           if (parseInt(giveMap[currKey])) {
-  //             giveMap[currKey] = parseInt(giveMap[currKey]);
-  //           } else {
-  //             return "ERROR! INTEGER VALUES NOT GIVEN FOR NUMBER";
-  //           }
-  //           currKey = "";
-  //           onKey = true;
-  //         }
-  //         break;
-  //       default:
-  //         if (onKey) {
-  //           currKey += gives[i];
-  //         } else {
-  //           if (!giveMap[currKey]) {
-  //             giveMap[currKey] = "";
-  //           }
-  //           giveMap[currKey] += gives[i];
-  //         }
-  //         break;
-  //     }
-  //   }
-  //   let takesMap = {};
-  //   currKey = "";
-  //   onKey = true;
-  //   for (let i = 0; i < takes.length; i++) {
-  //     switch (takes[i]) {
-  //       case "\n" :
-  //         break;
-  //       case ":": 
-  //         if (!onKey) {
-  //           return "ERROR IN TAKES SECTION";
-  //         } else {
-  //           if (useType == "INCOMEROLE")  {
-  //             if (await this.getItemPrice(currKey) == "ERROR") {
-  //               return "ERROR! DOES NOT TAKE A REAL ITEM";
-  //             }
-  //           } else if (useType == "STATBOOST")  {
-  //             if (!((currKey == "Martial") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
-  //               return 'ERROR! DOES NOT REMOVE "Martial", "Prestige", OR "Intrigue"';
-  //             }
-  //           }
-  //           onKey = false;
-  //         }
-  //         break;
-  //       case ";":
-  //         if (onKey) {
-  //           return "ERROR IN TAKES SECTION";
-  //         } else {
-  //           if (parseInt(takesMap[currKey])) {
-  //             takesMap[currKey] = parseInt(takesMap[currKey]);
-  //           } else {
-  //             return "ERROR! INTEGER VALUES NOT GIVEN FOR NUMBER";
-  //           }
-  //           currKey = "";
-  //           onKey = true;
-  //         }
-  //         break;
-  //       default:
-  //         if (onKey) {
-  //           currKey += takes[i];
-  //         } else {
-  //           if (!takesMap[currKey]) {
-  //             takesMap[currKey] = "";
-  //           }
-  //           takesMap[currKey] += takes[i];
-  //         }
-  //         break;
-  //     }
-  //   }
-
-  //   let itemData = await dbm.loadFile('shop', itemName);
-  //   itemData.usageCase = { useType: useType, gives: parseGives(gives), takes: parseTakes(takes) };
-  //   await dbm.saveFile('shop', itemName, itemData);
-
-  //   let returnString = "Added a " + useType + " usage case to " + itemName + "\n\n";
-  //   if (useType != "CRAFTING") {
-  //     returnString += "On use, this item will give:\n"
-  //     for (let key in giveMap) {
-  //       returnString += ('"' + key + '" : "' + giveMap[key] + '"' + "\n");
-  //     }
-  //     returnString += "\n";
-  //     returnString += "On use, this item will take:\n"
-  //     for (let key in takesMap) {
-  //       returnString += ('"' + key + '" : "' + takesMap[key] + '"' + "\n");
-  //     }
-  //   } else {
-  //     returnString += "To craft, this item will take:\n"
-  //     for (let key in takesMap) {
-  //       returnString += ('"' + key + '" : "' + takesMap[key] + '"' + "\n");
-  //     }
-  //   }
-
-  //   return returnString;
-  // }
-
-  // //Version with countdown
-  // static async addUseCaseWithCostAndCountdown(itemName, useType, gives, takes, countdown) {
-  //   itemName = await this.findItemName(itemName);
-
-  //   if (itemName == "ERROR") {
-  //     return "ERROR! NOT A REAL ITEM IN SHOP. DOUBLE CHECK NAME"
-  //   }
-  //   if (!(useType == "INCOMEROLE" || useType == "STATBOOST")) {
-  //     return "ERROR! USE PROPER CASE KEYWORD.";
-  //   }
-  //   if (!parseInt(countdown)) {
-  //     return "ERROR! Countdown not a number.";
-  //   }
-  //   let giveMap = {};
-  //   let currKey = "";
-  //   let onKey = true;
-  //   for (let i = 0; i < gives.length; i++) {
-  //     switch (gives[i]) {
-  //       case ":": 
-  //         if (!onKey) {
-  //           return "ERROR IN GIVE SECTION";
-  //         } else {
-  //           if (useType == "STATBOOST")  {
-  //             if (!((currKey == "Martial") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
-  //               return 'ERROR! DOES NOT BOOST "Martial", "Prestige", OR "Intrigue"';
-  //             }
-  //           }
-  //           onKey = false;
-  //         }
-  //         break;
-  //       case ";":
-  //         if (onKey) {
-  //           return "ERROR IN GIVE SECTION";
-  //         } else {
-  //           if (parseInt(giveMap[currKey])) {
-  //             giveMap[currKey] = parseInt(giveMap[currKey]);
-  //           } else {
-  //             return "ERROR! INTEGER VALUES NOT GIVEN FOR NUMBER";
-  //           }
-  //           currKey = "";
-  //           onKey = true;
-  //         }
-  //         break;
-  //       default:
-  //         if (onKey) {
-  //           currKey += gives[i];
-  //         } else {
-  //           if (!giveMap[currKey]) {
-  //             giveMap[currKey] = "";
-  //           }
-  //           giveMap[currKey] += gives[i];
-  //         }
-  //         break;
-  //     }
-  //   }
-  //   let takesMap = {};
-  //   currKey = "";
-  //   onKey = true;
-  //   for (let i = 0; i < takes.length; i++) {
-  //     switch (takes[i]) {
-  //       case "\n" :
-  //         break;
-  //       case ":": 
-  //         if (!onKey) {
-  //           return "ERROR IN TAKES SECTION";
-  //         } else {
-  //           if (useType == "INCOMEROLE")  {
-  //             if (await this.getItemPrice(currKey) == "ERROR") {
-  //               return "ERROR! DOES NOT TAKE A REAL ITEM";
-  //             }
-  //           } else if (useType == "STATBOOST")  { 
-  //             if (!((currKey == "Martial") || (currKey == "Prestige") || (currKey == "Intrigue"))) {
-  //               return 'ERROR! DOES NOT REMOVE "Martial", "Prestige", OR "Intrigue"';
-  //             }
-  //           }
-  //           onKey = false;
-  //         }
-  //         break;
-  //       case ";":
-  //         if (onKey) {
-  //           return "ERROR IN TAKES SECTION";
-  //         } else {
-  //           if (parseInt(takesMap[currKey])) {
-  //             takesMap[currKey] = parseInt(takesMap[currKey]);
-  //           } else {
-  //             return "ERROR! INTEGER VALUES NOT GIVEN FOR NUMBER";
-  //           }
-  //           currKey = "";
-  //           onKey = true;
-  //         }
-  //         break;
-  //       default:
-  //         if (onKey) {
-  //           currKey += takes[i];
-  //         } else {
-  //           if (!takesMap[currKey]) {
-  //             takesMap[currKey] = "";
-  //           }
-  //           takesMap[currKey] += takes[i];
-  //         }
-  //         break;
-  //     }
-  //   }
-  //   let itemData = await dbm.loadFile('shop', itemName);
-  //   itemData.usageCase = { useType, gives: parseGives(gives), takes: parseTakes(takes), countdown: parseInt(countdown) };
-  //   await dbm.saveFile('shop', itemName, itemData);
-
-  //   let returnString = "Added a " + useType + " usage case to " + itemName + "\n\n";
-  //   returnString += "On use, this item will give:\n"
-  //   for (let key in giveMap) {
-  //     returnString += ('"' + key + '" : "' + giveMap[key] + '"' + "\n");
-  //   }
-  //   returnString += "\n";
-  //   returnString += "On use, this item will take:\n"
-  //   for (let key in takesMap) {
-  //     returnString += ('"' + key + '" : "' + takesMap[key] + '"' + "\n");
-  //   }
-
-  //   returnString += "\n";
-  //   returnString += "This item can only be used once every " + parseInt(countdown) + " hours";
-
-  //   return returnString;
-  // }
-
-  // static async addRecipe(itemName, takes, countdown) {
-  //   itemName = await this.findItemName(itemName);
-
-  //   if (itemName == "ERROR") {
-  //     return "ERROR! NOT A REAL ITEM IN SHOP. DOUBLE CHECK NAME"
-  //   }
-  //   if (!parseInt(countdown)) {
-  //     return "ERROR! Countdown not a number.";
-  //   }
-
-  //   let takesMap = {};
-  //   let currKey = "";
-  //   let onKey = true;
-  //   for (let i = 0; i < takes.length; i++) {
-  //     switch (takes[i]) {
-  //       case "\n" :
-  //         break;
-  //       case ":": 
-  //         if (!onKey) {
-  //           return "ERROR IN TAKES SECTION";
-  //         } else {
-  //           if (await this.getItemPrice(currKey) == "ERROR") {
-  //             return "ERROR! DOES NOT TAKE A REAL ITEM";
-  //           }
-  //           onKey = false;
-  //         }
-  //         break;
-  //       case ";":
-  //         if (onKey) {
-  //           return "ERROR IN TAKES SECTION";
-  //         } else {
-  //           if (parseInt(takesMap[currKey])) {
-  //             takesMap[currKey] = parseInt(takesMap[currKey]);
-  //           } else {
-  //             return "ERROR! INTEGER VALUES NOT GIVEN FOR NUMBER";
-  //           }
-  //           currKey = "";
-  //           onKey = true;
-  //         }
-  //         break;
-  //       default:
-  //         if (onKey) {
-  //           currKey += takes[i];
-  //         } else {
-  //           if (!takesMap[currKey]) {
-  //             takesMap[currKey] = "";
-  //           }
-  //           takesMap[currKey] += takes[i];
-  //         }
-  //         break;
-  //     }
-  //   }
-  //   let data = await dbm.loadFile('shop', itemName);
-  //   data.recipe = {};
-  //   data.recipe.takes = takesMap;
-  //   data.recipe.countdown = countdown;
-  //   dbm.saveFile('shop', itemName, data);
-
-  //   let returnString = "Added a recipe for " + itemName + "\n\n";
-  //   returnString += "\n";
-  //   returnString += "To create, this item will take:\n"
-  //   for (let key in takesMap) {
-  //     returnString += ('"' + key + '" : "' + takesMap[key] + '"' + "\n");
-  //   }
-
-  //   returnString += "\n";
-  //   returnString += "This item will take " + parseInt(countdown) + " hours to use";
-
-  //   return returnString;
-  // }
-  
-  // static async editRecipePlaceholders(itemName) {
-  //   itemName = await this.findItemName(itemName);
-
-  //   let itemData = await dbm.loadFile('shop', itemName);
-
-  //   //item takes must be restructured in form 'ITEM:AMOUNT;\nITEM2:AMOUNT2;'
-  //   let takesString = "";
-  //   for (let key in itemData.recipe.takes) {
-  //     takesString += (key + ":" + itemData.recipe.takes[key] + ";");
-  //   }
-  //   let returnArray = [itemName, takesString, itemData.recipe.countdown];
-  //   return returnArray;
-  // }
-
-  // static async addUseDescription(itemName, itemDescription) {
-  //   itemName = await this.findItemName(itemName);
-
-  //   let data = await dbm.loadCollection('shop');
-  //   if (!data[itemName] || !data[itemName].usageCase) {
-  //     return "ERROR! DOES NOT ALREADY HAVE A USE CASE. USE /addusecase FIRST"
-  //   }
-    
-  //   data[itemName].usageCase.description = itemDescription
-  //   dbm.saveCollection('shop', data);
-
-  //   let returnString = "Added the following description to " + itemName + ":\n\n";
-  //   returnString += itemDescription;
-
-  //   return returnString;
-  // }
-
-  // static async addUseImage(itemName, avatarURL) {
-  //   try {
-  //     // Make a HEAD request to check if the URL leads to a valid image
-  //     const response = await axios.head(avatarURL, { maxRedirects: 5 });
-  
-  //     // Check if the response status code indicates success (e.g., 200)
-  //     if (response.status === 200) {
-  //       let collectionName = 'shop';
-
-  //       itemName = await this.findItemName(itemName);
-
-  //       if (itemName == "ERROR") {
-  //         return "ERROR! NOT A REAL ITEM IN SHOP. DOUBLE CHECK NAME"
-  //       }
-
-  //       let data = await dbm.loadFile(collectionName, itemName);
-  //       if (data.usageCase) {
-  //         data.usageCase.image = avatarURL;
-  
-  //         dbm.saveFile(collectionName, fileName, data);
-  //         return "Image has been set";
-  //       } else {
-  //         return "No item usage case existing";
-  //       }
-  //     } else {
-  //       return "Error: Avatar URL is not valid (HTTP status code " + response.status + ").";
-  //     }
-  //   } catch (error) {
-  //     return "Unable to check the Avatar URL. " + error.message;
-  //   }
-  // }
-  // Function to edit item placeholders
-  // static async editItemPlaceholders(itemName) {
-  //   itemName = await this.findItemName(itemName);
-
-  //   let itemData = await dbm.loadFile('shop', itemName);
-  //   let returnArray = [itemName, itemData.icon, String(itemData.price), itemData.description, itemData.category];
-  //   return returnArray;
-  // }
 }
 
 module.exports = shop;

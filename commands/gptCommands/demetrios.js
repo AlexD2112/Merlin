@@ -5,11 +5,11 @@ const chatGPT = require('../../chatGPT');
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('luis')
-        .setDescription('Message King Luis of Aquitane')
+        .setName('demetrios')
+        .setDescription('Message Demetrios the Chronicler')
         .addStringOption((option) =>
             option.setName('message')
-                .setDescription('Your message to luis')
+                .setDescription('Your message to Demetrios')
                 .setRequired(true)
         ),
     async execute(interaction) {
@@ -17,7 +17,7 @@ module.exports = {
         const message = interaction.options.getString('message');
         const userID = interaction.user.tag;
 
-        let replyString = await chatGPT.luis(message, userID);
+        let replyString = await chatGPT.demetrios(message, userID);
         //if embed, display embed, otherwise display string
         console.log(replyString);
         console.log(typeof (replyString));

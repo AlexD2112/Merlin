@@ -142,15 +142,15 @@ class chatGPT {
         return returnString;
     }
 
-    static async luis(message, playerID) {
+    static async demetrios(message, playerID) {
         //Get prevMessages from database
         let prevMessagesExist = true;
-        let luisInfo = await dbm.loadFile("gptMessages", "luis");
-        if (luisInfo[playerID] == undefined || luisInfo[playerID] == null) {
-            luisInfo[playerID] = {};
+        let demetriosInfo = await dbm.loadFile("gptMessages", "demetrios");
+        if (demetriosInfo[playerID] == undefined || demetriosInfo[playerID] == null) {
+            demetriosInfo[playerID] = {};
             prevMessagesExist = false;
         }
-        let prevMessages = luisInfo[playerID].prevMessages;
+        let prevMessages = demetriosInfo[playerID].prevMessages;
         if (prevMessages == undefined || prevMessages == null) {
             prevMessages = [];
             prevMessagesExist = false;
@@ -187,16 +187,11 @@ class chatGPT {
         //Set passed messages to pass to gpt
         //First message is a system message to "Players are speaking to you in a discord game. Respond as if you are the pope. Remember to moderate and avoid getting too deeply involved in the politics.
         //If prevMessages exist, also add on the previous messages in order
-        let messages = [{ role: "system", content: `Players are speaking to you in a discord game. Your info is as follows: Louis the Pious: King of Aquitaine
-        Louis, having been crowned King of Aquitaine amidst the chaotic civil war that fragmented his father's empire, was a man who stood in stark contrast to Charlemagne. Where his father was a titan of warfare, Louis was a monarch of piety and peace. His rule in Aquitaine, though marked by initial instability, soon began to reflect his virtues.    
-        He was a ruler who sought to mend the fissures of his domain not through the sword, but through faith and diplomacy. Louis invested in the ecclesiastical infrastructure of Aquitaine, building monasteries and churches, hoping that spiritual guidance would unite his people where politics had failed.
-        Despite his critics, Louis's approach began to yield fruit. His rule in Aquitaine saw the integration of the local nobility into his governance, using marriages, alliances, and the distribution of lands to placate potential rebels. His court became a center of learning and ecclesiastical debate, a reflection of his personal devotion to the church.
-        Luis Traits
-        Diplomatic: Louis excels in negotiations and forging alliances, often avoiding conflict through peaceful means. Will not engage in talks with someone with less than 100 prestige.
-        Pious: His deep religious faith influences his decisions and policies, and he is highly regarded by the church.
-        Strategic Marriage Planner: Louis uses marriages between his court and local nobility to secure loyalty and peace.
-        Patron of Learning: He encourages scholarly pursuits and ecclesiastical learning, attracting intellectuals to his court.
-        Conservative Ruler: Preferring traditional governance methods, Louis is resistant to rapid change and innovation in governance.` }];
+        let messages = [{ role: "system", content: `Players are speaking to you in a discord game, but you should never reference this fact, instead acting as a mere helper who exists in the time period (and acting as if the player is also an individual of the time period). Your info is as follows: You are Demetrios, a Greek chronicler living in Massalia in 320 BC. Your role is to provide detailed and accurate accounts of life in Massalia during this period, including its history, culture, politics, daily life, and notable events. Always stay in character as an ancient Greek chronicler, speaking in a formal, historical tone. Here are some guidelines and context to help you fulfill your role:**
+
+                        1. **Historical Context**: Massalia is a prosperous Greek colony founded by Phocaean Greeks around 600 BC. It is a thriving port city known for its trade, culture, and strategic importance.
+
+                        2. **Culture and Society**: Discuss the Greek customs, festivals, religious practices, and daily activities in Massalia. Highlight the influence of both Greek and local cultures in the city.` }];
         messages.push()
         if (prevMessagesExist) {
             //Add previous messages to messages
@@ -212,7 +207,7 @@ class chatGPT {
         const completion = await openai.chat.completions.create({
             messages: messages,
             model: model,
-            max_tokens: 350,});
+            max_tokens: 100,});
         
         console.log(completion);
         //Save message, prevMessages, and completion to database under player id
@@ -246,9 +241,9 @@ class chatGPT {
         //Add message and datatext to prevMessages
         prevMessages.push({ role: "user", content: message });
         prevMessages.push({ role: "assistant", content: dataText.content });
-        luisInfo[playerID].prevMessages = prevMessages;
+        demetriosInfo[playerID].prevMessages = prevMessages;
         //Avoid no such document error with save file- TO DO
-        await dbm.saveFile("gptMessages", "luis", luisInfo);
+        await dbm.saveFile("gptMessages", "demetrios", demetriosInfo);
         let tokens = await dbm.loadFile("gptMessages", "tokens");
         if (!tokens.completions) {
             tokens.completions = 0;
@@ -272,9 +267,7 @@ class chatGPT {
         tokens.totalCost += (modelInputCost * promptTokens + modelOutputCost * completionTokens) / 1000;
         await dbm.saveFile("gptMessages", "tokens", tokens);
         
-        const returnString = dataText.content + "\n\n" + "`Prompt tokens: " + promptTokens + "`\n" + "`Completion Tokens: " + completionTokens + "`" +
-            "\n" + "`Input Cost: " + (modelInputCost * promptTokens) + "`\n" + "`Output Cost: " + (modelOutputCost * completionTokens) + "`" + 
-            "\n" + "`Total Cost so far: " + tokens.totalCost + "`";
+        const returnString = dataText.content;
 
         return returnString;
     }
