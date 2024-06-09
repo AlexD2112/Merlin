@@ -9,10 +9,9 @@ const apiKey = require('./config.json').gptToken;
 
 const openai = new OpenAI({apiKey: apiKey});
 const Model3_5Turbo = "gpt-3.5-turbo";
-const Model4Turbo = "gpt-4-1106-preview";
-const Model4 = "gpt-4";
+const Model4o = "gpt-4o";
 
-const modelChoice = 4.01; //Options are 3.51, 4, or 4.01
+const modelChoice = 4.01; //Options are 3.51, 4.01
 
 class chatGPT {
     static async pope(message, playerID) {
@@ -135,28 +134,18 @@ class chatGPT {
         tokens.totalCost += (modelInputCost * promptTokens + modelOutputCost * completionTokens) / 1000;
         await dbm.saveFile("gptMessages", "tokens", tokens);
         
-        const returnString = dataText.content + "\n\n" + "`Prompt tokens: " + promptTokens + "`\n" + "`Completion Tokens: " + completionTokens + "`" +
-            "\n" + "`Input Cost: " + (modelInputCost * promptTokens) + "`\n" + "`Output Cost: " + (modelOutputCost * completionTokens) + "`" + 
-            "\n" + "`Total Cost so far: " + tokens.totalCost + "`";
+        const returnString = dataText.content;
 
         return returnString;
     }
 
     static async demetrios(message, playerID) {
         //Get prevMessages from database
-        let prevMessagesExist = true;
+        let charInfo = await dbm.loadFile("characters", playerID);
+        let charName = charInfo.name;
         let demetriosInfo = await dbm.loadFile("gptMessages", "demetrios");
-        if (demetriosInfo[playerID] == undefined || demetriosInfo[playerID] == null) {
-            demetriosInfo[playerID] = {};
-            prevMessagesExist = false;
-        }
-        let prevMessages = demetriosInfo[playerID].prevMessages;
-        if (prevMessages == undefined || prevMessages == null) {
-            prevMessages = [];
-            prevMessagesExist = false;
-        }
-        console.log(prevMessagesExist);
-
+        let prevMessages = demetriosInfo.prevMessages
+        
         let modelInputCost;
         let modelOutputCost;
         let model;
@@ -164,41 +153,35 @@ class chatGPT {
         switch (modelChoice) {
             case 3.51:
                 model = Model3_5Turbo;
-                modelInputCost = 0.001;
-                modelOutputCost = 0.002;
-                break;
-            case 4:
-                model = Model4;
-                modelInputCost = 0.03;
-                modelOutputCost = 0.06;
+                modelInputCost = 0.0005;
+                modelOutputCost = 0.0015;
                 break;
             case 4.01:
-                model = Model4Turbo;
-                modelInputCost = 0.01;
-                modelOutputCost = 0.03;
+                model = Model4o;
+                modelInputCost = 0.005;
+                modelOutputCost = 0.015;
                 break;
             default:
                 model = Model3_5Turbo;
-                modelInputCost = 0.001;
-                modelOutputCost = 0.002;
+                modelInputCost = 0.0005;
+                modelOutputCost = 0.0015;
                 break;
         }
+
+        let contextString = await chatGPT.getContextString();
         
         //Set passed messages to pass to gpt
         //First message is a system message to "Players are speaking to you in a discord game. Respond as if you are the pope. Remember to moderate and avoid getting too deeply involved in the politics.
         //If prevMessages exist, also add on the previous messages in order
-        let messages = [{ role: "system", content: `Players are speaking to you in a discord game, but you should never reference this fact, instead acting as a mere helper who exists in the time period (and acting as if the player is also an individual of the time period). Your info is as follows: You are Demetrios, a Greek chronicler living in Massalia in 320 BC. Your role is to provide detailed and accurate accounts of life in Massalia during this period, including its history, culture, politics, daily life, and notable events. Always stay in character as an ancient Greek chronicler, speaking in a formal, historical tone. Here are some guidelines and context to help you fulfill your role:**
+        let messages = [{ role: "system", content: `Players are speaking to you in a discord game, but you should never reference this fact, instead acting as a mere helper who exists in the time period (and acting as if the player is also an individual of the time period). Respond with very short paragraphs, no more than 1-3 sentences. Your info is as follows: You are Demetrios, a Greek chronicler living in Massalia in 320 BC. Your role is to provide detailed and accurate accounts of life in Massalia during this period, including its history, culture, politics, daily life, and notable events. Always stay in character as an ancient Greek chronicler, speaking in a formal, historical tone. Here are some guidelines and context to help you fulfill your role:**
 
                         1. **Historical Context**: Massalia is a prosperous Greek colony founded by Phocaean Greeks around 600 BC. It is a thriving port city known for its trade, culture, and strategic importance.
 
-                        2. **Culture and Society**: Discuss the Greek customs, festivals, religious practices, and daily activities in Massalia. Highlight the influence of both Greek and local cultures in the city.` }];
-        messages.push()
-        if (prevMessagesExist) {
-            //Add previous messages to messages
-            for (let i = 0; i < prevMessages.length; i++) {
-                //Each message should be structured properly with role and everything
-                messages.push(prevMessages[i]);
-            }
+                        2. **Culture and Society**: Discuss the Greek customs, festivals, religious practices, and daily activities in Massalia. Highlight the influence of both Greek and local cultures in the city.` + contextString }];
+        messages.push();
+        for (let i = 0; i < prevMessages.length; i++) {
+            //Each message should be structured properly with role and everything
+            messages.push(prevMessages[i]);
         }
         messages.push({ role: "user", content: message });
 
@@ -207,7 +190,7 @@ class chatGPT {
         const completion = await openai.chat.completions.create({
             messages: messages,
             model: model,
-            max_tokens: 100,});
+            max_tokens: 500,});
         
         console.log(completion);
         //Save message, prevMessages, and completion to database under player id
@@ -239,9 +222,9 @@ class chatGPT {
         const completionTokens = completion.usage.completion_tokens;
         const promptTokens = completion.usage.prompt_tokens;
         //Add message and datatext to prevMessages
-        prevMessages.push({ role: "user", content: message });
+        prevMessages.push({ role: "user", content: playerID + ", alternatively known as " + charName + ", said " + message });
         prevMessages.push({ role: "assistant", content: dataText.content });
-        demetriosInfo[playerID].prevMessages = prevMessages;
+        demetriosInfo.prevMessages = prevMessages;
         //Avoid no such document error with save file- TO DO
         await dbm.saveFile("gptMessages", "demetrios", demetriosInfo);
         let tokens = await dbm.loadFile("gptMessages", "tokens");
@@ -264,12 +247,29 @@ class chatGPT {
         tokens.promptTokens += promptTokens;
         tokens.inputCost += modelInputCost * promptTokens / 1000;
         tokens.outputCost += modelOutputCost * completionTokens / 1000;
+        console.log(modelInputCost * promptTokens / 1000);
+        console.log(modelOutputCost * completionTokens / 1000);
+        console.log(tokens.totalCost);
         tokens.totalCost += (modelInputCost * promptTokens + modelOutputCost * completionTokens) / 1000;
+        console.log(tokens.totalCost);
         await dbm.saveFile("gptMessages", "tokens", tokens);
         
         const returnString = dataText.content;
 
         return returnString;
+    }
+
+    static async getContextString() {
+        //Get the full context string from gptMessages/info/fullInfo
+        let fullInfo = await dbm.loadFile("gptMessages", "info");
+        if (fullInfo == undefined || fullInfo == null) {
+            fullInfo = {};
+        }
+        let contextString = fullInfo.fullInfo;
+        if (contextString == undefined || contextString == null) {
+            contextString = "";
+        }
+        return contextString;
     }
 }
 
