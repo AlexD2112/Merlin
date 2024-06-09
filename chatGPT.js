@@ -183,7 +183,7 @@ class chatGPT {
             //Each message should be structured properly with role and everything
             messages.push(prevMessages[i]);
         }
-        messages.push({ role: "user", content: message });
+        messages.push({ role: "user", content: playerID + ", alternatively known as " + charName + ", said " + message });
 
         console.log(messages);
 
