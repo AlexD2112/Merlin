@@ -1027,9 +1027,11 @@ class shop {
         }
         //Check if item name is valid
         let itemName = splitString.slice(1).join(" ");
-        if (await this.findItemName(itemName) == "ERROR") {
+        itemName = await this.findItemName(itemName);
+        if (itemName == "ERROR") {
           return "Invalid value for item name! This should be given in the form <Number> <Item Name>";
         }
+        newValue = num + " " + itemName;
       }
       
       //Roles are enclosed in <@& and >, and there may be multiple roles. They may not be comma separated but commas and spaces may exist. Make sure at least one role is valid
