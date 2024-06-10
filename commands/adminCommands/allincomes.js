@@ -7,7 +7,7 @@ module.exports = {
 		.setDescription('List all incomes')
 		.setDefaultMemberPermissions(0),
 	async execute(interaction) {
-        interaction.deferReply();
+        await interaction.deferReply();
 		try {
             let reply = await admin.allIncomes(1);
             if (typeof(reply) == 'string') {
