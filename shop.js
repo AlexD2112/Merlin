@@ -1126,12 +1126,46 @@ class shop {
 
     //If category contains #, convert newValue to number- if it's not a number, return an error
     if (fieldName.includes("#")) {
-      let num = parseInt(newValue);
-      if (isNaN(num)) {
-        return "Invalid value for a number field!";
+      if (fieldName == "Craft Time in Hours (#)") {
+        //Check if its in the format "<#> <Unit>"
+        let splitString = newValue.split(" ");
+        let num = parseInt(splitString[0]);
+        if (isNaN(num)) {
+          return "Invalid value for number! This should be given in the form <Number> <Unit>";
+        }
+        //Check if unit is valid- should start with h, d, w, or m though can be upper or lower case
+        let unit = splitString[1].toLowerCase();
+        unit = unit.charAt(0);
+        if (unit != "h" && unit != "d" && unit != "w" && unit != "m") {
+          return "Invalid value for unit! This should be given in the form <Number> <Unit>";
+        } else {
+          //Convert to hours
+          switch (unit) {
+            case "d":
+              newValue = num * 24;
+              break;
+            case "w":
+              newValue = num * 24 * 7;
+              break;
+            case "m":
+              newValue = num * 24 * 30;
+              break;
+            case "h":
+              newValue = num;
+              break;
+            default:
+              return "Invalid value for unit! This should be given in the form <Number> <Unit>";
+          }
+        }
+      } else { 
+        let num = parseInt(newValue);
+        if (isNaN(num)) {
+          return "Invalid value for a number field!";
+        }
+        newValue = num;
       }
-      newValue = num;
     }
+
 
     if (fieldName.includes("Y/N")) {
       if (newValue.toLowerCase() == "y" || newValue.toLowerCase() == "yes" || newValue.toLowerCase() == "true") {
