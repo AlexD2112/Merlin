@@ -653,10 +653,22 @@ class char {
   }
 
   static async craft(charID, recipe) {
-    let recipeData = await dbm.loadFile('recipes', recipe);
+    let allRecipes = await dbm.loadCollection('recipes');
+    let recipeData = allRecipes[recipe];
 
     if (!recipeData) {
-      return "Recipe not found!";
+      for (let [key, value] of Object.entries(allRecipes)) {
+        console.log(value.recipeOptions.Name.toLowerCase());
+        console.log(recipe.toLowerCase());
+        if (value.recipeOptions.Name.toLowerCase() == recipe.toLowerCase()) {
+          recipeData = value;
+          recipe = key;
+          break;
+        }
+      }
+      if (!recipeData) {
+        return "Recipe not found!";
+      }
     }
 
     recipe = recipeData.recipeOptions.Name;
