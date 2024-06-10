@@ -15,8 +15,6 @@ const client = new Client({
     ],
 });
 
-const backup = require('./backupFirestore');
-
 //sets up usage of commands from command folder
 client.commands = new Collection();
 const foldersPath = path.join(__dirname, 'commands');
