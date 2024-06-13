@@ -133,7 +133,8 @@ class Admin {
   static async addShire(shireName, resource, guild) {
     console.log("Adding shire " + shireName + " with resource " + resource);
     let shires = await dbm.loadFile("keys", "shires");
-    resource = await shop.findItemName(resource);
+    let shopData = await dbm.loadCollection("shop");
+    resource = await shop.findItemName(resource, shopData);
     if (resource == "ERROR") {
       return "Item not found";
     }
@@ -507,6 +508,7 @@ class Admin {
 
     //Add an income to keys/incomeList
     let incomeList = await dbm.loadFile("keys", "incomeList");
+    let shopData = await dbm.loadCollection("shop");
     //income string is either a number, or a phrase such as 10 Wood or 10 Package Horse.
     //Must be used to create a field with a name, usually based on the role name, and than a map of various values, including goldGiven, itemGiven and itemAmount. Will also have a list of roles that have this income under "Roles"
     let income = {
@@ -521,12 +523,12 @@ class Admin {
     if (incomeSplit.length == 1) {
       income.goldGiven = parseInt(incomeSplit[0]);
     } else {
-      if (await shop.findItemName(income.itemGiven) == "ERROR") {
+      if (await shop.findItemName(income.itemGiven, shopData) == "ERROR") {
         return "Item not found";
       } else {
-        income.itemGiven = await shop.findItemName(income.itemGiven);
+        income.itemGiven = await shop.findItemName(income.itemGiven, shopData);
       }
-      income.itemGiven = await shop.findItemName(incomeSplit[1]);
+      income.itemGiven = await shop.findItemName(incomeSplit[1], shopData);
     }
     income.roles.push(roleID);
     incomeList[roleName] = income;
@@ -696,22 +698,23 @@ class Admin {
         "\n`[7] Income Delay: ` " + delayString
       );
 
-    let userData = await dbm.loadCollection('characters');
-    if (!userData[charTag].editingFields) {
-      userData[charTag].editingFields = {};
+    let userData = await dbm.loadFile("characters", charTag);
+    if (!userData.editingFields) {
+      userData.editingFields = {};
     }
-    userData[charTag].editingFields["Income Edited"] = income;
-    await dbm.saveCollection('characters', userData);
+    userData.editingFields["Income Edited"] = income;
+    await dbm.saveFile("characters", charTag, userData);
 
     return returnEmbed;
   }
 
   static async editIncomeField(fieldNumber, charTag, newValue) {
-    let userData = await dbm.loadCollection('characters');
-    let editingFields = userData[charTag].editingFields;
+    let userData = await dbm.loadFile("characters", charTag)
+    let editingFields = userData.editingFields;
     let income = editingFields["Income Edited"];
     let incomeList = await dbm.loadFile("keys", "incomeList");
     let incomeValue = incomeList[income];
+    let shopData = await dbm.loadCollection("shop");
     if (incomeValue == undefined) {
       return "Income not found";
     }
@@ -764,10 +767,11 @@ class Admin {
           incomeValue.itemAmount = 0;
           break;
         }
-        if (await shop.findItemName(newValue) == "ERROR") {
+        let newItemName = await shop.findItemName(newValue, shopData);
+        if (newItemName == "ERROR") {
           return "Item not found";
         }
-        incomeValue.itemGiven = await shop.findItemName(newValue);
+        incomeValue.itemGiven = newItemName;
         break;
       case 6:
         if (newValue == "DELETEFIELD") {

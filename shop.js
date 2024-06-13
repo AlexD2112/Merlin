@@ -24,8 +24,7 @@ class shop {
 
   // Function to find an item by name in the shop
   //THIS IS INEFFICIENT BECAUSE IT MEANS CALLING IT MEANS TWO CALLS TO THE DATABASE- FIX LATER
-  static async findItemName(itemName) {
-    let data = await dbm.loadCollection('shop');
+  static async findItemName(itemName, data) {
     let dataKeys = Object.keys(data);
     for (let i = 0; i < dataKeys.length; i++) {
       if (dataKeys[i].toLowerCase() == itemName.toLowerCase()) {
@@ -89,6 +88,7 @@ class shop {
   static async addRecipe(recipeName) {
     //Go into the recipes file. First check if another copy of this recipe exists. If it does, add a space and number to recipe name and check again
     let data = await dbm.loadCollection('recipes');
+    let shopData = await dbm.loadCollection('shop');
     let recipeNames = Object.keys(data);
     let i = 1;
     let newRecipeName = recipeName;
@@ -108,9 +108,8 @@ class shop {
     //Set option "Is Public (Y/N)" to No
 
     recipeData.recipeOptions["Is Public (Y/N)"] = "No";
-    let itemName = await this.findItemName(newRecipeName);
+    let itemName = await this.findItemName(newRecipeName, shopData);
     if (itemName != "ERROR") {
-      let shopData = await dbm.loadCollection('shop');
       let itemData = shopData[itemName];
       newRecipeName = itemName;
       recipeData.recipeOptions.Name = itemName;
@@ -251,7 +250,8 @@ class shop {
     }
   }
 
-  static async createShopEmbed(page) {
+  static async createShopEmbed(page, interaction) {
+    const channelID = interaction.channelId;
     page = Number(page);
     const itemsPerPage = 25;
     // Load data from shop.json and shoplayout.json
@@ -263,6 +263,12 @@ class shop {
       //Turn price into number
       price = parseInt(price);
       if (!(price == undefined || price == "" || price == null || isNaN(price) || price == 0)) {
+        let channels = value.shopOptions.Channels;
+        if (channels.includes("#")) {
+          if (!channels.includes(channelID)) {
+            continue;
+          }
+        }
         if (!shopLayoutData[value.infoOptions.Category]) {
           shopLayoutData[value.infoOptions.Category] = [];
         }
@@ -570,7 +576,8 @@ class shop {
   static async removeItem(itemName) {
     // Set the database name
     let fileName = 'shop';
-    itemName = await this.findItemName(itemName);
+    let shopData = dbm.loadCollection(fileName);
+    itemName = await this.findItemName(itemName, shopData);
     if (itemName == "ERROR") {
       return "Error! Item not found! Make sure to include spaces and not include the emoji.";
     }
@@ -638,7 +645,8 @@ class shop {
   }
 
   static async inspect(itemName) {
-    itemName = await this.findItemName(itemName);
+    let shopData = await dbm.loadCollection('shop');
+    itemName = await this.findItemName(itemName, shopData);
 
     if (itemName == "ERROR") {
       return "Item not found!";
@@ -831,7 +839,8 @@ class shop {
     */
   static async editItemMenu(itemName, pageNumber, tag) {
     pageNumber = Number(pageNumber);
-    itemName = await this.findItemName(itemName);
+    let shopData = await dbm.loadCollection('shop');
+    itemName = await this.findItemName(itemName, shopData);
     if (itemName == "ERROR") {
       return "Item not found!";
     }
@@ -845,7 +854,7 @@ class shop {
     await dbm.saveCollection('characters', userData);
 
     //Loatd item data
-    let itemData = await dbm.loadFile('shop', itemName);
+    let itemData = shopData[itemName];
 
     const infoOptions = this.infoOptions;
     const shopOptions = this.shopOptions;
@@ -940,6 +949,7 @@ class shop {
   }
 
   static async editItemField(userTag, fieldNumber, newValue) {
+    let shopData = await dbm.loadCollection('shop');
     // Load user data
     let userData = await dbm.loadCollection('characters');
     let itemName;
@@ -948,13 +958,13 @@ class shop {
     } else {
       itemName = userData[userTag].editingFields["Item Edited"];
     }
-    itemName = await this.findItemName(itemName);
+    itemName = await this.findItemName(itemName, shopData);
     if (itemName == "ERROR") {
       return "Item not found!";
     }
 
     // Load the item data
-    let itemData = await dbm.loadFile('shop', itemName);
+    let itemData = shopData[itemName];
 
     const infoOptions = this.infoOptions;
     const shopOptions = this.shopOptions;
@@ -1027,7 +1037,7 @@ class shop {
         }
         //Check if item name is valid
         let itemName = splitString.slice(1).join(" ");
-        itemName = await this.findItemName(itemName);
+        itemName = await this.findItemName(itemName, shopData);
         if (itemName == "ERROR") {
           return "Invalid value for item name! This should be given in the form <Number> <Item Name>";
         }
@@ -1094,6 +1104,8 @@ class shop {
     // Load the recipe data
     let recipeData = await dbm.loadFile('recipes', recipeName);
 
+    let shopData = await dbm.loadCollection('shop');
+
     const recipeOptions = this.recipeOptions;
 
     // Determine which category the field number belongs to
@@ -1127,35 +1139,41 @@ class shop {
     //If category contains #, convert newValue to number- if it's not a number, return an error
     if (fieldName.includes("#")) {
       if (fieldName == "Craft Time in Hours (#)") {
-        //Check if its in the format "<#> <Unit>"
-        let splitString = newValue.split(" ");
-        let num = parseInt(splitString[0]);
+        //Check if its just a single number at first
+        let num = parseInt(newValue);
         if (isNaN(num)) {
-          return "Invalid value for number! This should be given in the form <Number> <Unit>";
-        }
-        //Check if unit is valid- should start with h, d, w, or m though can be upper or lower case
-        let unit = splitString[1].toLowerCase();
-        unit = unit.charAt(0);
-        if (unit != "h" && unit != "d" && unit != "w" && unit != "m") {
-          return "Invalid value for unit! This should be given in the form <Number> <Unit>";
-        } else {
-          //Convert to hours
-          switch (unit) {
-            case "d":
-              newValue = num * 24;
-              break;
-            case "w":
-              newValue = num * 24 * 7;
-              break;
-            case "m":
-              newValue = num * 24 * 30;
-              break;
-            case "h":
-              newValue = num;
-              break;
-            default:
-              return "Invalid value for unit! This should be given in the form <Number> <Unit>";
+          //Check if its in the format "<#> <Unit>"
+          let splitString = newValue.split(" ");
+          num = parseInt(splitString[0]);
+          if (isNaN(num)) {
+            return "Invalid value for number! This should be given in the form <Number> <Unit>";
           }
+          //Check if unit is valid- should start with h, d, w, or m though can be upper or lower case
+          let unit = splitString[1].toLowerCase();
+          unit = unit.charAt(0);
+          if (unit != "h" && unit != "d" && unit != "w" && unit != "m") {
+            return "Invalid value for unit! This should be given in the form <Number> <Unit>";
+          } else {
+            //Convert to hours
+            switch (unit) {
+              case "d":
+                newValue = num * 24;
+                break;
+              case "w":
+                newValue = num * 24 * 7;
+                break;
+              case "m":
+                newValue = num * 24 * 30;
+                break;
+              case "h":
+                newValue = num;
+                break;
+              default:
+                return "Invalid value for unit! This should be given in the form <Number> <Unit>";
+            }
+          }
+        } else {
+          newValue = num;
         }
       } else { 
         let num = parseInt(newValue);
@@ -1186,7 +1204,7 @@ class shop {
       }
       //Check if item name is valid
       let itemName = splitString.slice(1).join(" ");
-      let foundItemName = await this.findItemName(itemName);
+      let foundItemName = await this.findItemName(itemName, shopData);
       if (foundItemName == "ERROR") {
         return "Invalid value for item name! This should be given in the form <Number> <Item Name>";
       } else {
@@ -1239,17 +1257,24 @@ class shop {
     return `Field ${fieldName} updated to ${newValue} for recipe ${recipeName}`;
   } 
 
-  static async buyItem(itemName, charID, numToBuy) {
-    itemName = await this.findItemName(itemName);
+  static async buyItem(itemName, charID, numToBuy, channelId) {
+    let shopData = await dbm.loadCollection('shop');
+    itemName = await this.findItemName(itemName, shopData);
     if (itemName == "ERROR") {
       return "Item not found!";
     }
-    let itemData = await dbm.loadFile('shop', itemName);
+    let itemData = shopData[itemName];
     let price = itemData.shopOptions["Price (#)"];
 
     if (price === "ERROR" || price === "No Price Item!" || price === undefined || price === null || price === NaN || !(price > 0) || price == "") {
       return "Not a valid item to purchase!";
     }
+    
+    let channels = itemData.shopOptions.Channels;
+    if (channels.includes("#") && !channels.includes(channelId)) {
+      return "This item is not available in this channel!";
+    }
+
     let charCollection = 'characters';
     let charData = await dbm.loadFile(charCollection, charID);
 
@@ -1310,6 +1335,7 @@ class shop {
   }
 
   static async shopLayout(categoryToEdit, layoutString) {
+    let shopData = await dbm.loadCollection("shop");
     if (categoryToEdit === "GENERAL") {
       let shopMap = {};
       let currCategory = null;
@@ -1333,7 +1359,7 @@ class shop {
           }
 
           let item = line.slice(0, -1); // Remove the trailing semicolon
-          item = await this.findItemName(item);
+          item = await this.findItemName(item, shopData);
 
           if (await this.getItemPrice(item) == "ERROR") {
             return ("ERROR! Item " + item + " is not in shop" + "\n\nSubmitted layout string: \n " + layoutString);
@@ -1351,7 +1377,6 @@ class shop {
           return ("ERROR: Invalid line: " + line + "\n\nSubmitted layout string: \n " + layoutString);
         }
       }
-      let shopData = await dbm.loadCollection("shop");
       for (const category in shopMap) {
         for (const item of shopMap[category]) {
           if (!shopData[item]) {
@@ -1413,7 +1438,7 @@ class shop {
           }
 
           let item = line.slice(0, -1); // Remove the trailing semicolon
-          item = await this.findItemName(item);
+          item = await this.findItemName(item, shopData);
 
           if (await this.getItemPrice(item) == "ERROR") {
             return ("ERROR! Item " + item + " is not in shop" + "\n\nSubmitted layout string: \n " + layoutString);
@@ -1424,7 +1449,6 @@ class shop {
           return ("ERROR: Invalid line: " + line + "\n\nSubmitted layout string: \n " + layoutString);
         }
       }
-      let shopData = await dbm.loadCollection("shop");
       for (const item of catMap) {
         if (!shopData[item]) {
           return ("ERROR! Item " + item + " is not in shop" + "\n\nSubmitted layout string: \n " + layoutString);

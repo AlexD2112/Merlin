@@ -465,8 +465,8 @@ class char {
     //   'Take Item', 'Take Item 2', 'Take Item 3', 'Take Item 4', 'Take Item 5',
     //   'Change Health (#)', 'Change Prestige (#)', 'Change Martial (#)', 'Change Intrigue (#)', 'Change Devotion (#)', 'Revive (Y/N)', 'Durability (#)'
     // ];
-    itemName = await shop.findItemName(itemName);
     let shopData = await dbm.loadCollection('shop');
+    itemName = await shop.findItemName(itemName, shopData);
 
     if (!numToUse) {
       numToUse = 1;
@@ -1259,7 +1259,8 @@ class char {
 
   static async addItemToPlayer(player, item, amount) {
     let collectionName = 'characters';
-    item = await shop.findItemName(item);
+    let shopData = await dbm.loadCollection('shop');
+    item = await shop.findItemName(item, shopData);
     let charData;
     [player, charData] = await this.findPlayerData(player);
     if (!player) {
@@ -1301,7 +1302,8 @@ class char {
 
     //Check if player has item, if they do, remove it and give it to player
     let collectionName = 'characters';
-    item = await shop.findItemName(item);
+    let shopData = await dbm.loadCollection('shop');
+    item = await shop.findItemName(item, shopData);
     if (item === "ERROR") {
       return "Not a valid item";
     }

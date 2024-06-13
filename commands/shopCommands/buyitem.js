@@ -20,7 +20,7 @@ module.exports = {
         const numberItems = interaction.options.getInteger('numbertobuy');
 
 		(async () => {
-            let reply = await shop.buyItem(itemName, interaction.user.tag, numberItems)
+            let reply = await shop.buyItem(itemName, interaction.user.tag, numberItems, interaction.channelId)
             interaction.reply(reply);
 			// Call the addItem function from the Shop class
 		})()

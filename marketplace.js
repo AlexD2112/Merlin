@@ -15,8 +15,9 @@ class marketplace {
     // Load the character.json and marketplace.json file
     let charData = await dbm.loadFile('characters', userTag);
     let marketData = await dbm.loadCollection('marketplace');
+    let shopData = await dbm.loadCollection('shop');
     // Find the item name using shop.findItemName
-    itemName = await shop.findItemName(itemName);
+    itemName = await shop.findItemName(itemName, shopData);
     if (itemName == "ERROR") {
       return "That item doesn't exist!";
     }

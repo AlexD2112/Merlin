@@ -167,7 +167,7 @@ shopLayout = async (interaction) => {
 
 //BUTTONS
 shopSwitch = async (interaction) => {
-  let [edittedEmbed, rows] = await shop.createShopEmbed(interaction.customId[11]);
+  let [edittedEmbed, rows] = await shop.createShopEmbed(interaction.customId[11], interaction);
   await interaction.update({ embeds: [edittedEmbed], components: rows});
 }
 incomeSwitch = async (interaction) => {

@@ -131,6 +131,7 @@ process.on('uncaughtException', function (err){
 			channel.send("Bot has faced a major error! The most recent command usage may not have worked.");
 		});
 	} catch (error) {
-		console.log(error);
+		//Log full error to console
+		console.error(error);
 	}
 });
