@@ -179,11 +179,11 @@ class char {
     const DevotionEmoji = clientManager.getEmoji("Devotion");
     const HealthEmoji = clientManager.getEmoji("Health");
 
-    const prestige = charData.stats.Prestige;
-    const martial = charData.stats.Martial;
-    const intrigue = charData.stats.Intrigue;
-    const devotion = charData.stats.Devotion;
-    const health = charData.stats.Health;
+    let prestige = charData.stats.Prestige;
+    let martial = charData.stats.Martial;
+    let intrigue = charData.stats.Intrigue;
+    let devotion = charData.stats.Devotion;
+    let health = charData.stats.Health;
 
     //If any are > 100, set them to 100
     let valChanged = false;
@@ -214,7 +214,8 @@ class char {
       charData.stats.Intrigue = intrigue;
       charData.stats.Devotion = devotion;
       charData.stats.Health = health;
-      await dbm.saveFile('characters', charData.userID, charData);
+      console.log(userID);
+      await dbm.saveFile('characters', userID, charData);
     }
 
     return "**`━━━━━━━Stats━━━━━━━`**\n"+ 

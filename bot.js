@@ -39,22 +39,22 @@ client.on('ready', () => {
 	//client.user.setAvatar('https://cdn.discordapp.com/attachments/1165739006923919431/1232019050205417624/Mas_LOGO_copy.png?ex=662a91a7&is=66294027&hm=2b4f0dfdf37864b1dee3ac2967f0cac1227a49cfaa9c8253d045e1672c383061&');
 });
 
-//message handler
-client.on('messageCreate', async message => {
-    if (message.author.bot) return;
+// //message handler
+// client.on('messageCreate', async message => {
+//     if (message.author.bot) return;
 
-    // Check for =say, if found send the message coming after =say and a space using char.say. If returned message is not Message sent! then send the returned message.
-    if (message.content.startsWith('=say')) {
-		const msg = message.content.slice(4);
-		let reply = await char.say(message.author.tag, msg, message.channel);
-		if (reply != "Message sent!") {
-			message.channel.send(reply);
-		}
+//     // Check for =say, if found send the message coming after =say and a space using char.say. If returned message is not Message sent! then send the returned message.
+//     if (message.content.startsWith('=say')) {
+// 		const msg = message.content.slice(4);
+// 		let reply = await char.say(message.author.tag, msg, message.channel);
+// 		if (reply != "Message sent!") {
+// 			message.channel.send(reply);
+// 		}
 
-		//Delete message
-		message.delete();
-    }
-});
+// 		//Delete message
+// 		message.delete();
+//     }
+// });
 
 //interaction handler
 client.on(Events.InteractionCreate, async interaction => {
@@ -123,15 +123,15 @@ function getGuildID() {
 
 module.exports = { getClient, getGuildID };
 
-process.on('uncaughtException', function (err){ 
-	const channelID = "1249834768326197379";
-	console.log('Caught exception: ' + err);
-	try {
-		client.channels.fetch(channelID).then(channel => {
-			channel.send("Bot has faced a major error! The most recent command usage may not have worked.");
-		});
-	} catch (error) {
-		//Log full error to console
-		console.error(error);
-	}
-});
+// process.on('uncaughtException', function (err){ 
+// 	const channelID = "1249834768326197379";
+// 	console.log('Caught exception: ' + err);
+// 	try {
+// 		client.channels.fetch(channelID).then(channel => {
+// 			channel.send("Bot has faced a major error! The most recent command usage may not have worked.");
+// 		});
+// 	} catch (error) {
+// 		//Log full error to console
+// 		console.error(error);
+// 	}
+// });
