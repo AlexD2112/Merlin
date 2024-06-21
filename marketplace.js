@@ -50,7 +50,7 @@ class marketplace {
     await dbm.saveCollection('marketplace', marketData);
     // Create an embed to return on success. Will just say @user listed **numberItems :itemIcon: itemName** to the **/sales** page for <:Talent:1232097113089904710>**price**.
     let embed = new EmbedBuilder();
-    embed.setDescription(`<@${userID}> listed **${numberItems} ${await shop.getItemIcon(itemName)} ${itemName}** to the **/sales** page for ${clientManager.getEmoji("Talent")}**${price}**.`);
+    embed.setDescription(`<@${userID}> listed **${numberItems} ${await shop.getItemIcon(itemName, shopData)} ${itemName}** to the **/sales** page for ${clientManager.getEmoji("Talent")}**${price}**.`);
     return embed;
   }
 
@@ -61,6 +61,7 @@ class marketplace {
     page = Number(page);
     // Load the marketplace.json file
     let marketData = await dbm.loadCollection('marketplace');
+    let shopData = await dbm.loadCollection('shop');
 
     // Get the start indices of every page. Don't split items, but can split categories
 
@@ -121,7 +122,7 @@ class marketplace {
         const sale = salesList[saleID];
         const number = sale.number;
         const item = itemName;
-        const icon = await shop.getItemIcon(itemName);
+        const icon = await shop.getItemIcon(itemName, shopData);
         const price = sale.price;
         let alignSpaces = ' '
         if ((30 - item.length - ("" + price + "" + number).length) > 0) {
@@ -174,6 +175,7 @@ class marketplace {
     // Load the character.json and marketplace.json file
     let charData = await dbm.loadCollection('characters');
     let marketData = await dbm.loadCollection('marketplace');
+    let shopData = await dbm.loadCollection('shop');
     // Search through marketData for the saleID
     const [foundCategory, foundItemName, sale] = await marketplace.getSale(saleID);
     // If the saleID doesn't exist, return an error
@@ -192,7 +194,7 @@ class marketplace {
       await dbm.saveCollection('marketplace', marketData);
       // Create an embed to return on success. Will just say @user bought **numberItems :itemIcon: itemName** from @seller for <:Talent:1232097113089904710>**price**.
       let embed = new EmbedBuilder();
-      embed.setDescription(`<@${userID}> bought **${sale.number} ${await shop.getItemIcon(foundItemName)} ${foundItemName}** back from themselves. It was listed for ${clientManager.getEmoji("Talent")}**${sale.price}**.`);
+      embed.setDescription(`<@${userID}> bought **${sale.number} ${await shop.getItemIcon(foundItemName, shopData)} ${foundItemName}** back from themselves. It was listed for ${clientManager.getEmoji("Talent")}**${sale.price}**.`);
       return embed;
     }
 
@@ -214,12 +216,13 @@ class marketplace {
     await dbm.saveCollection('marketplace', marketData);
     // Create an embed to return on success. Will just say @user bought **numberItems :itemIcon: itemName** from @seller for <:Talent:1232097113089904710>**price**.
     let embed = new EmbedBuilder();
-    embed.setDescription(`<@${userID}> bought **${sale.number} ${await shop.getItemIcon(foundItemName)} ${foundItemName}** from <@${sale.sellerID}> for ${clientManager.getEmoji("Talent")}**${sale.price}**.`);
+    embed.setDescription(`<@${userID}> bought **${sale.number} ${await shop.getItemIcon(foundItemName, shopData)} ${foundItemName}** from <@${sale.sellerID}> for ${clientManager.getEmoji("Talent")}**${sale.price}**.`);
     return embed;
   }
 
   //Inspect a sale. Will take the saleID and return an embed with the sale information
   static async inspectSale(saleID) {
+    let shopData = await dbm.loadCollection('shop');
     // Search through marketData for the saleID
     const [itemCategory, itemName, sale] = await marketplace.getSale(saleID);
     // If the saleID doesn't exist, return an error
@@ -230,7 +233,7 @@ class marketplace {
     let embed = new EmbedBuilder();
     embed.setTitle(`Sale ${saleID}`);
     embed.setColor(0x36393e);
-    embed.setDescription(`**${sale.number} ${await shop.getItemIcon(itemName)} ${itemName}** for ${clientManager.getEmoji("Talent")}**${sale.price}**.`);
+    embed.setDescription(`**${sale.number} ${await shop.getItemIcon(itemName, shopData)} ${itemName}** for ${clientManager.getEmoji("Talent")}**${sale.price}**.`);
     embed.setFooter({text: `Seller: ${sale.seller}`});
     return embed;
   }

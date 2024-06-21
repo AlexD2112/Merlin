@@ -36,6 +36,7 @@ class Admin {
 
   static async initTradeNodeSelect(channel) {
     let tradeNodes = await dbm.loadFile("keys", "tradeNodes");
+    let shopData = await dbm.loadCollection("shop");
     //TradeNodes is a map of trade node names to trade node objects, where each trade node object has a name, and list of items that can be traded there, as well as a role code for the trade node. The role code may be blank, in which case it must be found.
     //Ex. trade node: " - <polis emoji> North Sea Waters - <Item1> <Item1Emoji>, <Item2> <Item2Emoji>"
 
@@ -43,7 +44,7 @@ class Admin {
       Object.keys(tradeNodes).map(async key => {
         let itemsWithIcons = await Promise.all(
             tradeNodes[key].items.map(async item => {
-                let icon = await shop.getItemIcon(item);
+                let icon = await shop.getItemIcon(item, shopData);
                 return `${item} ${icon}`;
             })
         );
@@ -159,7 +160,7 @@ class Admin {
     let shire = {
       name: shireName,
       resource: resource,
-      resourceCode: await shop.getItemIcon(resource),
+      resourceCode: await shop.getItemIcon(resource, shopData),
       roleCode: roleID
     };
     shires[shireName] = shire;
@@ -541,6 +542,7 @@ class Admin {
   static async allIncomes(page = 1) {
     let maxLength = 10;
     let incomeList = await dbm.loadFile("keys", "incomeList");
+    let shopData = await dbm.loadCollection("shop");
     if (Object.keys(incomeList).length == 0) {
       return "No incomes found";
     }
@@ -593,7 +595,7 @@ class Admin {
         givenString += " ";
       }
       if (incomeValue.itemGiven != "" && incomeValue.itemAmount != 0) {
-        givenString += await shop.getItemIcon(incomeValue.itemGiven);
+        givenString += await shop.getItemIcon(incomeValue.itemGiven, shopData);
         givenString += " " + incomeValue.itemAmount + " " + incomeValue.itemGiven;
         if (!justGold) {
           justItem = true;

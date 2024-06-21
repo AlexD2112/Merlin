@@ -633,8 +633,8 @@ class shop {
     return category;
   }
 
-  static async getItemIcon(itemName) {
-    let data = await dbm.loadCollection('shop');
+  static async getItemIcon(itemName, shopData) {
+    let data = shopData;
     var icon;
     if (data[itemName]) {
       icon = data[itemName].infoOptions.Icon;
@@ -652,7 +652,7 @@ class shop {
       return "Item not found!";
     }
 
-    let data = await dbm.loadCollection('shop');
+    let data = shopData;
     let itemData = data[itemName];
     
     const inspectEmbed = new Discord.EmbedBuilder()
@@ -755,6 +755,7 @@ class shop {
 
   static async inspectRecipe(recipeName) {
     let recipeData = await dbm.loadCollection('recipes');
+    let shopData = await dbm.loadCollection('shop');
     if (!recipeData[recipeName]) {
       //Check if lower case version of recipeName exists
       let recipeNames = Object.keys(recipeData);
@@ -789,7 +790,7 @@ class shop {
         let splitString = ingredient.split(" ");
         let quantity = splitString[0];
         let name = splitString.slice(1).join(" ");
-        let icon = await shop.getItemIcon(name);
+        let icon = await shop.getItemIcon(name, shopData);
         if (icon == "ERROR") {
           icon = "";
         }
@@ -803,7 +804,7 @@ class shop {
         let splitString = result.split(" ");
         let quantity = splitString[0];
         let name = splitString.slice(1).join(" ");
-        let icon = await shop.getItemIcon(name);
+        let icon = await shop.getItemIcon(name, shopData);
         if (icon == "ERROR") {
           icon = "";
         }
