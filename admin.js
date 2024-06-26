@@ -172,34 +172,89 @@ class Admin {
     return "Shire " + shireName + " has been added with resource " + resource;
   }
 
-  static async addMap(map, guild) {
-    let maps = await dbm.loadFile("keys", "maps");
-    if (maps[map] != undefined) {
-      return "Map already exists";
+  //addMap adds a new map to data, should be similar to addRecipe NOT to addShire
+  static async addMap(mapName, guild) {
+    // Load the maps collection
+    let data = await dbm.loadFile('keys', 'maps');
+    let mapNames = Object.keys(data);
+    let i = 1;
+    let newMapName = mapName;
+  
+    // Ensure the map name is unique by appending a number if necessary
+    while (mapNames.includes(newMapName)) {
+      newMapName = mapName + " " + i;
+      i++;
     }
-    let roleID = "ERROR"
-    if (guild.roles.cache.find(role => role.name === map) != undefined) {
-      roleID = guild.roles.cache.find(role => role.name === map).id;
-    } else {
-      await guild.roles.create({
-        name: map,
-        color: '#FFFFFF',
-        reason: 'Added role for map from addmap command',
-      }).then(role => {
-        console.log("Role created");
-        roleID = role.id;  // This will log the newly created role's ID
-      }).catch(console.error);
-    }
-    let mapObject = {
-      roleCode: roleID
+  
+    // Create a new map object with all fields blank
+    let mapData = {
+      "mapOptions": mapOptions.reduce((acc, option) => {
+        acc[option] = "";
+        return acc;
+      }, {}),
     };
-    maps[map] = mapObject;
-    await dbm.saveFile("keys", "maps", maps);
+    mapData.mapOptions.Name = newMapName;
+    mapData.mapOptions.Emoji = ":map:";
 
-    return "Map " + map + " has been added";
+    data[newMapName] = mapData;
+  
+    // Save the new map to the maps collection
+    await dbm.saveFile('keys', 'maps', data); 
+  
+    return newMapName;
   }
 
+  static async editMapMenu(mapName, tag) {
+    // Load the map data
+    let mapData = await dbm.loadFile('keys', 'maps');
+  
+    if (mapData[mapName] == undefined) {
+      for (let key in mapData) {
+        if (key.toLowerCase() == mapName.toLowerCase()) {
+          mapName = key;
+          break;
+        }
+      }
+      if (mapData[mapName] == undefined) {
+        return "Map not found!";
+      }
+    }
+  
+    mapData = mapData[mapName];
+  
+    let userData = await dbm.loadFile('characters', tag);
+    if (!userData.editingFields) {
+      userData.editingFields = {};
+    }
+    userData.editingFields["Map Edited"] = mapName;
+    await dbm.saveFile('characters', tag, userData);
+  
+    // Construct the edit menu embed
+    const embed = new EmbedBuilder()
+      .setTitle("**" + mapName + "**")
+      .setDescription('Edit the fields using the command /editmapfield <field number> <new value>');
+    
+    let emoji = mapData.mapOptions.Emoji;
+  
+    // Add fields for Map Options
+    embed.addFields({ name: emoji + ' Map Options', value: mapOptions.map((option, index) => `\`[${index + 1}] ${option}:\` ` + mapData.mapOptions[option]).join('\n') });
+    embed.setFooter({ text: 'Page 1 of 1, Map Options' });
+  
+    // Return the embed
+    return embed;
+  }
 
+  static async allMaps() {
+    let maps = await dbm.loadFile("keys", "maps");
+    //Create an embed with the title ":map: All Maps", and than the description is a list of all maps in the form <Emoji> **<MapName>**
+    let mapNames = Object.keys(maps).map(key => maps[key].mapOptions.Emoji + " **" + key + "**").join("\n");
+    let embed = new EmbedBuilder()
+      .setTitle("All Maps")
+      .setDescription(mapNames);
+
+    return embed;
+  }
+  
 
   static async selectShire(interaction) {
     const selectedShire = interaction.values[0];

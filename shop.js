@@ -945,7 +945,7 @@ class shop {
     embed.addFields({ name: '📜 Recipe Options', value: recipeOptions.map((option, index) => `\`[${index + 1}] ${option}:\` ` + recipeData.recipeOptions[option]).join('\n') });
     embed.setFooter({text : 'Page 1 of 1, Recipe Options'});
 
-    //Return an array including the embed and the buttons to put at the bottom 
+    //Return an array including the embed
     return embed;
   }
 

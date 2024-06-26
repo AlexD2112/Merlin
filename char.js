@@ -675,7 +675,6 @@ class char {
     recipe = recipeData.recipeOptions.Name;
 
     let charData = await dbm.loadCollection('characters');
-    let shopData = await dbm.loadCollection('shop');
 
     // Check if the recipe exists
     if (!recipeData) {
