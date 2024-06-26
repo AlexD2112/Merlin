@@ -6,7 +6,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 const clientManager = require('./clientManager');
 
+const mapOptions = ["Name", "About", "Channels", "Image", "Emoji"]
+
 class Admin {
+
   static async initShireSelect(channel) {
     let shires = await dbm.loadFile("keys", "shires");
     //get shires from keys, where it is an array
@@ -168,6 +171,35 @@ class Admin {
 
     return "Shire " + shireName + " has been added with resource " + resource;
   }
+
+  static async addMap(map, guild) {
+    let maps = await dbm.loadFile("keys", "maps");
+    if (maps[map] != undefined) {
+      return "Map already exists";
+    }
+    let roleID = "ERROR"
+    if (guild.roles.cache.find(role => role.name === map) != undefined) {
+      roleID = guild.roles.cache.find(role => role.name === map).id;
+    } else {
+      await guild.roles.create({
+        name: map,
+        color: '#FFFFFF',
+        reason: 'Added role for map from addmap command',
+      }).then(role => {
+        console.log("Role created");
+        roleID = role.id;  // This will log the newly created role's ID
+      }).catch(console.error);
+    }
+    let mapObject = {
+      roleCode: roleID
+    };
+    maps[map] = mapObject;
+    await dbm.saveFile("keys", "maps", maps);
+
+    return "Map " + map + " has been added";
+  }
+
+
 
   static async selectShire(interaction) {
     const selectedShire = interaction.values[0];
