@@ -168,11 +168,13 @@ shopLayout = async (interaction) => {
 //BUTTONS
 shopSwitch = async (interaction) => {
   let [edittedEmbed, rows] = await shop.createShopEmbed(interaction.customId[11], interaction);
+  console.log(interaction);
   await interaction.update({ embeds: [edittedEmbed], components: rows});
 }
 incomeSwitch = async (interaction) => {
+  interaction.deferUpdate();
   let [edittedEmbed, rows] = await admin.allIncomes(interaction.customId[11]);
-  await interaction.update({ embeds: [edittedEmbed], components: rows});
+  await interaction.followUp({ embeds: [edittedEmbed], components: rows});
 }
 salesSwitch = async (interaction) => {
   let [edittedEmbed, rows] = await marketplace.createSalesEmbed(interaction.customId[11]);
