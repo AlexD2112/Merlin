@@ -1,0 +1,52 @@
+{
+    "Kleitos": {
+      "name": "Kleitos",
+      "stance": "Reformist",
+      "motto": "Unity in diversity strengthens us."
+    },
+    "Miltiades": {
+      "name": "Miltiades",
+      "stance": "Moderately Reformist",
+      "motto": "Understanding is the foundation of peace."
+    },
+    "Xanthippos": {
+      "name": "Xanthippos",
+      "stance": "Centrist",
+      "motto": "Harmony through balance."
+    },
+    "Iason": {
+      "name": "Iason",
+      "stance": "Centrist to Conservative",
+      "motto": "Navigate the old, embrace the new."
+    },
+    "Timon": {
+      "name": "Timon",
+      "stance": "Conservative",
+      "motto": "Preserve the arts, sustain the soul."
+    },
+    "Aristeides": {
+      "name": "Aristeides",
+      "stance": "Centrist",
+      "motto": "Defend and respect all borders."
+    },
+    "Herakleides": {
+      "name": "Herakleides",
+      "stance": "Moderately Conservative",
+      "motto": "Justice adapts, principles endure."
+    },
+    "Nicanor": {
+      "name": "Nicanor",
+      "stance": "Moderately Reformist",
+      "motto": "Through the seas, we find our stars."
+    },
+    "Philon": {
+      "name": "Philon",
+      "stance": "Reformist to Centrist",
+      "motto": "Healing hands, merging wisdom."
+    },
+    "Leonidas": {
+      "name": "Leonidas",
+      "stance": "Very Conservative",
+      "motto": "In tradition, we trust."
+    }
+}

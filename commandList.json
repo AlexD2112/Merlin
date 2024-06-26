@@ -1,59 +1,427 @@
 {
-    "addincome": {
-        "description": "Add an income attached to a role",
-        "options": {
-            "role": "The role name",
-            "income": "The income value"
-        },
-        "help": "This adds an income attached to a role, that will give any players with that role the specified income whenever they use the /incomes command.\n\nA plain number will work for a gold income. For resource incomes, use  the format <NUMBER> <RESOURCE NAME>\n\nExample: '/addincome @role 100' creates a new income of 100 gold for the role @role.\n\nExample: '/addincome @role 10 wood' creates a new income of 10 wood for the role @role."
+  "addshire": {
+    "help": "Will create a new city, as well as the role, to be included in any new city select menus",
+    "options": {
+      "shire": "The name of the city",
+      "resource": "The name of the resource produced"
     },
-    "craft": {
-        "description": "Craft a recipe",
-        "options": {
-            "recipe": "The recipe name"
-        },
-        "help": "Crafts the specified recipe. If the recipe is not in the recipe list, it will not work- the recipe list can be found with /allrecipes.\n\nYou must have the necessary prerequisites to craft a recipe- use /inspectrecipe for more information.\n\nYou can only have 3 recipes being crafted at once.\n\nNote: the recipe will take the ingredients when you start crafting it, but will not give you the results until you finish crafting it."
+    "description": "Add a shire"
+  },
+  "addincome": {
+    "help": "This adds an income attached to a role, that will give any players with that role the specified income whenever they use the /incomes command.\n\nA plain number will work for a gold income. For resource incomes, use  the format <NUMBER> <RESOURCE NAME>\n\nExample: '/addincome @role 100' creates a new income of 100 gold for the role @role.\n\nExample: '/addincome @role 10 wood' creates a new income of 10 wood for the role @role.",
+    "options": {
+      "income": "The income value",
+      "role": "The role name"
     },
-    "allrecipes": {
-        "description": "List all recipes",
-        "options": {},
-        "help": "Lists all recipes that are available."
-    },
-    "inspectrecipe": {
-        "description": "Inspect a recipe",
-        "options": {
-            "recipe": "The recipe name"
-        },
-        "help": "Lists basic information about a recipe, including necessary roles, ingredients and results."
-    },
-    "addrecipe": {
-        "description": "Create a new recipe",
-        "options": {
-            "recipename": "The name of the recipe"
-        },
-        "help": "Creates a new recipe. If given a name, it will create a new recipe with that name.\n\nIf no name is given, it will create a new recipe with the name 'New Recipe' and a number added to the end to distinguish it. No two recipes can have identical names.\n\nIf the given name matches an item, and a recipe for that item does not already exist, this will automatically swap to a recipe to craft that item.\n\nRecipes are automatically hidden from users- edit the 'Is Public' field to make it visible."
-    },
-    "edititemfield": {
-        "description": "Edit a field of an item in the shop. Use /edititemmenu first to see the fields of an item",
-        "options": {
-            "fieldnumber": "The field number",
-            "newvalue": "The new value"
-        },
-        "help": "Edits the specified field of the item you most recently used /edititemmenu on.\n\nAny field with (#) at the end must be given a plain integer value.\n\nAny field with (Y/N) at the end must be given either 'Y', 'Yes', 'N', or 'No'.\n\nGive Item or Take Item fields should be in the format 'NUMBER' 'ITEM NAME'\nEx. '10 Wood'.\n\nImages must be submitted via a link to the image- pasting an image in discord and clicking 'Open in Browser' creates a working link\n\nRole fields must be submitted with a single message and all roles must be @ mentioned.\nEx. @Role1, @Role2, @Role3.\n\nItems are not automatically put in the shop- give them a price to place them in the shop."
-    },
-    "editrecipefield": {
-        "description": "Edit a field of an recipe in the shop. Use /editrecipemenu first to see the fields of an recipe",
-        "options": {
-            "fieldnumber": "The field number",
-            "newvalue": "The new value"
-        },
-        "help": "Edits the specified field of the recipe you most recently used /editrecipemenu on.\n\nAny field with (#) at the end must be given a plain integer value.\n\nAny field with (Y/N) at the end must be given either 'Y', 'Yes', 'N', or 'No'.\n\nIngredient or Result fields should be in the format 'NUMBER' 'ITEM NAME'\nEx. '10 Wood'.\n\nImages must be submitted via a link to the image- pasting an image in discord and clicking 'Open in Browser' creates a working link\n\nRole fields must be submitted with a single message and all roles must be @ mentioned.\nEx. @Role1, @Role2, @Role3.\n\nRecipes are automatically hidden from users- edit the 'Is Public' field to make it visible."
-    },
-    "editrecipemenu": {
-        "description": "Show the edit recipe menu",
-        "options": {
-            "recipename": "The recipe name"
-        },
-        "help": "Shows the edit recipe menu for the specified recipe. This will allow you to edit the fields of the recipe. Use /allrecipes to see a list of all recipes."
+    "description": "Add an income attached to a role"
+  },
+  "allincomes": {
+    "description": "List all incomes",
+    "help": "",
+    "options": {}
+  },
+  "createhouseforums": {
+    "description": "Create house forums",
+    "help": "",
+    "options": {}
+  },
+  "editincomefield": {
+    "description": "Edit a field of an income. Use /editincomemenu first to see the fields of an income",
+    "help": "",
+    "options": {
+      "fieldnumber": "The field number",
+      "newvalue": "The new value"
     }
+  },
+  "editincomemenu": {
+    "description": "Edit an income",
+    "help": "",
+    "options": {
+      "income": "The income to edit"
+    }
+  },
+  "initcityselectmenu": {
+    "description": "Initialize a city select menu here",
+    "help": "",
+    "options": {}
+  },
+  "inithouseselectmenu": {
+    "description": "Initialize a house select menu here",
+    "help": "",
+    "options": {}
+  },
+  "initpartyselectmenus": {
+    "description": "Initialize the menus to join a party",
+    "help": "",
+    "options": {}
+  },
+  "removeincome": {
+    "description": "Delete an income. This is destructive and cannot be undone.",
+    "help": "",
+    "options": {
+      "income": "The income name"
+    }
+  },
+  "removerecipe": {
+    "description": "Delete a recipe. This is destructive and cannot be undone.",
+    "help": "",
+    "options": {
+      "recipe": "The recipe name"
+    }
+  },
+  "additemstoplayer": {
+    "help": "Use @ to select the player to give the items to, than specify the item in the next box and the number of items to give in the next box",
+    "options": {
+      "item": "The item to add",
+      "amount": "The amount of items to add",
+      "player": "The player to add items to"
+    },
+    "description": "Adds items to a player"
+  },
+  "addplayergold": {
+    "description": "Add gold to a player",
+    "help": "",
+    "options": {
+      "player": "The player to set the gold of",
+      "gold": "The amount of gold to set"
+    }
+  },
+  "balance": {
+    "help": "Show your balance in gold",
+    "options": {},
+    "description": "Show balance"
+  },
+  "char": {
+    "help": "Shows all player info: Bio, Balance, and Stats",
+    "options": {},
+    "description": "Show player character"
+  },
+  "charadmin": {
+    "help": "Show detailed information about any player character",
+    "options": {
+      "character": "The character to check"
+    },
+    "description": "Show any player character"
+  },
+  "craft": {
+    "help": "Crafts the specified recipe. If the recipe is not in the recipe list, it will not work- the recipe list can be found with /allrecipes.\n\nYou must have the necessary prerequisites to craft a recipe- use /inspectrecipe for more information.\n\nYou can only have 3 recipes being crafted at once.\n\nNote: the recipe will take the ingredients when you start crafting it, but will not give you the results until you finish crafting it.",
+    "options": {
+      "recipe": "The recipe name"
+    },
+    "description": "Craft a recipe"
+  },
+  "crafting": {
+    "help": "View your crafting slots- will also show items that have finished crafting and give them to you.",
+    "options": {},
+    "description": "View crafting cooldowns"
+  },
+  "editchar": {
+    "help": "Only edits character name and bio (to add an image, use /setavatar)",
+    "options": {},
+    "description": "Edit your character"
+  },
+  "givegold": {
+    "description": "Give gold to a player",
+    "help": "",
+    "options": {
+      "player": "The player to give gold to",
+      "amount": "The amount of gold to give"
+    }
+  },
+  "giveitem": {
+    "description": "Give items to a player",
+    "help": "",
+    "options": {
+      "player": "The player to give items to",
+      "item": "The item to give",
+      "amount": "The amount of items to give"
+    }
+  },
+  "incomes": {
+    "help": "Collects your daily incomes and shows time until next cycle. Income runs on a 24 hour cycle, can be collected once per day (in GMT time)",
+    "options": {},
+    "description": "Collect your daily incomes"
+  },
+  "me": {
+    "help": "Shows character name, bio and image",
+    "options": {},
+    "description": "Show player character- only RP aspects"
+  },
+  "newchar": {
+    "help": "Create a new character, with options of name and bio (to add an image, use /setavatar)",
+    "options": {},
+    "description": "Create a new character"
+  },
+  "setavatar": {
+    "help": "Will only take an image URL, not an image file. If you only have an image file, paste the image in discord, click on it, and than click `Open in Browser`. The URL you get from this will work",
+    "options": {
+      "avatarurl": "URL of your avatar"
+    },
+    "description": "Set character avatar"
+  },
+  "setplayergold": {
+    "help": "Does not add gold, just sets it to a specific number. Use /charadmin to check a player's gold beforehand",
+    "options": {
+      "gold": "The amount of gold to set",
+      "player": "The player to set the gold of"
+    },
+    "description": "Sets the gold of a player"
+  },
+  "stats": {
+    "help": "Show your stats only",
+    "options": {},
+    "description": "Show player stats"
+  },
+  "takeitemsfromplayer": {
+    "help": "Remove a specific number of items from a player. Use @ to select the player, than specify the item in the next box and the number of items to take in the next box",
+    "options": {
+      "item": "The item to take",
+      "amount": "The amount of items to take",
+      "player": "The player to take items from"
+    },
+    "description": "Take items from a player"
+  },
+  "useitem": {
+    "help": "Use an item from your inventory. If you want to use more than one, use the second box to specify the number, otherwise leave blank",
+    "options": {
+      "numbertouse": "How many do you want to buy (Leave blank for 1)",
+      "itemname": "The item name"
+    },
+    "description": "Use an item"
+  },
+  "luis": {
+    "help": "Calls a GPT client based on King Luis of Aquitane",
+    "options": {
+      "message": "Your message to luis"
+    },
+    "description": "Message King Luis of Aquitane"
+  },
+  "pope": {
+    "help": "Calls a GPT client based on the Pope",
+    "options": {
+      "message": "Your message to the pope"
+    },
+    "description": "Message the pope"
+  },
+  "allrecipes": {
+    "help": "Lists all recipes that are available.",
+    "options": {},
+    "description": "List all recipes"
+  },
+  "help": {
+    "help": "Without a specified command, this will list all the commands. With a command, it will show the description, options, and help for that command.\n\nAdmins, for lists of and help with admin commands, use /adminhelp",
+    "options": {
+      "command": "The command you want helped with"
+    },
+    "description": "Help with commands"
+  },
+  "helpadmin": {
+    "help": "Further help info not added",
+    "options": {
+      "command": "The command you want helped with"
+    },
+    "description": "Help with admin commands"
+  },
+  "inspectrecipe": {
+    "help": "Lists basic information about a recipe, including necessary roles, ingredients and results.",
+    "options": {
+      "recipe": "The recipe name"
+    },
+    "description": "Inspect a recipe"
+  },
+  "buysale": {
+    "help": "Buy a specified sale from the market, using the numeric ID. Use /sales to list the sales. If you want to buy more than one, use the second box to specify the number, otherwise leave blank\n\nThis is different than buying items from the shop",
+    "options": {
+      "saleid": "ID of sale to buy"
+    },
+    "description": "Buy a sale"
+  },
+  "inspectsale": {
+    "help": "Inspect a specified sale from the market, using the numeric ID. Use /sales to list the sales",
+    "options": {
+      "saleid": "ID of sale to inspect"
+    },
+    "description": "Inspect a sale"
+  },
+  "sales": {
+    "help": "List all sales in the market",
+    "options": {},
+    "description": "List sales"
+  },
+  "sell": {
+    "help": "Post a sale for an item in the market. Use the second box to specify the quantity of the item, and the third box to specify the price. If you want to sell more than one, use the second box to specify the number, otherwise leave blank\n\nYou will not be paid until the item is sold",
+    "options": {
+      "quantity": "The quantity of the item",
+      "itemname": "The item name",
+      "price": "The price of the item"
+    },
+    "description": "Sell an item"
+  },
+  "additem": {
+    "help": "Add an item to the shop. If you want to write large paragraphs, /additemmodal may be easier to use. The categories 'itemname', 'itemicon', 'itemdescription', and 'itemcategory' must be filled out. Item category is case sensitive.\n\nYou may also add 'itemprice' if you want to set a price for the item- this will add the item to the shop as well",
+    "options": {
+      "itemdescription": "The description of the item",
+      "itemicon": "The icon of the item",
+      "itemname": "The name of the item",
+      "itemprice": "The price of the item",
+      "itemcategory": "The category of the item"
+    },
+    "description": "Add item to shop"
+  },
+  "additemmodal": {
+    "help": "Same as the additem command, merely in a modal format- i.e. a pop up menu. Easier to write large paragraphs.",
+    "options": {},
+    "description": "Add item to shop"
+  },
+  "addrecipe": {
+    "help": "Creates a new recipe. If given a name, it will create a new recipe with that name.\n\nIf no name is given, it will create a new recipe with the name 'New Recipe' and a number added to the end to distinguish it. No two recipes can have identical names.\n\nIf the given name matches an item, and a recipe for that item does not already exist, this will automatically swap to a recipe to craft that item.\n\nRecipes are automatically hidden from users- edit the 'Is Public' field to make it visible.",
+    "options": {
+      "recipename": "The name of the recipe"
+    },
+    "description": "Create a new recipe"
+  },
+  "allitems": {
+    "help": "Lists all items, even those not in the shop, alphabetically",
+    "options": {},
+    "description": "List all items"
+  },
+  "buyitem": {
+    "help": "Buy an item from the shop. If you want to buy more than one, use the first box to specify the number, otherwise leave blank",
+    "options": {
+      "numbertobuy": "How many do you want to buy",
+      "itemname": "The item name"
+    },
+    "description": "Buy an item"
+  },
+  "edititemfield": {
+    "help": "Edits the specified field of the item you most recently used /edititemmenu on.\n\nAny field with (#) at the end must be given a plain integer value.\n\nAny field with (Y/N) at the end must be given either 'Y', 'Yes', 'N', or 'No'.\n\nGive Item or Take Item fields should be in the format 'NUMBER' 'ITEM NAME'\nEx. '10 Wood'.\n\nImages must be submitted via a link to the image- pasting an image in discord and clicking 'Open in Browser' creates a working link\n\nRole fields must be submitted with a single message and all roles must be @ mentioned.\nEx. @Role1, @Role2, @Role3.\n\nItems are not automatically put in the shop- give them a price to place them in the shop.",
+    "options": {
+      "newvalue": "The new value",
+      "fieldnumber": "The field number"
+    },
+    "description": "Edit a field of an item in the shop. Use /edititemmenu first to see the fields of an item"
+  },
+  "edititemmenu": {
+    "help": "This lists out all the fields of the item, and their current values.\n\nThis command cannot actually change values, use /editfield to change values",
+    "options": {
+      "itemname": "The item name"
+    },
+    "description": "Show the edit item menu"
+  },
+  "editrecipefield": {
+    "help": "Edits the specified field of the recipe you most recently used /editrecipemenu on.\n\nAny field with (#) at the end must be given a plain integer value.\n\nAny field with (Y/N) at the end must be given either 'Y', 'Yes', 'N', or 'No'.\n\nIngredient or Result fields should be in the format 'NUMBER' 'ITEM NAME'\nEx. '10 Wood'.\n\nImages must be submitted via a link to the image- pasting an image in discord and clicking 'Open in Browser' creates a working link\n\nRole fields must be submitted with a single message and all roles must be @ mentioned.\nEx. @Role1, @Role2, @Role3.\n\nRecipes are automatically hidden from users- edit the 'Is Public' field to make it visible.",
+    "options": {
+      "newvalue": "The new value",
+      "fieldnumber": "The field number"
+    },
+    "description": "Edit a field of an recipe in the shop. Use /editrecipemenu first to see the fields of an recipe"
+  },
+  "editrecipemenu": {
+    "help": "Shows the edit recipe menu for the specified recipe. This will allow you to edit the fields of the recipe. Use /allrecipes to see a list of all recipes.",
+    "options": {
+      "recipename": "The recipe name"
+    },
+    "description": "Show the edit recipe menu"
+  },
+  "inspect": {
+    "help": "Inspect an item for further details",
+    "options": {
+      "itemname": "The item name"
+    },
+    "description": "Inspect an item"
+  },
+  "inventory": {
+    "help": "Show all items in your inventory",
+    "options": {},
+    "description": "Show your inventory"
+  },
+  "inventoryadmin": {
+    "help": "Show all items in a user's inventory",
+    "options": {
+      "user": "The user to check inventory of"
+    },
+    "description": "Show the inventory of a user"
+  },
+  "removeitem": {
+    "help": "THIS IS A DESTRUCTIVE COMMAND\n\nThis will remove an item from the shop. This cannot be undone, and may create issues with existing items in user inventories- contact Alex if you really need to do this and the item is already in use.",
+    "options": {
+      "itemname": "The item name"
+    },
+    "description": "Delete an item. This is destructive and cannot be undone."
+  },
+  "renamecategory": {
+    "help": "Rename a category in the shop. This will change the category of all items in the shop with this category to the new category",
+    "options": {
+      "category": "The category to rename",
+      "newcategory": "The new name of the category"
+    },
+    "description": "Rename a category"
+  },
+  "shop": {
+    "help": "List all items that have prices in the shop, organized alphabetically by category",
+    "options": {},
+    "description": "List shop items"
+  },
+  "updateallitemversions": {
+    "help": "Generally recommend Alex does this, as he can check the database to ensure all went smoothly.\n\nThis command updates the attribute version of all items in the shop- i.e. this fixes the situation if a new field has been added to the item schema but some items are still on the previous schema",
+    "options": {},
+    "description": "Update the version of all items"
+  },
+  "updateitemversion": {
+    "help": "Generally recommend Alex does this, as he can check the database to ensure all went smoothly.\n\nThis command updates the attribute version of an item in the shop- i.e. this fixes the situation if a new field has been added to the item schema but the item is still on the previous schema",
+    "options": {
+      "itemname": "The item name"
+    },
+    "description": "Update the version of an item in the shop to new attributes"
+  },
+  "examplemodal": {
+    "help": "Further help info not added",
+    "options": {},
+    "description": "Example Modal"
+  },
+  "removeusecase": {
+    "help": "This doesn't exist actually",
+    "description": "Remove use case from item"
+  },
+  "editfield": {
+    "help": "Edit a field of an item, as listed with the /editemmenu command. Leave the value option blank to remove this option from the item.",
+    "options": {
+      "newvalue": "The new value",
+      "itemname": "The item name",
+      "fieldnumber": "The field number"
+    },
+    "description": "Edit a field in the shop"
+  },
+  "edititem": {
+    "help": "This doesn't exist actually",
+    "description": "Show the edit item menu"
+  },
+  "adminhelp": {
+    "help": "Same as help command, just only shows admin commands. Use /help for other commands",
+    "options": {
+      "command": "The command you want helped with"
+    },
+    "description": "Help with admin commands"
+  },
+  "addusecase": {
+    "help": "This doesn't exist actually",
+    "description": "Add a \"/use\" case for the item"
+  },
+  "editusecase": {
+    "help": "This doesn't exist actually",
+    "description": "Edit use case for item"
+  },
+  "initselectmenuhere": {
+    "help": "Creates a select menu for cities in the channel it's used in. Must be deleted and reused if you want to update the cities.",
+    "options": {},
+    "description": "Initialize a city select menu here"
+  },
+  "addusedescription": {
+    "help": "This doesn't exist actually",
+    "description": "Add a \"/use\" description for the item to pop up when used"
+  },
+  "adduseimage": {
+    "help": "This doesn't exist actually",
+    "description": "Set image to display on use"
+  }
 }
