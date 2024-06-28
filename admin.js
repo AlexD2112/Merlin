@@ -264,6 +264,9 @@ class Admin {
     // Load the maps collection
     let data = await dbm.loadFile('keys', 'maps');
     let charData = await dbm.loadFile('characters', charTag);
+    if (!charData.editingFields || !charData.editingFields["Map Edited"]) {
+      return "You must use /editmapmenu first to select a map to edit";
+    }
     let mapName = charData.editingFields["Map Edited"];
     if (data[mapName] == undefined) {
       return "Map not found! Must match the exact name of the map, case sensitive."
