@@ -3,7 +3,7 @@ const admin = require('../../admin'); // Importing the database manager
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('addmap2')
+		.setName('addmap')
 		.setDescription('Add a map')
 		.setDefaultMemberPermissions(0)
         .addStringOption(option =>

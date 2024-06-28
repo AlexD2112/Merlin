@@ -244,6 +244,70 @@ class Admin {
     return embed;
   }
 
+  static async removeMap(mapName) {
+    // Load the maps collection
+    let data = await dbm.loadFile('keys', 'maps');
+    if (data[mapName] == undefined) {
+      return "Map not found! Must match the exact name of the map, case sensitive."
+    }
+  
+    // Delete the map from the collection
+    delete data[mapName];
+  
+    // Save the updated collection
+    await dbm.saveFile('keys', 'maps', data);
+  
+    return mapName + ' has been deleted';
+  }
+  
+  static async editMapField(charTag, field, value) {
+    // Load the maps collection
+    let data = await dbm.loadFile('keys', 'maps');
+    let charData = await dbm.loadFile('characters', charTag);
+    let mapName = charData.editingFields["Map Edited"];
+    if (data[mapName] == undefined) {
+      return "Map not found! Must match the exact name of the map, case sensitive."
+    }
+
+    //Field is a number, so we need to convert it to the actual field name
+    field = mapOptions[field - 1];
+    if (field == undefined) {
+      return "Field not found! Must be a number between 1 and " + mapOptions.length
+    }
+    //If field is 3, make sure that its in the format <#channel1> <#channel2> etc.
+    if (field == "Channels") {
+      let unformattedChannels = value.split("<#");
+      let channelString = "";
+      //Make sure every channel has a > at the end. For any channel that has one, add it formatted with a comma to the channelString
+      for (let i = 0; i < unformattedChannels.length; i++) {
+        let channel = unformattedChannels[i];
+        if (channel.includes(">")) {
+          channelString += "<#" + channel.split(">")[0] + ">";
+          if (i < unformattedChannels.length - 1) {
+            channelString += ", ";
+          }
+        }
+      }
+      //If final character is a comma, remove it
+      if (channelString[channelString.length - 1] == ",") {
+        channelString = channelString.slice(0, -1);
+      }
+      value = channelString;
+    }
+  
+    // Update the field with the new value
+    data[mapName].mapOptions[field] = value;
+  
+    // Save the updated collection
+    await dbm.saveFile('keys', 'maps', data);
+
+    if (value == "") {
+      return 'Field ' + field + ' has been removed';
+    }
+  
+    return 'Field ' + field + ' has been updated to ' + value;
+  }
+
   static async allMaps() {
     let maps = await dbm.loadFile("keys", "maps");
     //Create an embed with the title ":map: All Maps", and than the description is a list of all maps in the form <Emoji> **<MapName>**
@@ -252,6 +316,47 @@ class Admin {
       .setTitle("All Maps")
       .setDescription(mapNames);
 
+    return embed;
+  }
+
+  static async map(mapName, channelId) {
+    let maps = await dbm.loadFile("keys", "maps");
+    let map = maps[mapName];
+    if (map == undefined) {
+      for (const key in maps) {
+        if (key.toLowerCase() == mapName.toLowerCase()) {
+          map = maps[key];
+          mapName = key;
+        }
+      }
+      if (map == undefined) {
+        return "Map not found!";
+      }
+    }
+
+    if (map.mapOptions.Channels != "") {
+      //Check if channelId is a channel in the map
+      let channels = map.mapOptions.Channels.split("<#");
+      let channelIDs = channels.map(channel => channel.split(">")[0]);
+      if (!channelIDs.includes(channelId)) {
+        return "This map is not available in this channel!";
+      }
+    }
+
+    let embed;
+    if (map.mapOptions.Emoji != "") {
+      embed = new EmbedBuilder().setTitle(map.mapOptions.Emoji + " " + mapName);
+    } else {
+      embed = new EmbedBuilder().setTitle(mapName);
+    }
+    if (map.mapOptions.About != "") {
+      embed.setDescription(map.mapOptions.About);
+    }
+    if (map.mapOptions.Image != "") {
+      embed.setImage(map.mapOptions.Image);
+    }
+    embed.setFooter({ text: 'Map of ' + mapName });
+  
     return embed;
   }
   
