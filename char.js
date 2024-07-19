@@ -1337,6 +1337,9 @@ class char {
   }
 
   static async giveGoldToPlayer(playerGiving, player, gold) {
+    if (playerGiving === player) {
+      return "You can't give gold to yourself!";
+    }
     if (gold < 1) {
       return "Amount must be greater than 0";
     }
