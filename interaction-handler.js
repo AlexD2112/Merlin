@@ -174,7 +174,7 @@ shopSwitch = async (interaction) => {
 incomeSwitch = async (interaction) => {
   interaction.deferUpdate();
   let [edittedEmbed, rows] = await admin.allIncomes(interaction.customId[11]);
-  await interaction.update({ embeds: [edittedEmbed], components: rows});
+  await interaction.editReply({ embeds: [edittedEmbed], components: rows});
 }
 salesSwitch = async (interaction) => {
   let [edittedEmbed, rows] = await marketplace.createSalesEmbed(interaction.customId[11]);
