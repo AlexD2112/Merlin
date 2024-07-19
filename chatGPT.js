@@ -140,11 +140,6 @@ class chatGPT {
     }
 
     static async demetrios(message, playerID, channelId) {
-        const adminChannel = "1226577345884979230" 
-
-        if (channelId != adminChannel) {
-            return "You can only message Demetrios in the admin channel.";
-        }
         //Get prevMessages from database
         let charInfo = await dbm.loadFile("characters", playerID);
         let charName = charInfo.name;
