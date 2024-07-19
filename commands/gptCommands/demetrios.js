@@ -16,8 +16,9 @@ module.exports = {
         await interaction.deferReply();
         const message = interaction.options.getString('message');
         const userID = interaction.user.tag;
+        const channelID = interaction.channelId;
 
-        let replyString = await chatGPT.demetrios(message, userID);
+        let replyString = await chatGPT.demetrios(message, userID, channelID);
         //if embed, display embed, otherwise display string
         console.log(replyString);
         console.log(typeof (replyString));
