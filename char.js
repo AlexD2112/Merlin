@@ -1296,6 +1296,10 @@ class char {
   }
 
   static async giveItemToPlayer(playerGiving, player, item, amount) {
+    if (playerGiving === player) {
+      return "You can't give items to yourself!";
+    }
+
     if (amount < 1) {
       return "Amount must be greater than 0";
     }
