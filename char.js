@@ -1257,6 +1257,26 @@ class char {
     }
   }
 
+  static async changePlayerStats(player, stat, amount) {
+    let collectionName = 'characters';
+    let charData;
+    [player, charData] = await this.findPlayerData(player);
+    if (!player) {
+      return "Error: Player not found";
+    }
+    if (charData) {
+      charData.stats[stat] += amount;
+      if (charData.stats[stat] < 0) {
+        charData.stats[stat] = 0;
+      }
+      if (charData.stats[stat] > 100) {
+        charData.stats[stat] = 100;
+      }
+      await dbm.saveFile(collectionName, player, charData);
+      return true;
+    }
+  }
+
   static async addItemToPlayer(player, item, amount) {
     let collectionName = 'characters';
     let shopData = await dbm.loadCollection('shop');
