@@ -558,32 +558,6 @@ class char {
       }
     }
 
-    if (itemData.usageOptions["Give Role"]) {
-      let roles = itemData.usageOptions["Give Role"].split("<@&");
-      roles = roles.map(role => role.replace(">", ""));
-      roles = roles.map(role => role.replace(",", ""));
-      roles = roles.map(role => role.replace(" ", ""));
-      roles = roles.filter(role => role.length > 0);
-      for (let i = 0; i < roles.length; i++) {
-        user.roles.add(roles[i]);
-      }
-
-      returnEmbed.addFields({ name: '**Added Roles:**', value: itemData.usageOptions["Give Role"] });
-    }
-
-    if (itemData.usageOptions["Take Role"]) {
-      let roles = itemData.usageOptions["Take Role"].split("<@&");
-      roles = roles.map(role => role.replace(">", ""));
-      roles = roles.map(role => role.replace(",", ""));
-      roles = roles.map(role => role.replace(" ", ""));
-      roles = roles.filter(role => role.length > 0);
-      for (let i = 0; i < roles.length; i++) {
-        user.roles.remove(roles[i]);
-      }
-
-      returnEmbed.addFields({ name: '**Removed Roles:**', value: itemData.usageOptions["Take Role"] });
-    }
-
     if (itemData.usageOptions["Cooldown in Hours (#)"]) {
       if (charData.cooldowns.usageCooldowns[itemName] <= Math.round(Date.now() / 1000) || !charData.cooldowns.usageCooldowns[itemName]) {
         charData.cooldowns.usageCooldowns[itemName] = Math.round(Date.now() / 1000) + (itemData.usageOptions["Cooldown in Hours (#)"] * 3600);
@@ -659,6 +633,33 @@ class char {
         itemString += item + ": " + shopData[item].infoOptions.Icon + "-" + parseInt(num) + "\n";
       }
     }
+
+    if (itemData.usageOptions["Give Role"]) {
+      let roles = itemData.usageOptions["Give Role"].split("<@&");
+      roles = roles.map(role => role.replace(">", ""));
+      roles = roles.map(role => role.replace(",", ""));
+      roles = roles.map(role => role.replace(" ", ""));
+      roles = roles.filter(role => role.length > 0);
+      for (let i = 0; i < roles.length; i++) {
+        user.roles.add(roles[i]);
+      }
+
+      returnEmbed.addFields({ name: '**Added Roles:**', value: itemData.usageOptions["Give Role"] });
+    }
+
+    if (itemData.usageOptions["Take Role"]) {
+      let roles = itemData.usageOptions["Take Role"].split("<@&");
+      roles = roles.map(role => role.replace(">", ""));
+      roles = roles.map(role => role.replace(",", ""));
+      roles = roles.map(role => role.replace(" ", ""));
+      roles = roles.filter(role => role.length > 0);
+      for (let i = 0; i < roles.length; i++) {
+        user.roles.remove(roles[i]);
+      }
+
+      returnEmbed.addFields({ name: '**Removed Roles:**', value: itemData.usageOptions["Take Role"] });
+    }
+
     if (statChanged) {
       returnEmbed.addFields({ name: '**Stats:**', value: statString });
     } 
