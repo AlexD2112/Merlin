@@ -185,6 +185,9 @@ class marketplace {
     // If the buyer is the seller, merely give them back their items, no need to check their money- this functionality will exist for accidental sales
     if (sale.sellerID == userID) {
       // Give the buyer the items
+      if (!charData[userTag].inventory[foundItemName]) {
+        charData[userTag].inventory[foundItemName] = 0;
+      }
       charData[userTag].inventory[foundItemName] += sale.number;
       // Remove the sale from the marketplace
       delete marketData.marketplace[foundCategory][foundItemName][saleID];
