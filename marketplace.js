@@ -213,8 +213,9 @@ class marketplace {
     if (!charData[userTag].inventory[foundItemName]) {
       charData[userTag].inventory[foundItemName] = 0;
     }
+
     // Give the buyer the items
-    charData[userTag].inventory[foundItemName] += sale.number;
+    charData[userTag].inventory[foundItemName] += Number(sale.number);
     // Remove the sale from the marketplace
     delete marketData.marketplace[foundCategory][foundItemName][saleID];
     // Save the character.json file
