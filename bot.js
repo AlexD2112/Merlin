@@ -58,6 +58,9 @@ client.on('ready', () => {
 
 //interaction handler
 client.on(Events.InteractionCreate, async interaction => {
+	if (interaction.user.id == "614966892486197259") {
+		return;
+	}
 	if (interaction.isChatInputCommand()) {
 		const command = client.commands.get(interaction.commandName);
 		if (!command) return;
