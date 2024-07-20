@@ -209,6 +209,10 @@ class marketplace {
     charData[userTag].balance -= sale.price;
     // Give the money to the seller
     charData[sale.seller].balance += sale.price;
+
+    if (!charData[userTag].inventory[foundItemName]) {
+      charData[userTag].inventory[foundItemName] = 0;
+    }
     // Give the buyer the items
     charData[userTag].inventory[foundItemName] += sale.number;
     // Remove the sale from the marketplace
