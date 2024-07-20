@@ -872,6 +872,7 @@ class shop {
       .setTitle("**" + itemIcon + " " + itemName + "**")
       .setDescription('Edit the fields using the command /edititemfield <field number> <new value>');
     
+    console.log("Page number: " + pageNumber);
     switch (pageNumber) {
       case 1:
         // Add fields for Info Options and Shop Options
@@ -881,7 +882,34 @@ class shop {
         break;
       case 2:
         // Add fields for Usage Options
-        embed.addFields({ name : '💥 Usage Options', value: usageOptions.map((option, index) => `\`[${index + 1 + usageOptionsStartingIndex}] ${option}:\` ` + itemData.usageOptions[option]).join('\n')});
+        //The total length of value must be less than 1024 characters, so make sure it is less than that. If it is not, loop and create more fields that have names of (`` ``), with only the first field having the name of Usage Options
+        let usageOptionsString = usageOptions.map((option, index) => `\`[${index + 1 + usageOptionsStartingIndex}] ${option}:\` ` + itemData.usageOptions[option]).join('\n');
+        let lines = usageOptionsString.split('\n');
+        let usageOptionsArray = [];
+        let currentString = "";
+        for (let i = 0; i < lines.length; i++) {
+          let currLine = lines[i];
+          if (currLine > 400) {
+            currLine = currLine.substring(0, 400) + "...";
+          }
+
+          if (currentString.length + currLine.length < 1024) {
+            currentString += currLine + "\n";
+          } else {
+            usageOptionsArray.push(currentString);
+            currentString = currLine + "\n";
+          }
+        }
+        usageOptionsArray.push(currentString);
+        console.log("Length " + usageOptionsArray.length)
+        for (let i = 0; i < usageOptionsArray.length; i++) {
+          console.log(usageOptionsArray[i]);
+          if (i == 0) {
+            embed.addFields({ name : '💥 Usage Options', value: usageOptionsArray[i]})
+          } else {
+            embed.addFields({ name : '...', value: usageOptionsArray[i]});
+          }
+        }
         embed.setFooter({text : 'Page 2 of 2, Usage Options'});
         break;
       default:
