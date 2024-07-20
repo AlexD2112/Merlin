@@ -1264,6 +1264,19 @@ class char {
     if (!player) {
       return "Error: Player not found";
     }
+
+    stat = stat.charAt(0).toUpperCase() + stat.slice(1).toLowerCase();
+    switch (stat) {
+      case "Prestige":
+      case "Martial":
+      case "Intrigue":
+      case "Devotion":
+      case "Health":
+        break;
+      default:
+        return "Invalid stat";
+    }
+
     if (charData) {
       charData.stats[stat] += amount;
       if (charData.stats[stat] < 0) {
@@ -1273,7 +1286,7 @@ class char {
         charData.stats[stat] = 100;
       }
       await dbm.saveFile(collectionName, player, charData);
-      return true;
+      return stat;
     }
   }
 

@@ -13,10 +13,14 @@ module.exports = {
         const player = interaction.options.getUser('player').toString();
         const stat = interaction.options.getString('stat');
         const value = interaction.options.getInteger('value');
+        
         const response = await char.changePlayerStats(player, stat, value);
 
         if (response) {
-            return interaction.reply(`Changed ${stat} by ${value} for ${player}`);
+            if (response == "Error: Player not found") {
+                return interaction.reply(`Player not found`);
+            }
+            return interaction.reply(`Changed ${response} by ${value} for ${player}`);
         } else {
             return interaction.reply('Something went wrong');
         }
