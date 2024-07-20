@@ -3,8 +3,8 @@ const char = require('../../char'); // Importing the database manager
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('balance')
-		.setDescription('Show balance')
+		.setName('balanceadmin')
+		.setDescription('Show balance of a player')
         .addUserOption(option => option.setName('player').setDescription('The player to show the balance of').setRequired(true))
         .setDefaultMemberPermissions(0),
 	execute(interaction) {
