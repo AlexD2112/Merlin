@@ -518,7 +518,7 @@ class char {
         }
       }
       if (!hasRole) {
-        return "You do not have the required role to use this item! You must have " + itemData.usageOptions["Need Role"];
+        return "You do not have the required role to use this item! You must have one of " + itemData.usageOptions["Need Any of Roles"];
       }
     }
 
@@ -536,7 +536,25 @@ class char {
         }
       }
       if (!hasRole) {
-        return "You do not have all the required roles to use this item! You must have " + itemData.usageOptions["Need Role"];
+        return "You do not have all the required roles to use this item! You must have all of " + itemData.usageOptions["Need All Of Roles"];
+      }
+    }
+
+    if (itemData.usageOptions["Need None Of Roles"]) {
+      let roles = itemData.usageOptions["Need None Of Roles"].split("<@&");
+      roles = roles.map(role => role.replace(">", ""));
+      roles = roles.map(role => role.replace(",", ""));
+      roles = roles.map(role => role.replace(" ", ""));
+      roles = roles.filter(role => role.length > 0);
+      let hasRole = false;
+      for (let i = 0; i < roles.length; i++) {
+        if (user.roles.cache.some(role => role.id === roles[i])) {
+          hasRole = true;
+          break;
+        }
+      }
+      if (hasRole) {
+        return "You have a role that prevents you from using this item! You must not have any from " + itemData.usageOptions["Need None Of Roles"];
       }
     }
 
@@ -742,7 +760,7 @@ class char {
       }
     }
 
-    if (recipeData.recipeOptions["Need None of Roles"]) {
+    if (recipeData.recipeOptions["Need None Of Roles"]) {
       let roles = recipeData.recipeOptions.split("<@&");
       roles = roles.map(role => role.replace(">", ""));
       roles = roles.map(role => role.replace(",", ""));
@@ -756,7 +774,7 @@ class char {
         }
       }
       if (hasRole) {
-        return "You have a role that is not allowed to craft this recipe! You must have none of the roles from " + recipeData.recipeOptions["Need None of Roles"];
+        return "You have a role that is not allowed to craft this recipe! You must have none of the roles from " + recipeData.recipeOptions["Need None Of Roles"];
       }
     }
 
