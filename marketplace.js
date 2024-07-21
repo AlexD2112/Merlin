@@ -170,6 +170,41 @@ class marketplace {
     return [embed, rows];
   }
 
+  //Create a one page sales embed of just the sales for one player
+  static async showSales(player) {
+    // Load the marketplace.json file
+    let marketData = await dbm.loadCollection('marketplace');
+    let shopData = await dbm.loadCollection('shop');
+    // Create an embed to return on success. Will just say @user has listed **numberItems :itemIcon: itemName** for <:Talent:1232097113089904710>**price**.
+    let embed = new EmbedBuilder();
+    embed.setTitle(`${player}'s Sales`);
+    embed.setColor(0x36393e);
+    let descriptionText = '';
+    for (const category in marketData.marketplace) {
+      const categoryItems = marketData.marketplace[category];
+      for (const itemName in categoryItems) {
+        const sales = categoryItems[itemName];
+        for (const saleID in sales) {
+          const sale = sales[saleID];
+          if (sale.seller == player) {
+            const number = sale.number;
+            const item = itemName;
+            const icon = await shop.getItemIcon(itemName, shopData);
+            const price = sale.price;
+            let alignSpaces = ' '
+            if ((30 - item.length - ("" + price + "" + number).length) > 0) {
+              alignSpaces = ' '.repeat(30 - item.length - ("" + price + "" + number).length);
+            }
+            descriptionText += `\`${saleID}\` ${icon} **\`${number} ${item}${alignSpaces}${price}\`**${clientManager.getEmoji("Talent")}\n`;
+          }
+        }
+      }
+    }
+    descriptionText += '\n';
+    embed.setDescription(descriptionText);
+    return embed;
+  }
+
   //Buy a sale. Send the money from the buyer to the seller, and give the buyer the items. If the seller is buying their own sale, merely give them back their items, no need to check their money- this functionality will exist for accidental sales
   static async buySale(saleID, userTag, userID) {
     // Load the character.json and marketplace.json file
