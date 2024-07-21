@@ -297,6 +297,16 @@ class Admin {
       }
       value = channelString;
     }
+
+    //If field is name, make sure it is unique and than update the map name
+    if (field == "Name") {
+      if (data[value] != undefined) {
+        return "Map name already exists!";
+      }
+      data[value] = data[mapName];
+      delete data[mapName];
+      mapName = value;
+    }
   
     // Update the field with the new value
     data[mapName].mapOptions[field] = value;
