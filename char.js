@@ -667,6 +667,33 @@ class char {
       returnEmbed.addFields({ name: '**Items:**', value: itemString });
     }
 
+    //Check to make sure the player's roles got swapped around right, i.e. if they have the role they should have and don't have the role they shouldn't have
+    if (itemData.usageOptions["Give Role"] && itemData.usageOptions["Take Role"]) {
+      let giveRoles = itemData.usageOptions["Give Role"].split("<@&");
+      giveRoles = giveRoles.map(role => role.replace(">", ""));
+      giveRoles = giveRoles.map(role => role.replace(",", ""));
+      giveRoles = giveRoles.map(role => role.replace(" ", ""));
+      giveRoles = giveRoles.filter(role => role.length > 0);
+
+      let takeRoles = itemData.usageOptions["Take Role"].split("<@&");
+      takeRoles = takeRoles.map(role => role.replace(">", ""));
+      takeRoles = takeRoles.map(role => role.replace(",", ""));
+      takeRoles = takeRoles.map(role => role.replace(" ", ""));
+      takeRoles = takeRoles.filter(role => role.length > 0);
+
+      for (let i = 0; i < giveRoles.length; i++) {
+        if (!user.roles.cache.some(role => role.id === giveRoles[i])) {
+          returnEmbed.addFields({ name: '**Error:**', value: "You do not have a role you should have! Ping Alex" });
+        }
+      }
+
+      for (let i = 0; i < takeRoles.length; i++) {
+        if (user.roles.cache.some(role => role.id === takeRoles[i])) {
+          returnEmbed.addFields({ name: '**Error:**', value: "You have a role you shouldn't have! Ping Alex" });
+        }
+      }
+    }
+
     await dbm.saveFile(charactersCollection, charID, charData);
 
     return returnEmbed;
