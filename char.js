@@ -127,7 +127,51 @@ class char {
       return "You haven't made a character! Use /newchar first";
     }
   }
-  
+
+  static async balanceAll(pageNumber) {
+    //Balance of all characters in descending order- should be done as a multiple page embed
+    pageNumber = parseInt(pageNumber);
+    const maxPerPage = 25;
+
+    let collectionName = 'characters';
+    let charData = await dbm.loadCollection(collectionName);
+    let charArray = [];
+    for (let [key, value] of Object.entries(charData)) {
+      charArray.push({ key, value });
+    }
+    charArray.sort((a, b) => b.value.balance - a.value.balance);
+
+    let totalPages = Math.ceil(charArray.length / maxPerPage);
+    if (pageNumber > totalPages) {
+      return "Page number exceeds total pages!";
+    }
+
+    let start = (pageNumber - 1) * maxPerPage;
+    let end = Math.min(pageNumber * maxPerPage, charArray.length);
+
+    let superstring = "";
+    for (let i = start; i < end; i++) {
+      let char = charArray[i];
+      superstring += "** <@" + char.value.numericID + "> **: " + char.value.balance + "\n";
+    }
+
+    const balanceEmbed = {
+      color: 0x36393e,
+      title: "**__Balance__**",
+      description: superstring,
+    };
+
+    //Make buttons for pages
+    let rows = [];
+    let buttonRow = new ActionRowBuilder();
+    buttonRow.addComponents(new ButtonBuilder().setCustomId('switch_bala' + (pageNumber - 1)).setLabel('Previous').setStyle(ButtonStyle.Secondary).setDisabled(pageNumber === 1));
+    buttonRow.addComponents(new ButtonBuilder().setCustomId('switch_bala' + (pageNumber + 1)).setLabel('Next').setStyle(ButtonStyle.Secondary).setDisabled(pageNumber === totalPages));
+
+    rows.push(buttonRow);
+
+    return [balanceEmbed, rows];
+  }
+
   static async me(userID) {
     let collectionName = 'characters';
     let charData = await dbm.loadFile(collectionName, userID);

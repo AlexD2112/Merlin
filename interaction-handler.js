@@ -188,6 +188,10 @@ itemSwitch = async (interaction) => {
   let [edittedEmbed, rows] = await shop.editItemMenu(interaction.customId.substring(12), interaction.customId[11], interaction.user.tag);
   await interaction.update({ embeds: [edittedEmbed], components: [rows]});
 }
+balaSwitch = async (interaction) => {
+  let [edittedEmbed, rows] = await char.balanceAll(interaction.customId[11])
+  await interaction.update({ embeds: [edittedEmbed], components: rows});
+}
 helpSwitch = async (interaction) => {
   //This one is odder, will either have the 11th character be "A" or "R" for admin or regular help. The 12th character will be the page number.
   let isAdmin = false;
@@ -236,6 +240,8 @@ exports.handle = async (interaction) => {
       incomeSwitch(interaction);
     } else if (interaction.customId.substring(0, 11) === 'switch_alit') {
       allItemSwitch(interaction);
+    } else if (interaction.customId.substring(0, 11) === 'switch_bala') {
+      balaSwitch(interaction);
     } else if (interaction.customId.substring(0, 11) === 'partySelect') {
       await admin.selectParty(interaction);
     }
