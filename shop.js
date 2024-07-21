@@ -1311,7 +1311,7 @@ class shop {
     let user = await clientManager.getUser(charData.numericID);
 
     let returnString;
-    if (charData.balance <= (price * numToBuy)) {
+    if (charData.balance < (price * numToBuy)) {
       returnString = "You do not have enough gold!";
       await dbm.saveFile(charCollection, charID, charData);
       return returnString;
