@@ -683,13 +683,13 @@ class char {
 
       for (let i = 0; i < giveRoles.length; i++) {
         if (!user.roles.cache.some(role => role.id === giveRoles[i])) {
-          returnEmbed.addFields({ name: '**Error:**', value: "You do not have a role you should have! Ping Alex" });
+          returnEmbed.addFields({ name: '**ERROR!!!!:**', value: "You do not have a role you should have! Ping Alex" });
         }
       }
 
       for (let i = 0; i < takeRoles.length; i++) {
         if (user.roles.cache.some(role => role.id === takeRoles[i])) {
-          returnEmbed.addFields({ name: '**Error:**', value: "You have a role you shouldn't have! Ping Alex" });
+          returnEmbed.addFields({ name: '**ERROR!!!!:**', value: "You have a role you shouldn't have! Ping Alex" });
         }
       }
     }
