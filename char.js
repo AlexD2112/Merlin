@@ -685,7 +685,7 @@ class char {
       roles = roles.map(role => role.replace(" ", ""));
       roles = roles.filter(role => role.length > 0);
       for (let i = 0; i < roles.length; i++) {
-        user.roles.add(roles[i]);
+        await user.roles.add(roles[i]);
       }
 
       returnEmbed.addFields({ name: '**Added Roles:**', value: itemData.usageOptions["Give Role"] });
@@ -698,7 +698,7 @@ class char {
       roles = roles.map(role => role.replace(" ", ""));
       roles = roles.filter(role => role.length > 0);
       for (let i = 0; i < roles.length; i++) {
-        user.roles.remove(roles[i]);
+        await user.roles.remove(roles[i]);
       }
 
       returnEmbed.addFields({ name: '**Removed Roles:**', value: itemData.usageOptions["Take Role"] });
@@ -726,13 +726,23 @@ class char {
       takeRoles = takeRoles.filter(role => role.length > 0);
 
       for (let i = 0; i < giveRoles.length; i++) {
-        if (!user.roles.cache.some(role => role.id === giveRoles[i])) {
+        while (!user.roles.cache.some(role => role.id === giveRoles[i]) && k < 100) {
+          //Try again
+          await user.roles.add(giveRoles[i]);
+          k++;
+        } if (k >= 100) {
           returnEmbed.addFields({ name: '**ERROR!!!!:**', value: "You do not have a role you should have! Ping Alex" });
         }
       }
 
       for (let i = 0; i < takeRoles.length; i++) {
-        if (user.roles.cache.some(role => role.id === takeRoles[i])) {
+        let k = 0;
+        while (user.roles.cache.some(role => role.id === takeRoles[i]) && k < 100) {
+          //Log the role they have that they shouldn't have
+          await user.roles.remove(takeRoles[i]);
+          k++;
+        }
+        if (k >= 100) {
           returnEmbed.addFields({ name: '**ERROR!!!!:**', value: "You have a role you shouldn't have! Ping Alex" });
         }
       }
