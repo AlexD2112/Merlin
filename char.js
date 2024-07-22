@@ -726,6 +726,7 @@ class char {
       takeRoles = takeRoles.filter(role => role.length > 0);
 
       for (let i = 0; i < giveRoles.length; i++) {
+        let k = 0;
         while (!user.roles.cache.some(role => role.id === giveRoles[i]) && k < 100) {
           //Try again
           await user.roles.add(giveRoles[i]);
