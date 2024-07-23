@@ -1496,6 +1496,9 @@ class char {
       return "Error: Player not found";
     }
 
+    console.log(charData.balance);
+    console.log(gold);
+    console.log(charData.balance >= gold);
     if (charData && charData2) {
       if (charData.balance >= gold) {
         charData.balance -= gold;
