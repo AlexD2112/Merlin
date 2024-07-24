@@ -341,6 +341,8 @@ class char {
     let resourceMap = {}
     let incomesCollectedArray = [];
     for (let [key, value] of Object.entries(charIncomeData)) {
+      console.log(value);
+
       //Each value will include an emoji, goldGiven, itemGiven, and itemAmount field
       //Should add goldGiven to total, and if itemGiven is not "" and itemAmount is not 0, add itemAmount to the resourceMap. 
       //Should also add to the superString the icon and name of the command in bold, followed by enter and a tab, followed by the goldGiven (if greater than zero) and the itemGiven and itemAmount (if greater than zero)
@@ -350,6 +352,7 @@ class char {
       let goldGiven = value.data.goldGiven;
       let itemGiven = value.data.itemGiven;
       let itemAmount = value.data.itemAmount;
+      console.log(goldGiven);
       let emoji = value.data.emoji;
       let tempString = "";
       tempString += emoji + " **__" + value.income + "__**\n"; 
@@ -365,6 +368,7 @@ class char {
         afterString += tempString;
         afterString += "\n";
         total += goldGiven;
+        console.log(total);
         if (itemGiven != "" && itemAmount != 0) {
           if (resourceMap[itemGiven]) {
             resourceMap[itemGiven] += itemAmount;
