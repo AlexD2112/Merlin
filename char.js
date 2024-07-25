@@ -349,6 +349,8 @@ class char {
       let delay = value.data.delay || "1D";
       let incomeAvailableKey = delay === "1D" ? "incomeAvailable" : `incomeAvailable${delay}`;
 
+      console.log(incomeAvailableKey);
+
       let goldGiven = value.data.goldGiven;
       let itemGiven = value.data.itemGiven;
       let itemAmount = value.data.itemAmount;
