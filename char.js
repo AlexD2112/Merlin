@@ -358,10 +358,10 @@ class char {
       let emoji = value.data.emoji;
       let tempString = "";
       tempString += emoji + " **__" + value.income + "__**\n"; 
-      if (goldGiven > 0) {
+      if (goldGiven > 0 || goldGiven < 0) {
         tempString += clientManager.getEmoji("Talent") + " Gold : `" + goldGiven + "`\n";
       }
-      if (itemGiven != "" && itemAmount > 0) {
+      if (itemGiven != "" && (itemAmount > 0 || itemAmount < 0)) {
         tempString += clientManager.getEmoji(itemGiven) + " " + itemGiven + " : `" + itemAmount + "`\n";
       }
       
