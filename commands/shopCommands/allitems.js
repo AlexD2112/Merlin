@@ -4,6 +4,7 @@ const shop = require('../../shop'); // Importing the database manager
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('allitems')
+		.setDefaultMemberPermissions(0)
 		.setDescription('List all items'),
 	async execute(interaction) {
 		// const itemListString = await shop.shop();
