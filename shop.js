@@ -128,6 +128,7 @@ class shop {
   static async recipesEmbed(isPublic, page) {
     const itemsPerPage = 1000; // Number of recipes per page
     let data = await dbm.loadCollection('recipes');
+    let shopData = await dbm.loadCollection('shop');
     let publicRecipes = [];
     let privateRecipes = [];
   
@@ -141,11 +142,18 @@ class shop {
     }
 
 
-    let recipesToShow;
-    if (isPublic) {
-      recipesToShow = publicRecipes;
-    } else {
-      recipesToShow = publicRecipes.concat(privateRecipes);
+    let recipesToShow = isPublic ? publicRecipes : publicRecipes.concat(privateRecipes);
+
+    let categorizedRecipes = {};
+    for (let recipe of recipesToShow) {
+      let category = "Uncategorized";
+      if (shopData[recipe.recipeOptions.Name]) {
+        category = shopData[recipe.recipeOptions.Name].Category || category;
+      }
+      if (!categorizedRecipes[category]) {
+        categorizedRecipes[category] = [];
+      }
+      categorizedRecipes[category].push(recipe);
     }
   
     // Pagination calculation
@@ -159,32 +167,35 @@ class shop {
       .setFooter({ text: `Page ${page} of ${totalPages}` });
 
     let descriptionText = '';
-    if (isPublic) {
-      for (let i = pageStart; i < pageEnd && i < publicRecipes.length; i++) {
-        descriptionText += (publicRecipes[i].recipeOptions.Icon ? publicRecipes[i].recipeOptions.Icon + " " : ":hammer: ") + publicRecipes[i].recipeOptions.Name + "\n";
-      }
-    } else {
-      if (pageStart < publicRecipes.length) {
-        descriptionText += "**Public Recipes**\n";
-        let endIndex = Math.min(pageEnd, publicRecipes.length);
-        for (let i = pageStart; i < endIndex; i++) {
-          descriptionText += (publicRecipes[i].recipeOptions.Icon ? publicRecipes[i].recipeOptions.Icon + " " : ":hammer: ") + publicRecipes[i].recipeOptions.Name + "\n";
-        }
-      }
-      if (pageEnd > publicRecipes.length) {
-        descriptionText += "**Private Recipes**\n";
-        let startPrivateIndex = Math.max(pageStart - publicRecipes.length, 0);
-        let endPrivateIndex = Math.min(pageEnd - publicRecipes.length, privateRecipes.length);
-        for (let i = startPrivateIndex; i < endPrivateIndex; i++) {
-          descriptionText += (privateRecipes[i].recipeOptions.Icon ? privateRecipes[i].recipeOptions.Icon + " " : ":hammer: ") + privateRecipes[i].recipeOptions.Name + "\n";
-        }
-      }
 
-      
+    const addRecipesToDescription = (recipes, startIndex, endIndex, category, isPublic) => {
+      if (recipes.length > 0) {
+        descriptionText += `**${category}**\n`;
+        for (let i = startIndex; i < endIndex && i < recipes.length; i++) {
+          let recipeName = recipes[i].recipeOptions.Name;
+          if (!isPublic && privateRecipes.includes(recipes[i])) {
+            recipeName += " :warning:Private:warning:";
+          }
+          descriptionText += (recipes[i].recipeOptions.Icon ? recipes[i].recipeOptions.Icon + " " : ":hammer: ") + recipeName + "\n";
+        }
+      }
+    };
+
+    let count = 0;
+
+    for (let [category, recipes] of Object.entries(categorizedRecipes)) {
+      if (count >= pageStart && count < pageEnd) {
+        let startIndex = Math.max(pageStart - count, 0);
+        let endIndex = Math.min(pageEnd - count, recipes.length);
+        addRecipesToDescription(recipes, startIndex, endIndex, category, isPublic);
+      }
+      count += recipes.length;
     }
-    if (descriptionText == '') {
+
+    if (descriptionText === '') {
       descriptionText = 'No recipes found!';
     }
+
     returnEmbed.setDescription(descriptionText);
   
     // Buttons for navigation
