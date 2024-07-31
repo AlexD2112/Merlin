@@ -148,7 +148,10 @@ class shop {
     for (let recipe of recipesToShow) {
       let category = "Uncategorized";
       if (shopData[recipe.recipeOptions.Name]) {
-        category = shopData[recipe.recipeOptions.Name].Category || category;
+        category = shopData[recipe.recipeOptions.Name].infoOptions.Category || category;
+      }
+      if (category == "") {
+        category = "Uncategorized";
       }
       if (!categorizedRecipes[category]) {
         categorizedRecipes[category] = [];
