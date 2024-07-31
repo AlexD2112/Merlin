@@ -259,6 +259,22 @@ class Admin {
   
     return mapName + ' has been deleted';
   }
+
+  static async editMapAbout(interaction) {
+    let mapNameNoSpaces = interaction.customId.replace("editmapaboutmodal", "");
+    let maps = await dbm.loadFile('keys', 'maps');
+    let mapName = Object.keys(maps).find(key => key.replace(/ /g, '').toLowerCase() == mapNameNoSpaces);
+    if (mapName == undefined) {
+      interaction.reply("Map not found!");
+      return;
+    }
+    console.log(interaction)
+    let about = interaction.fields.getTextInputValue('mapabout');
+
+    maps[mapName].mapOptions.About = about;
+    await dbm.saveFile('keys', 'maps', maps);
+    interaction.reply("About section has been updated");
+  }
   
   static async editMapField(charTag, field, value) {
     // Load the maps collection
@@ -337,7 +353,7 @@ class Admin {
     let map = maps[mapName];
     if (map == undefined) {
       for (const key in maps) {
-        if (key.toLowerCase() == mapName.toLowerCase()) {
+        if (key.toLowerCase().replace(/ /g, '') == mapName.toLowerCase().replace(/ /g, '')) {
           map = maps[key];
           mapName = key;
         }

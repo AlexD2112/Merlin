@@ -224,6 +224,10 @@ exports.handle = async (interaction) => {
     if (interaction.customId === 'shoplayoutmodal') {
       shopLayout(interaction);
     }
+    //Check if it starts with editmapaboutmodal
+    if (interaction.customId.substring(0, 17) === 'editmapaboutmodal') {
+      admin.editMapAbout(interaction);
+    }
     // if (interaction.customId === 'addusedescriptionmodal') {
     //   addUseDescription(interaction);
     // }
