@@ -145,10 +145,18 @@ class shop {
     let recipesToShow = isPublic ? publicRecipes : publicRecipes.concat(privateRecipes);
 
     let categorizedRecipes = {};
+    let itemNamesLower = Object.keys(shopData).map(name => name.toLowerCase());
     for (let recipe of recipesToShow) {
       let category = "Uncategorized";
       if (shopData[recipe.recipeOptions.Name]) {
         category = shopData[recipe.recipeOptions.Name].infoOptions.Category || category;
+      } else {
+        // Search for comparison lower case
+        let recipeName = recipe.recipeOptions.Name.toLowerCase();
+        let index = itemNamesLower.indexOf(recipeName);
+        if (index != -1) {
+          category = shopData[Object.keys(shopData)[index]].infoOptions.Category || category
+        }
       }
       if (category == "") {
         category = "Uncategorized";
@@ -177,7 +185,7 @@ class shop {
         for (let i = startIndex; i < endIndex && i < recipes.length; i++) {
           let recipeName = recipes[i].recipeOptions.Name;
           if (!isPublic && privateRecipes.includes(recipes[i])) {
-            recipeName += " :warning:Private:warning:";
+            recipeName += " :warning:";
           }
           descriptionText += (recipes[i].recipeOptions.Icon ? recipes[i].recipeOptions.Icon + " " : ":hammer: ") + recipeName + "\n";
         }
@@ -666,6 +674,9 @@ class shop {
       return "Item not found!";
     }
 
+    console.log(itemName);
+    console.log(shopData[itemName]);
+
     let data = shopData;
     let itemData = data[itemName];
     
@@ -826,12 +837,13 @@ class shop {
       }
     }
 
-    if (recipeData[recipeName].recipeOptions["Show Message"]) {
+    if (recipeData[recipeName].recipeOptions["Show Message"] != "") {
       inspectEmbed.setDescription(recipeData[recipeName].recipeOptions["Show Message"]);
     }
 
     inspectEmbed.addFields({ name: '**About: **', value: aboutString });
-    if (recipeData[recipeName].recipeOptions["Show Image"]) {
+    if (recipeData[recipeName].recipeOptions["Show Image"] != "") {
+      console.log(recipeData[recipeName]);
       inspectEmbed.setImage(recipeData[recipeName].recipeOptions["Show Image"]);
     }
 

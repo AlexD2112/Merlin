@@ -5,7 +5,6 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('map')
 		.setDescription('Show a map.')
-		.setDefaultMemberPermissions(0)
 		.addStringOption((option) =>
 		option.setName('map')
 			.setDescription('The map name')
