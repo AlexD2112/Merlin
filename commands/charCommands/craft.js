@@ -14,7 +14,7 @@ module.exports = {
 		const recipe = interaction.options.getString('recipe');
 
 		(async () => {
-            let reply = await char.craft(interaction.user.tag, recipe)
+            let reply = await char.craft(interaction.user, recipe, interaction.guild)
             if (typeof(reply) == 'string') {
                 await interaction.reply(reply);
             } else {

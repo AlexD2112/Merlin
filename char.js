@@ -552,10 +552,10 @@ class char {
     }
 
 
-    //There are multiple role options, either Need Any of Roles or Need All Of Roles. If Need Any Of Roles, check if user has any of the roles. If Need All Of Roles, check if user has all of the roles
-    if (itemData.usageOptions["Need Any of Roles"]) {
+    //There are multiple role options, either Need Any Of Roles or Need All Of Roles. If Need Any Of Roles, check if user has any of the roles. If Need All Of Roles, check if user has all of the roles
+    if (itemData.usageOptions["Need Any Of Roles"]) {
       //Roles are enclosed in <@& and >, and there may be multiple roles. They may not be comma separated but commas and spaces may exist
-      let roles = itemData.usageOptions["Need Any of Roles"].split("<@&");
+      let roles = itemData.usageOptions["Need Any Of Roles"].split("<@&");
       roles = roles.map(role => role.replace(">", ""));
       roles = roles.map(role => role.replace(",", ""));
       roles = roles.map(role => role.replace(" ", ""));
@@ -568,7 +568,7 @@ class char {
         }
       }
       if (!hasRole) {
-        return "You do not have the required role to use this item! You must have one of " + itemData.usageOptions["Need Any of Roles"];
+        return "You do not have the required role to use this item! You must have one of " + itemData.usageOptions["Need Any Of Roles"];
       }
     }
 
@@ -760,14 +760,15 @@ class char {
     return returnEmbed;
   }
 
-  static async craft(charID, recipe) {
+  static async craft(userPassed, recipe, guild) {
+    let charID = userPassed.tag;
+    let user = await guild.members.fetch(userPassed.id);
+
     let allRecipes = await dbm.loadCollection('recipes');
     let recipeData = allRecipes[recipe];
 
     if (!recipeData) {
       for (let [key, value] of Object.entries(allRecipes)) {
-        console.log(value.recipeOptions.Name.toLowerCase());
-        console.log(recipe.toLowerCase());
         if (value.recipeOptions.Name.toLowerCase() == recipe.toLowerCase()) {
           recipeData = value;
           recipe = key;
@@ -811,14 +812,19 @@ class char {
       }
     }
 
-    //There are multiple role options, either Need Any of Roles or Need All Of Roles. If Need Any Of Roles, check if user has any of the roles. If Need All Of Roles, check if user has all of the roles
-    if (recipeData.recipeOptions["Need Any of Roles"]) {
+    console.log(recipeData);
+
+    //There are multiple role options, either Need Any Of Roles or Need All Of Roles. If Need Any Of Roles, check if user has any of the roles. If Need All Of Roles, check if user has all of the roles
+    if (recipeData.recipeOptions["Need Any Of Roles"]) {
       //Roles are enclosed in <@& and >, and there may be multiple roles. They may not be comma separated but commas and spaces may exist
-      let roles = recipeData.recipeOptions["Need Any of Roles"].split("<@&");
+      console.log(recipeData.recipeOptions["Need Any Of Roles"]);
+      let roles = recipeData.recipeOptions["Need Any Of Roles"].split("<@&");
+      console.log(roles);
       roles = roles.map(role => role.replace(">", ""));
       roles = roles.map(role => role.replace(",", ""));
       roles = roles.map(role => role.replace(" ", ""));
       roles = roles.filter(role => role.length > 0);
+      console.log(roles);
       let hasRole = false;
       for (let i = 0; i < roles.length; i++) {
         if (user.roles.cache.some(role => role.id === roles[i])) {
@@ -827,11 +833,11 @@ class char {
         }
       }
       if (!hasRole) {
-        return "You do not have the required role to craft this recipe! You must have one role from " + recipeData.recipeOptions["Need Any of Roles"];
+        return "You do not have the required role to craft this recipe! You must have one role from " + recipeData.recipeOptions["Need Any Of Roles"];
       }
     }
 
-    if (recipeData.recipeOptions["Need All of Roles"]) {
+    if (recipeData.recipeOptions["Need All Of Roles"]) {
       let roles = recipeData.recipeOptions.split("<@&");
       roles = roles.map(role => role.replace(">", ""));
       roles = roles.map(role => role.replace(",", ""));
@@ -845,7 +851,7 @@ class char {
         }
       }
       if (!hasRole) {
-        return "You do not have all the required roles to craft this recipe! You must have all roles from " + recipeData.recipeOptions["Need All of Roles"];
+        return "You do not have all the required roles to craft this recipe! You must have all roles from " + recipeData.recipeOptions["Need All Of Roles"];
       }
     }
 
