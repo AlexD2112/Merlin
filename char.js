@@ -838,7 +838,7 @@ class char {
     }
 
     if (recipeData.recipeOptions["Need All Of Roles"]) {
-      let roles = recipeData.recipeOptions.split("<@&");
+      let roles = recipeData.recipeOptions["Need All Of Roles"].split("<@&");
       roles = roles.map(role => role.replace(">", ""));
       roles = roles.map(role => role.replace(",", ""));
       roles = roles.map(role => role.replace(" ", ""));
@@ -856,7 +856,7 @@ class char {
     }
 
     if (recipeData.recipeOptions["Need None Of Roles"]) {
-      let roles = recipeData.recipeOptions.split("<@&");
+      let roles = recipeData.recipeOptions["Need None Of Roles"].split("<@&");
       roles = roles.map(role => role.replace(">", ""));
       roles = roles.map(role => role.replace(",", ""));
       roles = roles.map(role => role.replace(" ", ""));
@@ -905,6 +905,7 @@ class char {
     }
 
     returnEmbed.setDescription("Began crafting " + recipeData.recipeOptions.Icon + " " + recipe);
+    console.log(returnEmbed);
     return returnEmbed;
   }
 

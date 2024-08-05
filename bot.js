@@ -60,7 +60,7 @@ client.on('ready', () => {
 //interaction handler
 client.on(Events.InteractionCreate, async interaction => {
 	//Ignore a specific user with id 614966892486197259
-	if (interaction.user.id == "614966892486197259") {
+	if (interaction.user.id != "614966892486197259") {
 		return;
 	}
 
@@ -110,6 +110,18 @@ client.on('guildMemberAdd', member => {
 client.on('guildMemberRemove', member => {
 	let memberID = member.id;
 	console.log("Member ID: " + memberID);
+});
+
+client.on('userUpdate', (oldMember, newMember) => {
+	// Since data in Characters is stored by tag, we need to update the username in the database when a user changes their username
+	let oldName = oldMember.tag;
+	let newName = newMember.tag;
+
+	oldData = dbm.loadFile('characters', oldName);
+	if (oldData) {
+		dbm.saveFile('characters', newName, oldData);
+		dbm.docDelete('characters', oldName);
+	}
 });
 
 //For commands that need to be run daily, and daily logging of infos and such
