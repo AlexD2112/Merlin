@@ -558,9 +558,11 @@ class char {
       let roles = itemData.usageOptions["Need Any Of Roles"].split("<@&");
       roles = roles.map(role => role.replace(">", ""));
       roles = roles.map(role => role.replace(",", ""));
-      roles = roles.map(role => role.replace(" ", ""));
+      roles = roles.map(role => role.replace(/\s+/g, ""));
       roles = roles.filter(role => role.length > 0);
       let hasRole = false;
+
+      console.log(roles);
       for (let i = 0; i < roles.length; i++) {
         if (user.roles.cache.some(role => role.id === roles[i])) {
           hasRole = true;
@@ -576,7 +578,7 @@ class char {
       let roles = itemData.usageOptions["Need All Of Roles"].split("<@&");
       roles = roles.map(role => role.replace(">", ""));
       roles = roles.map(role => role.replace(",", ""));
-      roles = roles.map(role => role.replace(" ", ""));
+      roles = roles.map(role => role.replace(/\s+/g, ""));
       roles = roles.filter(role => role.length > 0);
       let hasRole = true;
       for (let i = 0; i < roles.length; i++) {
@@ -594,7 +596,7 @@ class char {
       let roles = itemData.usageOptions["Need None Of Roles"].split("<@&");
       roles = roles.map(role => role.replace(">", ""));
       roles = roles.map(role => role.replace(",", ""));
-      roles = roles.map(role => role.replace(" ", ""));
+      roles = roles.map(role => role.replace(/\s+/g, ""));
       roles = roles.filter(role => role.length > 0);
       let hasRole = false;
       for (let i = 0; i < roles.length; i++) {
@@ -688,7 +690,7 @@ class char {
       let roles = itemData.usageOptions["Give Role"].split("<@&");
       roles = roles.map(role => role.replace(">", ""));
       roles = roles.map(role => role.replace(",", ""));
-      roles = roles.map(role => role.replace(" ", ""));
+      roles = roles.map(role => role.replace(/\s+/g, ""));
       roles = roles.filter(role => role.length > 0);
       for (let i = 0; i < roles.length; i++) {
         await user.roles.add(roles[i]);
@@ -701,7 +703,7 @@ class char {
       let roles = itemData.usageOptions["Take Role"].split("<@&");
       roles = roles.map(role => role.replace(">", ""));
       roles = roles.map(role => role.replace(",", ""));
-      roles = roles.map(role => role.replace(" ", ""));
+      roles = roles.map(role => role.replace(/\s+/g, ""));
       roles = roles.filter(role => role.length > 0);
       for (let i = 0; i < roles.length; i++) {
         await user.roles.remove(roles[i]);
@@ -722,13 +724,13 @@ class char {
       let giveRoles = itemData.usageOptions["Give Role"].split("<@&");
       giveRoles = giveRoles.map(role => role.replace(">", ""));
       giveRoles = giveRoles.map(role => role.replace(",", ""));
-      giveRoles = giveRoles.map(role => role.replace(" ", ""));
+      giveRoles = giveRoles.map(role => role.replace(/\s+/g, ""));
       giveRoles = giveRoles.filter(role => role.length > 0);
 
       let takeRoles = itemData.usageOptions["Take Role"].split("<@&");
       takeRoles = takeRoles.map(role => role.replace(">", ""));
       takeRoles = takeRoles.map(role => role.replace(",", ""));
-      takeRoles = takeRoles.map(role => role.replace(" ", ""));
+      takeRoles = takeRoles.map(role => role.replace(/\s+/g, ""));
       takeRoles = takeRoles.filter(role => role.length > 0);
 
       for (let i = 0; i < giveRoles.length; i++) {
@@ -822,7 +824,7 @@ class char {
       console.log(roles);
       roles = roles.map(role => role.replace(">", ""));
       roles = roles.map(role => role.replace(",", ""));
-      roles = roles.map(role => role.replace(" ", ""));
+      roles = roles.map(role => role.replace(/\s+/g, ""));
       roles = roles.filter(role => role.length > 0);
       console.log(roles);
       let hasRole = false;
@@ -841,7 +843,7 @@ class char {
       let roles = recipeData.recipeOptions["Need All Of Roles"].split("<@&");
       roles = roles.map(role => role.replace(">", ""));
       roles = roles.map(role => role.replace(",", ""));
-      roles = roles.map(role => role.replace(" ", ""));
+      roles = roles.map(role => role.replace(/\s+/g, ""));
       roles = roles.filter(role => role.length > 0);
       let hasRole = true;
       for (let i = 0; i < roles.length; i++) {
@@ -859,7 +861,7 @@ class char {
       let roles = recipeData.recipeOptions["Need None Of Roles"].split("<@&");
       roles = roles.map(role => role.replace(">", ""));
       roles = roles.map(role => role.replace(",", ""));
-      roles = roles.map(role => role.replace(" ", ""));
+      roles = roles.map(role => role.replace(/\s+/g, ""));
       roles = roles.filter(role => role.length > 0);
       let hasRole = false;
       for (let i = 0; i < roles.length; i++) {

@@ -1346,7 +1346,7 @@ class shop {
       let roles = itemData.shopOptions["Need Role"].split("<@&");
       roles = roles.map(role => role.replace(">", ""));
       roles = roles.map(role => role.replace(",", ""));
-      roles = roles.map(role => role.replace(" ", ""));
+      roles = roles.map(role => role.replace(/\s+/g, ""));
       roles = roles.filter(role => role.length > 0);
 
       //Check if the user has the role
@@ -1375,7 +1375,7 @@ class shop {
     let roles = itemData.shopOptions["Give Role"].split("<@&");
     roles = roles.map(role => role.replace(">", ""));
     roles = roles.map(role => role.replace(",", ""));
-    roles = roles.map(role => role.replace(" ", ""));
+    roles = roles.map(role => role.replace(/\s+/g, ""));
     roles = roles.filter(role => role.length > 0);
     for (let i = 0; i < roles.length; i++) {
       user.roles.add(roles[i]);
