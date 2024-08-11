@@ -1267,6 +1267,8 @@ class shop {
       } 
     }
 
+    console.log(recipeData)
+
     // Update the recipe data
     recipeData[category][fieldName] = newValue;
 
@@ -1300,6 +1302,36 @@ class shop {
 
       //Change the recipe name in the user's editingFields
       userData[userTag].editingFields["Recipe Edited"] = newValue;
+
+      //For each character in the userdata, in their cooldowns.craftSlots fields, replace the old name with the new name if it exists
+      let characters = Object.keys(userData);
+      for (let i = 0; i < characters.length; i++) {
+        if (userData[characters[i]].cooldowns && userData[characters[i]].cooldowns.craftSlots && characters[i] == "thegreatferret") {
+          let slots = userData[characters[i]].cooldowns.craftSlots;
+          console.log(slots);
+          //Slots is a json, not an array
+          let slotsKeys = Object.keys(slots);
+          console.log(slotsKeys);
+          for (let j = 0; j < slotsKeys.length; j++) {
+            let key = slotsKeys[j];
+            //Will either be recipeName or REPEAT_1_recipeName (repeat 2, etc), but you can't just check for inclusion because REPEAT_1_Woolen Tunic will include Wool
+            if (key == recipeName) {
+              slots[newValue] = slots[key];
+              delete slots[key];
+            }
+            //Check if first 7 characters are REPEAT_ and if its followed by a number and underscore
+            if (key.slice(0, 7) == "REPEAT_" && !isNaN(key.slice(7, 8)) && key.slice(8, 9) == "_" && key.slice(9) == recipeName) {
+              let newKey = "REPEAT_" + key.slice(7, 8) + "_" + newValue;
+              slots[newKey] = slots[key];
+              delete slots[key];
+            }
+          }
+          console.log(userData[characters[i]].cooldowns.craftSlots);
+          userData[characters[i]].cooldowns.craftSlots = slots;
+          console.log(userData[characters[i]].cooldowns.craftSlots);
+        }
+      }
+
       await dbm.saveCollection('characters', userData);
 
       return `Recipe name changed to ${newValue}`;
