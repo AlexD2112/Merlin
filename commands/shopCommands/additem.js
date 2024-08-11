@@ -21,7 +21,8 @@ module.exports = {
 					Icon: interaction.options.getString('itemicon'), 
 					Price: parseInt(interaction.options.getString('itemprice')), 
 					Description: interaction.options.getString('itemdescription'), 
-					Category: interaction.options.getString('itemcategory') 
+					Category: interaction.options.getString('itemcategory'),
+					"Transferrable (Y/N)": "Yes"
 				}
 			);
 		} else {
@@ -30,7 +31,8 @@ module.exports = {
 				{ 
 					Icon: interaction.options.getString('itemicon'), 
 					Description: interaction.options.getString('itemdescription'), 
-					Category: interaction.options.getString('itemcategory') 
+					Category: interaction.options.getString('itemcategory'),
+					"Transferrable (Y/N)": "Yes"
 				}
 			);
 		}

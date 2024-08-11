@@ -1456,9 +1456,14 @@ class char {
     //Check if player has item, if they do, remove it and give it to player
     let collectionName = 'characters';
     let shopData = await dbm.loadCollection('shop');
+
     item = await shop.findItemName(item, shopData);
     if (item === "ERROR") {
       return "Not a valid item";
+    }
+
+    if (shopData[item].infoOptions["Transferrable (Y/N)"] == "No") {
+      return "This item cannot be transferred!";
     }
     let charData;
     [playerGiving, charData] = await this.findPlayerData(playerGiving);

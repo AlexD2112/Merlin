@@ -21,6 +21,11 @@ class marketplace {
     if (itemName == "ERROR") {
       return "That item doesn't exist!";
     }
+
+    if (shopData[itemName].infoOptions["Transferrable (Y/N)"] == "No") {
+      return "That item is not transferrable!";
+    }
+
     // Check if they have enough of the item
     if (!charData.inventory[itemName] || charData.inventory[itemName] < numberItems) {
       return "You don't have enough of that item to sell it!";
