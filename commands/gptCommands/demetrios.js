@@ -23,7 +23,7 @@ module.exports = {
         //Check if user has a certain role
         if (interaction.member.roles.cache.some(role => role.name === 'Oligarch')) {
             let demetrios = dbm.loadFile("gptMessages", "demetrios");
-            let botSpoken = demetrios.quotas.userID;
+            let botSpoken = demetrios.quotas[userID];
             if (botSpoken == undefined) {
                 botSpoken = 1;
             } else if (botSpoken >= 2) {
