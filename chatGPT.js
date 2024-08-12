@@ -168,7 +168,7 @@ class chatGPT {
                 break;
         }
 
-        let contextString = await chatGPT.getContextString(message);
+        let contextString = await chatGPT.getContextString(message, prevMessages);
 
         console.log(contextString);
         
@@ -182,9 +182,15 @@ class chatGPT {
                         2. **Culture and Society**: Discuss the Greek customs, festivals, religious practices, and daily activities in Massalia. Highlight the influence of both Greek and local cultures in the city.
                         The following specific information may be relevant to this question. If it contradicts history, trust the following information instead of what you know about Massalia:` + contextString }];
         messages.push();
+        if (prevMessages != undefined && prevMessages != null) {
+            //Add previous messages to messages
+            for (let i = 0; i < prevMessages.length; i++) {
+                //Each message should be structured properly with role and everything
+                messages.push(prevMessages[i]);
+            }
+        }
         messages.push({ role: "user", content: charName + ", alternatively known as " + playerID + ", said " + message });
-
-        console.log(messages);
+        
 
         const completion = await openai.chat.completions.create({
             messages: messages,
@@ -196,9 +202,14 @@ class chatGPT {
         const dataText = completion.choices[0].message;
         const completionTokens = completion.usage.completion_tokens;
         const promptTokens = completion.usage.prompt_tokens;
-        //Add message and datatext to prevMessages
+        //Add message and datatext to prevMessages, remove first message- there should always be an even number of messages in prevMessages
         prevMessages.push({ role: "user", content: playerID + ", alternatively known as " + charName + ", said " + message });
         prevMessages.push({ role: "assistant", content: dataText.content });
+
+        if (prevMessages.length > 4) {
+            prevMessages.shift();
+            prevMessages.shift();
+        }
         demetriosInfo.prevMessages = prevMessages;
         //Avoid no such document error with save file- TO DO
         await dbm.saveFile("gptMessages", "demetrios", demetriosInfo);
@@ -234,20 +245,25 @@ class chatGPT {
         return returnString;
     }
 
-    static async getContextString(message) {
+    static async getContextString(message, prevMessages) {
         try {
             // Load the information blocks
             let info = await dbm.loadFile("gptMessages", "info");
+
+            let prevMessagesString = "";
+            for (let i = 0; i < prevMessages.length; i++) {
+                prevMessagesString += prevMessages[i].content + "\n";
+            }
     
             // Prepare the prompt messages
             let messages = [
-                {
+                {   
                     role: "system",
-                    content: "You are part of a bot named Demetrios. Your job is to decide which info blocks are relevant to this user's question in the Massalia RP game. Respond with only an JSON containing an array with the key 'blocks' and containing only numbers, each corresponding to one of the following blocks: 1. Massalia Basic History, 2. Notable Characters of Massalia, 3. Noble Houses of Massalia, 4. Political Structure of Massalia, 5. Demetrios Story/Info, 6. Diplomatic Relations with Carthage and Rome, 7. The Story of Pytheas, a famous Massalian explorer, 8. Notable Professions in Massalia, 9. Current Events."
+                    content: "You are part of a bot named Demetrios. Your job is to decide which info blocks are relevant to this user's question in the Massalia RP game. Respond with only an JSON containing an array with the key 'blocks' and containing only numbers, each corresponding to one of the following blocks: 1. Massalia Basic History, 2. Notable Characters of Massalia, 3. Noble Houses of Massalia, 4. Political Structure of Massalia, 5. Demetrios Story/Info, 6. Diplomatic Relations with Carthage and Rome, 7. The Story of Pytheas, a famous Massalian explorer, 8. Notable Professions in Massalia, 9. Current Events, 10. Massalia Stats (army/pop/income), 11. Tribes Near Massalia"
                 },
                 {
                     role: "user",
-                    content: "Respond with the array containing ONLY numbers for the following message: " + message
+                    content: "Here are some previous messages that might provide context: " + prevMessagesString + "Respond with the array containing ONLY numbers for the following message: " + message
                 }
             ];
     
