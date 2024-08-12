@@ -168,7 +168,9 @@ class chatGPT {
                 break;
         }
 
-        let contextString = await chatGPT.getContextString();
+        let contextString = await chatGPT.getContextString(message);
+
+        console.log(contextString);
         
         //Set passed messages to pass to gpt
         //First message is a system message to "Players are speaking to you in a discord game. Respond as if you are the pope. Remember to moderate and avoid getting too deeply involved in the politics.
@@ -177,13 +179,10 @@ class chatGPT {
 
                         1. **Historical Context**: Massalia is a prosperous Greek colony founded by Phocaean Greeks around 600 BC. It is a thriving port city known for its trade, culture, and strategic importance.
 
-                        2. **Culture and Society**: Discuss the Greek customs, festivals, religious practices, and daily activities in Massalia. Highlight the influence of both Greek and local cultures in the city.` + contextString }];
+                        2. **Culture and Society**: Discuss the Greek customs, festivals, religious practices, and daily activities in Massalia. Highlight the influence of both Greek and local cultures in the city.
+                        The following specific information may be relevant to this question. If it contradicts history, trust the following information instead of what you know about Massalia:` + contextString }];
         messages.push();
-        for (let i = 0; i < prevMessages.length; i++) {
-            //Each message should be structured properly with role and everything
-            messages.push(prevMessages[i]);
-        }
-        messages.push({ role: "user", content: playerID + ", alternatively known as " + charName + ", said " + message });
+        messages.push({ role: "user", content: charName + ", alternatively known as " + playerID + ", said " + message });
 
         console.log(messages);
 
@@ -193,31 +192,7 @@ class chatGPT {
             max_tokens: 500,});
         
         console.log(completion);
-        //Save message, prevMessages, and completion to database under player id
 
-        //Initialize example completion
-        // const completion = { 
-        //         "choices": [
-        //           {
-        //             "finish_reason": "stop",
-        //             "index": 0,
-        //             "message": {
-        //               "content": "The 2020 World Series was played in Texas at Globe Life Field in Arlington.",
-        //               "role": "assistant"
-        //             },
-        //             "logprobs": null
-        //           }
-        //         ],
-        //         "created": 1677664795,
-        //         "id": "chatcmpl-7QyqpwdfhqwajicIEznoc6Q47XAyW",
-        //         "model": "gpt-3.5-turbo-0613",
-        //         "object": "chat.completion",
-        //         "usage": {
-        //           "completion_tokens": 17,
-        //           "prompt_tokens": 57,
-        //           "total_tokens": 74
-        //         }
-        //       }
         const dataText = completion.choices[0].message;
         const completionTokens = completion.usage.completion_tokens;
         const promptTokens = completion.usage.prompt_tokens;
@@ -259,17 +234,76 @@ class chatGPT {
         return returnString;
     }
 
-    static async getContextString() {
-        //Get the full context string from gptMessages/info/fullInfo
-        let fullInfo = await dbm.loadFile("gptMessages", "info");
-        if (fullInfo == undefined || fullInfo == null) {
-            fullInfo = {};
+    static async getContextString(message) {
+        try {
+            // Load the information blocks
+            let info = await dbm.loadFile("gptMessages", "info");
+    
+            // Prepare the prompt messages
+            let messages = [
+                {
+                    role: "system",
+                    content: "You are part of a bot named Demetrios. Your job is to decide which info blocks are relevant to this user's question in the Massalia RP game. Respond with only an JSON containing an array with the key 'blocks' and containing only numbers, each corresponding to one of the following blocks: 1. Massalia Basic History, 2. Notable Characters of Massalia, 3. Noble Houses of Massalia, 4. Political Structure of Massalia, 5. Demetrios Story/Info, 6. Diplomatic Relations with Carthage and Rome, 7. The Story of Pytheas, a famous Massalian explorer, 8. Notable Professions in Massalia, 9. Current Events."
+                },
+                {
+                    role: "user",
+                    content: "Respond with the array containing ONLY numbers for the following message: " + message
+                }
+            ];
+    
+            // Call the OpenAI API to get the structured output
+            const completion = await openai.chat.completions.create({
+                model: "gpt-4o",
+                messages: messages,
+                max_tokens: 50,
+                temperature: 0,
+                functions: [
+                    {
+                        "name": "setRelevantBlocks",
+                        "description": "Select relevant blocks for a given user message",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "blocks": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer"
+                                    },
+                                    "description": "An array of block numbers relevant to the user's question"
+                                }
+                            },
+                            "required": ["blocks"]
+                        }
+                    }
+                ],
+                function_call: { "name": "setRelevantBlocks" }
+            });
+    
+            // Extract the response message
+            const responseFunctionCall = completion.choices[0].message.function_call;
+    
+            // Parse the response to get the array of numbers
+            const responseArray = JSON.parse(responseFunctionCall.arguments);
+    
+            const blocks = responseArray.blocks;
+
+            console.log(blocks);
+            let contextString = "";
+            for (let i = 0; i < blocks.length; i++) {
+                console.log(info);
+                console.log(blocks[i]);
+                console.log(info.infoBlocks[blocks[i] - 1]);
+                contextString += info.infoBlocks[blocks[i] - 1] + "\n\n";
+            }
+
+            console.log(contextString);
+
+            return contextString;
+    
+        } catch (error) {
+            console.error("Error getting context string:", error);
+            throw error;
         }
-        let contextString = fullInfo.fullInfo;
-        if (contextString == undefined || contextString == null) {
-            contextString = "";
-        }
-        return contextString;
     }
 }
 
