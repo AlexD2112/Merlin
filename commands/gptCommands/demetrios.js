@@ -22,7 +22,9 @@ module.exports = {
         console.log(interaction.member.roles.cache);
         //Check if user has a certain role
         if (interaction.member.roles.cache.some(role => role.name === 'Oligarch')) {
-            let demetrios = dbm.loadFile("gptMessages", "demetrios");
+            let demetrios = await dbm.loadFile("gptMessages", "demetrios");
+            console.log(demetrios);
+            console.log(demetrios.quotas[userID]);
             let botSpoken = demetrios.quotas[userID];
             if (botSpoken == undefined) {
                 botSpoken = 1;
@@ -32,8 +34,8 @@ module.exports = {
             } else {
                 botSpoken++;
             }
-            demetrios.quotas.userID = botSpoken;
-            dbm.saveFile("gptMessages", "demetrios", demetrios);
+            demetrios.quotas[userID] = botSpoken;
+            await dbm.saveFile("gptMessages", "demetrios", demetrios);
         }
 
         let replyString = await chatGPT.demetrios(message, userID, channelID);
