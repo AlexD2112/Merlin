@@ -28,8 +28,8 @@ module.exports = {
             let botSpoken = demetrios.quotas[userID];
             if (botSpoken == undefined) {
                 botSpoken = 1;
-            } else if (botSpoken >= 2) {
-                await interaction.editReply("You can only speak to Demetrios twice for now!");
+            } else if (botSpoken >= 7) {
+                await interaction.editReply("You can only speak to Demetrios seven times for now!");
                 return;
             } else {
                 botSpoken++;
