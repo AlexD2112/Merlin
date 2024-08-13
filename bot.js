@@ -2,11 +2,9 @@ const {clientId, guildId, token} = require('./config.json');
 const Discord = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
-const interactionHandler = require('./interaction-handler')
+//const interactionHandler = require('./interaction-handler')
 const { Client, GatewayIntentBits, Collection, Events } = require('discord.js');
-const char = require('./char');
 const dbm = require('./database-manager');
-const admin = require('./admin');
 const client = new Client({ 
     intents: [
         GatewayIntentBits.Guilds,
@@ -59,28 +57,9 @@ client.on('ready', () => {
 
 //interaction handler
 client.on(Events.InteractionCreate, async interaction => {
-	//Ignore a specific user with id 614966892486197259
-	if (interaction.user.id == "614966892486197259" || interaction.user.id == "1232088671151329421") {
-		return;
-	}
-
+	console.log("Interaction detected");
 	if (interaction.isChatInputCommand()) {
 		const command = client.commands.get(interaction.commandName);
-		if (!command) {
-			let returnEmbed = await admin.map(interaction.commandName, interaction.channelId);
-
-			// If the return is a string, it's an error message
-			if (typeof(returnEmbed) == 'string') {
-				// If it's a string, it's an error message, ephemeral it
-				await interaction.reply({content: returnEmbed, ephemeral: true });
-				return;
-			} else if (typeof(returnEmbed) == 'object') {
-				await interaction.reply({ embeds: [returnEmbed] });
-				return;
-			} else {
-				return;
-			}
-		}
 
 		try {
 			await command.execute(interaction);
@@ -95,32 +74,7 @@ client.on(Events.InteractionCreate, async interaction => {
 			}
 		}
 	} else {
-		interactionHandler.handle(interaction);
-	}
-});
-
-client.on('guildMemberAdd', member => {
-    // Assuming 'newchar' is a function you've defined to handle the new character creation
-	let memberID = member.id;
-	let memberName = member.user.tag;
-	let memberBio = "A new citizen of Massalia!";
-	char.newChar(memberName, memberName, memberBio, memberID);
-});
-
-client.on('guildMemberRemove', member => {
-	let memberID = member.id;
-	console.log("Member ID: " + memberID);
-});
-
-client.on('userUpdate', (oldMember, newMember) => {
-	// Since data in Characters is stored by tag, we need to update the username in the database when a user changes their username
-	let oldName = oldMember.tag;
-	let newName = newMember.tag;
-
-	oldData = dbm.loadFile('characters', oldName);
-	if (oldData) {
-		dbm.saveFile('characters', newName, oldData);
-		dbm.docDelete('characters', oldName);
+		//interactionHandler.handle(interaction);
 	}
 });
 
@@ -135,7 +89,6 @@ function botMidnightLoop() {
 		- ((now.getUTCSeconds()) * 1000)
 		- ((now.getUTCMilliseconds()));
 	setTimeout(function() {
-		char.resetIncomeCD();
 		dbm.logData();
 		botMidnightLoop();
 	}, msToMidnight);

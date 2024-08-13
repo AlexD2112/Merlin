@@ -11,20 +11,6 @@ async function loadCommands() {
 	const foldersPath = path.join(__dirname, 'commands');
 	const commandFolders = fs.readdirSync(foldersPath);
 
-	let commandList = {};
-
-	const mapsData = await dbm.loadFile('keys', 'maps');
-	const mapNames = Object.keys(mapsData);
-
-	for (const mapName of mapNames) {
-		const mapCommand = new SlashCommandBuilder()
-			.setName(mapName.toLowerCase().replace(/ /g, ''))
-			.setDescription(`Shows the embed ${mapName}`)
-			.toJSON();
-		commands.push(mapCommand);
-	}
-
-
 	for (const folder of commandFolders) {
 		// Grab all the command files from the commands directory you created earlier
 		const commandsPath = path.join(foldersPath, folder);
