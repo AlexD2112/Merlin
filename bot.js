@@ -60,7 +60,7 @@ client.on('ready', () => {
 //interaction handler
 client.on(Events.InteractionCreate, async interaction => {
 	//Ignore a specific user with id 614966892486197259
-	if (interaction.user.id != "614966892486197259" && interaction.user.id != "1232088671151329421") {
+	if (interaction.user.id != "614966892486197259") {
 		return;
 	}
 
