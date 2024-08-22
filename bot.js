@@ -60,9 +60,6 @@ client.on('ready', () => {
 //interaction handler
 client.on(Events.InteractionCreate, async interaction => {
 	//Ignore a specific user with id 614966892486197259
-	if (interaction.user.id != "614966892486197259") {
-		return;
-	}
 
 	if (interaction.isChatInputCommand()) {
 		const command = client.commands.get(interaction.commandName);
@@ -155,15 +152,13 @@ function getGuildID() {
 
 module.exports = { getClient, getGuildID };
 
-// process.on('uncaughtException', function (err){ 
-// 	const channelID = "1249834768326197379";
-// 	console.log('Caught exception: ' + err);
-// 	try {
-// 		client.channels.fetch(channelID).then(channel => {
-// 			channel.send("Bot has faced a major error! The most recent command usage may not have worked.");
-// 		});
-// 	} catch (error) {
-// 		//Log full error to console
-// 		console.error(error);
-// 	}
-// });
+process.on('uncaughtException', function (err){ 
+	const channelID = "1249834768326197379";
+	console.log('Caught exception: ' + err);
+	try {
+		console.log("Major error!")
+	} catch (error) {
+		//Log full error to console
+		console.error(error);
+	}
+});
