@@ -286,6 +286,7 @@ class shop {
       price = parseInt(price);
       if (!(price == undefined || price == "" || price == null || isNaN(price) || price == 0)) {
         let channels = value.shopOptions.Channels;
+        console.log(channels);
         if (channels.includes("#")) {
           if (!channels.includes(channelID)) {
             continue;
@@ -301,7 +302,6 @@ class shop {
     let startIndices = [];
     startIndices[0] = 0;
     const shopCategories = Object.keys(shopLayoutData);
-
     //Sort categories alphabetically
     shopCategories.sort();
 
@@ -577,6 +577,78 @@ class shop {
     // create an embed
     const embed = new Discord.EmbedBuilder()
       .setTitle('Inventory')
+      .setColor(0x36393e)
+      .setDescription('**Items:** \n' + descriptionText);
+
+    return embed;
+  }
+
+  static async storage(charID) {
+    charID = await dataGetters.getCharFromNumericID(charID);
+    // load data from characters.json and shop.json
+    const charData = await dbm.loadCollection('characters');
+    const shopData = await dbm.loadCollection('shop');
+
+    // create a 2d of items in the player's storage sorted by category. Remove items with 0 quantity or that don't exist in the shop
+    let deleted = false;
+    let storage = [];
+    for (const item in charData[charID].storage) {
+      if (charData[charID].storage[item] == 0) {
+        deleted = true;
+        delete charData[charID].storage[item];
+        continue;
+      }
+      if (!shopData[item]) {
+        deleted = true;
+        delete charData[charID].storage[item];
+        continue;
+      }
+      const category = shopData[item].infoOptions.Category;
+      if (!storage[category]) {
+        storage[category] = [];
+      }
+      storage[category].push(item);
+    }
+    if (deleted) {
+      await dbm.saveCollection('characters', charData);
+    }
+    // let inventory = [];
+    // for (const item in charData[charID].inventory) {
+    //   const category = shopData[item].category;
+    //   if (!inventory[category]) {
+    //     inventory[category] = [];
+    //   }
+    //   inventory[category].push(item);
+    // }
+
+    //create description text from the 2d array
+    let descriptionText = '';
+    for (const category in storage) {
+      let endSpaces = "-"
+      if ((20 - category.length - 2)> 0) {
+        endSpaces = "-".repeat(20 - category.length - 2);
+      }
+      descriptionText += `**\`--${category}${endSpaces}\`**\n`;
+      descriptionText += storage[category]
+        .map((item) => {
+          const icon = shopData[item].infoOptions.Icon;
+          const quantity = charData[charID].storage[item];
+
+          let alignSpaces = ' ' 
+          if ((30 - item.length - ("" + quantity).length) > 0){
+            alignSpaces = ' '.repeat(30 - item.length - ("" + quantity).length);
+          }
+  
+          // Create the formatted line
+          return `${icon} \`${item}${alignSpaces}${quantity}\``;
+        })
+        .join('\n');
+      descriptionText += '\n';
+    }
+
+    // create an embed
+    const embed = new Discord.EmbedBuilder()
+      .setTitle('Storage')
       .setColor(0x36393e)
       .setDescription('**Items:** \n' + descriptionText);
 
