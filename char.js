@@ -1444,7 +1444,146 @@ class char {
     }
   }
 
+  static async store(player, item, amount) {
+    let collectionName = 'characters';
+    let shopData = await dbm.loadCollection('shop');
+    item = await shop.findItemName(item, shopData);
+    let charData;
+    [player, charData] = await this.findPlayerData(player);
+    if (!player) {
+      return "Error: Player not found";
+    }
+    if (item === "ERROR") {
+      return "Not a valid item";
+    }
+
+    if (charData) {
+      if (!charData.inventory) {
+        charData.inventory = {};
+      }
+      if (!charData.storage) {
+        charData.storage = {};
+      }
+      if (charData.inventory[item] && charData.inventory[item] >= amount) {
+        if (charData.storage[item]) {
+          charData.storage[item] += amount;
+        } else {
+          charData.storage[item] = amount;
+        }
+        charData.inventory[item] -= amount;
+        await dbm.saveFile(collectionName, player, charData);
+        return true;
+      } else {
+        return "You don't have enough of that item!";
+      }
+    }
+  }
+
+  static async grab(player, item, amount) {
+    let collectionName = 'characters';
+    let shopData = await dbm.loadCollection('shop');
+    item = await shop.findItemName(item, shopData);
+    let charData;
+    [player, charData] = await this.findPlayerData(player);
+    if (!player) {
+      return "Error: Player not found";
+    }
+    if (item === "ERROR") {
+      return "Not a valid item";
+    }
+
+    if (charData) {
+      if (!charData.inventory) {
+        charData.inventory = {};
+      }
+      if (!charData.storage) {
+        charData.storage = {};
+      }
+      if (!charData.storage[item]) {
+        charData.storage[item] = 0;
+      }
+      if (charData.storage[item] && charData.storage[item] >= amount) {
+        if (charData.inventory[item]) {
+          charData.inventory[item] += amount;
+        } else {
+          charData.inventory[item] = amount;
+        }
+        charData.storage[item] -= amount;
+        await dbm.saveFile(collectionName, player, charData);
+        return true;
+      } else {
+        return "You don't have enough of that item!";
+      }
+    }
+  }
+
+  static async deposit(player, gold) {
+    let collectionName = 'characters';
+    let charData;
+    [player, charData] = await this.findPlayerData(player);
+    if (!player) {
+      return "Error: Player not found";
+    }
+    if (!charData.bank) {
+      charData.bank = 0;
+    }
+    if (charData) {
+      if (charData.balance >= gold) {
+        charData.balance -= gold;
+        charData.bank += gold;
+        await dbm.saveFile(collectionName, player, charData);
+        return true;
+      } else {
+        return "You don't have enough gold!";
+      }
+    }
+  }
+
+  static async withdraw(player, gold) {
+    let collectionName = 'characters';
+    let charData;
+    [player, charData] = await this.findPlayerData(player);
+    if (!player) {
+      return "Error: Player not found";
+    }
+    if (!charData.bank) {
+      charData.bank = 0;
+    }
+    if (charData) {
+      if (charData.bank >= gold) {
+        charData.balance += gold;
+        charData.bank -= gold;
+        await dbm.saveFile(collectionName, player, charData);
+        return true;
+      } else {
+        return "You don't have enough gold!";
+      }
+    }
+  }
+
+  static async bank(userID) {
+    let collectionName = 'characters';
+    let charData = await dbm.loadFile(collectionName, userID);
+    if (charData) {
+      if (!charData.bank) {
+        charData.bank = 0;
+      }
+      const charEmbed = {
+        color: 0x36393e,
+        author: {
+          name: charData.name,
+          icon_url: charData.icon ? charData.icon : 'https://cdn.discordapp.com/attachments/1165739006923919431/1232019050205417624/Mas_LOGO_copy.png?ex=662a91a7&is=66294027&hm=2b4f0dfdf37864b1dee3ac2967f0cac1227a49cfaa9c8253d045e1672c383061&',
+        },
+        description: clientManager.getEmoji("Talent") + " **" + charData.bank + "**",
+      };
+      return charEmbed;
+    } else {
+      return "You haven't made a character! Use /newchar first";
+    }
+  }
+
   static async giveItemToPlayer(playerGiving, player, item, amount) {
+    console.log("start");
     if (playerGiving === player) {
       return "You can't give items to yourself!";
     }
@@ -1471,11 +1610,15 @@ class char {
       return "Error: Player not found";
     }
 
+    console.log("playerGiving: " + playerGiving);
+
     let charData2;
     [player, charData2] = await this.findPlayerData(player);
     if (!player) {
       return "Error: Player not found";
     }
+
+    console.log("player: " + player);
 
     if (charData && charData2) {
       if (charData.inventory[item] && charData.inventory[item] >= amount) {
