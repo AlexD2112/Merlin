@@ -476,7 +476,7 @@ class char {
             let delayUnit = delay.slice(-1);
             let nextCycleTime = new Date(startDate);
 
-            while (nextCycleTime <= now) {
+            while (nextCycleTime < now) {
                 switch (delayUnit) {
                     case 'D':
                         nextCycleTime.setUTCDate(nextCycleTime.getUTCDate() + delayAmount);
