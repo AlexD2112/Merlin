@@ -70,7 +70,7 @@ class marketplace {
 
     // Get the start indices of every page. Don't split items, but can split categories
 
-    const maxItemsPerPage = 25;
+    const maxItemsPerPage = 15;
     let currentPage = {};
     let allPages = [];
     let currentPageLength = 0;
