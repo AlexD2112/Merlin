@@ -68,9 +68,8 @@ class marketplace {
     let marketData = await dbm.loadCollection('marketplace');
     let shopData = await dbm.loadCollection('shop');
 
-    // Get the start indices of every page. Don't split items, but can split categories
-
-    const maxItemsPerPage = 15;
+    // Max items allowed per page
+    const maxItemsPerPage = 25;
     let currentPage = {};
     let allPages = [];
     let currentPageLength = 0;
@@ -80,25 +79,30 @@ class marketplace {
         for (const itemName in categoryItems) {
             const sales = categoryItems[itemName];
             const numberOfSales = Object.keys(sales).length;
+            let salesProcessed = 0;
     
-            // Check if adding this item would exceed page size
-            if (currentPageLength + numberOfSales > maxItemsPerPage) {
-                // If the current page has items, start a new page
-                if (currentPageLength > 0) {
+            // If this item has more sales than can fit on a single page, split it
+            while (salesProcessed < numberOfSales) {
+                // Calculate how many sales can fit on the current page
+                const remainingSpaceOnPage = maxItemsPerPage - currentPageLength;
+                const salesToAdd = Math.min(remainingSpaceOnPage, numberOfSales - salesProcessed);
+                
+                // Add a portion of sales to the current page
+                const salesSlice = Object.fromEntries(
+                    Object.entries(sales).slice(salesProcessed, salesProcessed + salesToAdd)
+                );
+    
+                currentPage[itemName] = currentPage[itemName] || {};
+                Object.assign(currentPage[itemName], salesSlice);
+                currentPageLength += salesToAdd;
+                salesProcessed += salesToAdd;
+    
+                // If the current page is full, move to the next page
+                if (currentPageLength === maxItemsPerPage) {
                     allPages.push(currentPage);
                     currentPage = {};
                     currentPageLength = 0;
                 }
-            }
-    
-            currentPage[itemName] = sales;
-            currentPageLength += numberOfSales;
-    
-            // If the current page is full, move to the next page
-            if (currentPageLength === maxItemsPerPage) {
-                allPages.push(currentPage);
-                currentPage = {};
-                currentPageLength = 0;
             }
         }
     }
@@ -111,7 +115,6 @@ class marketplace {
     const totalPages = allPages.length;
     const sales = allPages[page - 1];
 
-
     //Create embed
     let embed = new EmbedBuilder();
     embed.setTitle(clientManager.getEmoji("Talent") + 'Sales');
@@ -119,7 +122,6 @@ class marketplace {
 
     let descriptionText = '';
 
-    
     // Create the formatted line. `ID` :icon: **`Number ItemName [ALIGNSPACES]`**`Price`**<:Talent:1232097113089904710>, with coin and price aligned to right side (alignSpaces used to separate them and ensure all the coins and prices are aligned )
     for (const itemName in sales) {
       const salesList = sales[itemName];
@@ -153,7 +155,7 @@ class marketplace {
     const prevButton = new ButtonBuilder()
       .setCustomId('switch_sale' + (page-1))
       .setLabel('<')
-      .setStyle(ButtonStyle.Secondary); // You can change the style to your preference
+      .setStyle(ButtonStyle.Secondary);
 
     // Disable the button on the first page
     if (page == 1) {
@@ -163,7 +165,7 @@ class marketplace {
     const nextButton = new ButtonBuilder()
           .setCustomId('switch_sale' + (page+1))
           .setLabel('>')
-          .setStyle(ButtonStyle.Secondary); // You can change the style to your preference
+          .setStyle(ButtonStyle.Secondary);
 
     // Create a "Next Page" button if not on the last page
     if (page == totalPages) {
@@ -174,6 +176,7 @@ class marketplace {
 
     return [embed, rows];
   }
+ 
 
   //Create a one page sales embed of just the sales for one player
   static async showSales(player) {
