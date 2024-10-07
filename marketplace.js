@@ -179,7 +179,7 @@ class marketplace {
  
 
   //Create a one page sales embed of just the sales for one player
-  static async showSales(player) {
+  static async showSales(player, page) {
     // Load the marketplace.json file
     let marketData = await dbm.loadCollection('marketplace');
     let shopData = await dbm.loadCollection('shop');
@@ -188,6 +188,7 @@ class marketplace {
     embed.setTitle(`${player}'s Sales`);
     embed.setColor(0x36393e);
     let descriptionText = '';
+    let n = 1;
     for (const category in marketData.marketplace) {
       const categoryItems = marketData.marketplace[category];
       for (const itemName in categoryItems) {
@@ -204,12 +205,24 @@ class marketplace {
               alignSpaces = ' '.repeat(30 - item.length - ("" + price + "" + number).length);
             }
             descriptionText += `\`${saleID}\` ${icon} **\`${number} ${item}${alignSpaces}${price}\`**${clientManager.getEmoji("Talent")}\n`;
+            if (descriptionText.length > 3000) {
+              if (page == n) {
+                descriptionText += '\n';
+                embed.setDescription(descriptionText);
+                embed.setFooter({text: `Page ${n}`});
+                return embed;
+              } else {
+                n++;
+                descriptionText = '';
+              }
+            }
           }
         }
       }
     }
     descriptionText += '\n';
     embed.setDescription(descriptionText);
+    embed.setFooter({text: `Page ${n}`});
     return embed;
   }
 
