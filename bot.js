@@ -41,6 +41,11 @@ client.on('ready', () => {
 client.on('messageCreate', async message => {
     if (message.author.bot) return;
 
+	if (!message.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator)) {
+        return message.channel.send('You do not have permission to use this bot.');
+    }
+
+
     // Check for =say, if found send the message coming after =say and a space using char.say. If returned message is not Message sent! then send the returned message.
     if (message.content.startsWith('=say')) {
 		const msg = message.content.slice(4);
@@ -55,6 +60,10 @@ client.on('messageCreate', async message => {
 client.on(Events.InteractionCreate, async interaction => {
 	if (interaction.isChatInputCommand()) {
 		const command = client.commands.get(interaction.commandName);
+
+		if (!interaction.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator)) {
+			return await interaction.reply({ content: 'You do not have permission to use this bot.', ephemeral: true });
+		}
 
 		if (!command) return;
 
