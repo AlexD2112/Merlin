@@ -11,8 +11,6 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
-console.log(db)
-
 let data = {}
 
 const storageDir = path.join(__dirname, 'jsonStorage');
