@@ -11,7 +11,7 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
-console.log(db)
+//console.log(db)
 
 let data = {}
 
