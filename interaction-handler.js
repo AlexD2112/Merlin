@@ -253,8 +253,8 @@ exports.handle = async (interaction) => {
     if (interaction.customId === 'shireSelect') {
       await admin.selectShire(interaction);
     }
-    if (interaction.customId === 'houseSelect') {
-      await admin.selectHouse(interaction);
+    if (interaction.customId === 'resourceSelect') {
+      await admin.selectResource(interaction);
     }
     if (interaction.customId === 'tradeNodeSelect') {
       await admin.selectTradeNode(interaction);

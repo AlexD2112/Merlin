@@ -100,7 +100,7 @@ client.on('guildMemberAdd', member => {
     // Assuming 'newchar' is a function you've defined to handle the new character creation
 	let memberID = member.id;
 	let memberName = member.user.tag;
-	let memberBio = "A new citizen of Massalia!";
+	let memberBio = "A new member of Britannia!";
 	char.newChar(memberName, memberName, memberBio, memberID);
 });
 
