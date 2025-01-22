@@ -737,7 +737,7 @@ class Admin {
       goldGiven: 0,
       itemGiven: "",
       itemAmount: 0,
-      emoji: clientManager.getEmoji("Talent"),
+      emoji: clientManager.getEmoji("Gold"),
       roles: []
     };
     let incomeSplit = incomeString.split(" ");
@@ -810,7 +810,7 @@ class Admin {
       }
       let givenString = "";
       if (incomeValue.goldGiven > 0) {
-        givenString += clientManager.getEmoji("Talent");
+        givenString += clientManager.getEmoji("Gold");
         givenString += " " + incomeValue.goldGiven;
         givenString += " ";
       }
@@ -952,7 +952,7 @@ class Admin {
         break;
       case 2:
         if (newValue == "DELETEFIELD") {
-          newValue = clientManager.getEmoji("Talent");
+          newValue = clientManager.getEmoji("Gold");
         }
         incomeValue.emoji = newValue;
         break;

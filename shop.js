@@ -327,7 +327,7 @@ class shop {
     );
 
     const embed = new Discord.EmbedBuilder()
-      .setTitle(clientManager.getEmoji("Talent") + ' Shop')
+      .setTitle(clientManager.getEmoji("Gold") + ' Shop')
       .setColor(0x36393e);
 
     //If there are no items in the shop, set description as "No items have prices!" and return
@@ -353,7 +353,7 @@ class shop {
             alignSpaces = ' '.repeat(30 - item.length - ("" + price).length);
           }
           // Create the formatted line
-          return `${icon} \`${item}${alignSpaces}${price}\` ${clientManager.getEmoji("Talent")}`;
+          return `${icon} \`${item}${alignSpaces}${price}\` ${clientManager.getEmoji("Gold")}`;
         })
         .join('\n');
       descriptionText += '\n';
@@ -759,7 +759,7 @@ class shop {
     if (itemData) {
       let aboutString = "";
       if (itemData.shopOptions["Price (#)"] != "") {
-        aboutString = "Price: " + clientManager.getEmoji("Talent") + " " + itemData.shopOptions["Price (#)"] + "\n";
+        aboutString = "Price: " + clientManager.getEmoji("Gold") + " " + itemData.shopOptions["Price (#)"] + "\n";
       }
       let descriptionString = "**Description:\n**" + itemData.infoOptions.Description;
       console.log(itemData.usageOptions["Is Usable (Y/N)"] == "Yes");
@@ -774,7 +774,7 @@ class shop {
           }
           if (key == "Give/Take Money (#)") {
             if (itemData.usageOptions[key] > 0) {
-              aboutString += ("\n- " + clientManager.getEmoji("Talent") + " " + itemData.usageOptions[key]);
+              aboutString += ("\n- " + clientManager.getEmoji("Gold") + " " + itemData.usageOptions[key]);
             }
           }
           if (key.startsWith("Give Item")) {
@@ -804,7 +804,7 @@ class shop {
           }
           if (key == "Give/Take Money (#)") {
             if (itemData.usageOptions[key] < 0) {
-              aboutString += ("\n- " + clientManager.getEmoji("Talent") + " " + itemData.usageOptions[key]);
+              aboutString += ("\n- " + clientManager.getEmoji("Gold") + " " + itemData.usageOptions[key]);
             }
           }
           if (key.startsWith("Take Item")) {

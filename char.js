@@ -95,7 +95,7 @@ class char {
           name: charData.name,
           icon_url: charData.icon ? charData.icon : 'https://cdn.discordapp.com/attachments/1165739006923919431/1232019050205417624/Mas_LOGO_copy.png?ex=662a91a7&is=66294027&hm=2b4f0dfdf37864b1dee3ac2967f0cac1227a49cfaa9c8253d045e1672c383061&',
         },
-        description: clientManager.getEmoji("Talent") + " **" + charData.balance + "**",
+        description: clientManager.getEmoji("Gold") + " **" + charData.balance + "**",
       };
       return charEmbed;
     } else {
@@ -205,7 +205,7 @@ class char {
         description: bioString,
         fields: [
           {
-            name: clientManager.getEmoji("Talent") + " Balance: " + (charData.balance ? charData.balance : 0),
+            name: clientManager.getEmoji("Gold") + " Balance: " + (charData.balance ? charData.balance : 0),
             value: await this.getStatsBlock(charData, userID),
           },
         ],
@@ -359,7 +359,7 @@ class char {
       let tempString = "";
       tempString += emoji + " **__" + value.income + "__**\n"; 
       if (goldGiven > 0 || goldGiven < 0) {
-        tempString += clientManager.getEmoji("Talent") + " Gold : `" + goldGiven + "`\n";
+        tempString += clientManager.getEmoji("Gold") + " Gold : `" + goldGiven + "`\n";
       }
       if (itemGiven != "" && (itemAmount > 0 || itemAmount < 0)) {
         tempString += clientManager.getEmoji(itemGiven) + " " + itemGiven + " : `" + itemAmount + "`\n";
@@ -412,7 +412,7 @@ class char {
     }
 
     charData.balance += total;
-    superstring +=  clientManager.getEmoji("Talent") + " **__Total Gold :__** `" + total + "`\n";
+    superstring +=  clientManager.getEmoji("Gold") + " **__Total Gold :__** `" + total + "`\n";
 
     for (let [resource, amount] of Object.entries(resourceMap)) {
       if (charData.inventory[resource]) {
@@ -634,10 +634,10 @@ class char {
         return "You do not have enough money to use this item!";
       }
       charData.balance += totalGold;
-      //Add field for money loss/gain, with talent emoji
+      //Add field for money loss/gain, with Gold emoji
       returnEmbed.addFields({ 
-        name: '**Talents:**', 
-        value: clientManager.getEmoji("Talent") + " " + (totalGold < 0 ? totalGold : "+" + totalGold)
+        name: '**Gold:**', 
+        value: clientManager.getEmoji("Gold") + " " + (totalGold < 0 ? totalGold : "+" + totalGold)
       })
     }
 
@@ -1300,7 +1300,7 @@ class char {
             for (let key in shopData[itemName].usageCase.gives) {
               let val = shopData[itemName].usageCase.gives[key];
               charData.incomeList[key] = val;
-              giveString += "`   +" + val + "` <:Talent:1232097113089904710> " + key + " per day\n";
+              giveString += "`   +" + val + "` <:Gold:1232097113089904710> " + key + " per day\n";
             }
             if (giveString && takeString) {
               returnEmbed.addFields(
@@ -1574,7 +1574,7 @@ class char {
           name: charData.name,
           icon_url: charData.icon ? charData.icon : 'https://cdn.discordapp.com/attachments/1165739006923919431/1232019050205417624/Mas_LOGO_copy.png?ex=662a91a7&is=66294027&hm=2b4f0dfdf37864b1dee3ac2967f0cac1227a49cfaa9c8253d045e1672c383061&',
         },
-        description: clientManager.getEmoji("Talent") + " **" + charData.bank + "**",
+        description: clientManager.getEmoji("Gold") + " **" + charData.bank + "**",
       };
       return charEmbed;
     } else {
