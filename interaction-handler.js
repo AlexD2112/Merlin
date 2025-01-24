@@ -259,6 +259,9 @@ exports.handle = async (interaction) => {
     if (interaction.customId === 'tradeNodeSelect') {
       await admin.selectTradeNode(interaction);
     }
+    if (interaction.customId === 'classSelect') {
+      await admin.selectClass(interaction);
+    }
   }
 }
 

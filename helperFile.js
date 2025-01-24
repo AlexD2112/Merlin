@@ -51,7 +51,39 @@ async function getResourceEmojis() {
     await dbm.saveFile('keys', 'resources', resources);
 }
 
+async function healthToLegitimacy() {
+    const characters = await dbm.loadCollection('characters');
+
+    //in stats map, remove Health option and add Legitimacy option for all characters
+    for (let character in characters) {
+        character = characters[character];
+        character.stats.Legitimacy = character.stats.Health;
+        delete character.stats.Health;
+    }
+
+    await dbm.saveCollection('characters', characters);
+}
+
 //export getResourceEmojis;
+
+async function addShireToShireNames() {
+    const kingdoms = await dbm.loadFile('keys', 'kingdoms');
+
+    //Each kingdom has a shires field, which is a map of shire names to shire objects. Shire objects have a name field that should add "shire" to the shire name
+    for (let kingdom in kingdoms) {
+        kingdom = kingdoms[kingdom];
+        for (let shire in kingdom.shires) {
+            shire = kingdom.shires[shire];
+            shire.name = shire.name + " Shire";
+        }
+    }
+
+    console.log(kingdoms.Jorvik.shires);
+
+    await dbm.saveFile('keys', 'kingdoms', kingdoms);
+}
+
+addShireToShireNames();
 
 module.exports = {
     addNeedNoneOfRolesToShop,

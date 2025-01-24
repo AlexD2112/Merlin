@@ -145,6 +145,59 @@ class Admin {
     await channel.send({ embeds: [embed], components: [actionRow] });
   }
 
+  static async initClassSelect(channel) {
+    //Classes is just a simple array containing two values, "Landowner" and "Trader"
+    let classes = ["Landowner", "Trader"];
+    //Class text box should be as follows:
+    /**
+     * **Choose Your Starting Class**
+This is an era of opportunity for the ambitious. Begin your journey as a humble landowner or a modest trader.
+
+<:Wheat:1231881265062613053>  Landowner class: Unique resource Wheat - Used mainly for troops.
+
+<:Wine:1212160493989400586>  Trader class: Unique resource  Wine-versatile resource
+
+
+
+When selected grants the:
+
+<@&1331650035628380241> and <@&1331613719385477140> 
+
+<@&1331650287877886073>  role and <@&1331613468897579130>
+     */
+    //Send an embed with the title Resources of the Realm and the text The following resources are available to join: and than a list of the resources. There will also be a menu you can click to choose which resource. The resources will come out of the resources.json file.
+
+    //Set up text box properly, using client manager.getEmoji to get the emojis for the resources and  grabbing roles from names (Landowner and Landowner Base Role, Trader and Trader Base Role).
+
+    let embedText = "# Choose Your Starting Class" +
+      "\n This is an era of opportunity for the ambitious. Begin your journey as a humble landowner or a modest trader." +
+      "\n \u200B----------------------------------------" +
+      "\n" + clientManager.getEmoji("Wheat") + "  Landowner class: Unique resource Wheat - Used mainly for troops." +
+      "\n \u200B----------------------------------------" +
+      "\n" + clientManager.getEmoji("Wine") + "  Trader class: Unique resource  Wine-versatile resource" +
+      "\n\nWhen selected grants the:" +
+      "\n<@&1331650035628380241> and <@&1331613719385477140>" +
+      "\n<@&1331650287877886073> and <@&1331613468897579130>";
+      
+
+    let embed = new EmbedBuilder()
+      .setDescription(embedText)
+      .setFooter({ text: 'Select a class below', iconURL: 'https://images-ext-1.discordapp.net/external/zNN-s-f41tPGzag5FxItzlLKuLKnAXiirTy3ke0nG-k/https/cdn.discordapp.com/emojis/620697454928723971.gif' })
+      .setImage('https://cdn.discordapp.com/attachments/1244030279199359077/1244034376757547070/Screenshot_2024-05-26_at_12.08.12_AM.png?ex=66544d8c&is=6652fc0c&hm=afbdf2cfd0776ca95946ddfc2a5cb4d3cf57b6f166b8623896bd873dc9ad0eae&');
+
+    let select = new StringSelectMenuBuilder().setCustomId('classSelect').setPlaceholder('Select a class');
+    //Add a select menu option for each resource in the resources.json file
+    classes.forEach(cl => {
+      select.addOptions({
+        label: cl,
+        value: cl
+      });
+    });
+    let actionRow = new ActionRowBuilder().addComponents(select);
+
+    await channel.send({ embeds: [embed], components: [actionRow] });
+  }
+
   static async initPartySelect(channel) {
     let parties = await dbm.loadFile("keys", "parties");
     //Parties is a map of party names to party objects, where each party object has a name, emoji, political stance, roleID, motto and banner. All of that is irrelevant for this one, as we're just using the banner with a button underneath saying "Join [partyname]" for each party, i.e. multiple embeds and buttons
@@ -552,6 +605,57 @@ class Admin {
     await interaction.reply({ 
       content: "You have selected " + resource.emoji + resource.name, 
       ephemeral: true 
+    });
+  }
+
+  static async selectClass(interaction) {
+    const selectedClass = interaction.values[0];
+    let guild = interaction.guild;
+    let user = await guild.members.fetch(interaction.user.id);
+
+    let classRoleName;
+    let classBaseRoleName;
+    if (selectedClass == "Landowner") {
+      classRoleName = "Farmer";
+      classBaseRoleName = "Landowner Base Role";
+    } else if (selectedClass == "Trader") {
+      classRoleName = "Trader";
+      classBaseRoleName = "Trader Base Role";
+    }
+
+    let userTag = interaction.user.tag;
+    let char = await dbm.loadFile("characters", userTag);
+    for (const role of user.roles.cache) {
+      if (role[1].name == "Trader" || role[1].name == "Farmer") {
+        await interaction.reply({ content: "You are already a member of a class! You cannot switch classes", ephemeral: true });
+        return;
+      }
+    }
+
+    let classRole = guild.roles.cache.find(role => role.name === classRoleName);
+    if (classRole == undefined) {
+      classRole = await guild.roles.create({
+        name: classRoleName,
+        color: '#FFFFFF',
+        reason: 'Added role for class from selectClass command',
+      });
+    }
+
+    let classBaseRole = guild.roles.cache.find(role => role.name === classBaseRoleName);
+    if (classBaseRole == undefined) {
+      classBaseRole = await guild.roles.create({
+        name: classBaseRoleName,
+        color: '#FFFFFF',
+        reason: 'Added base role for class from selectClass command',
+      });
+    }
+
+    await user.roles.add(classRole);
+    await user.roles.add(classBaseRole);
+    
+    await interaction.reply({
+      content: "You have selected " + selectedClass + " as your class",
+      ephemeral: true
     });
   }
 
