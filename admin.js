@@ -140,6 +140,23 @@ class Admin {
     let resourceNames = Object.keys(resources).map(key => "- " + resources[key].emoji + " " + resources[key].name + " - " + resources[key].description).join("\n");
     //Send an embed with the title Resources of the Realm and the text The following resources are available to join: and than a list of the resources. There will also be a menu you can click to choose which resource. The resources will come out of the resources.json file.
 
+    for (let resource in resources) {
+      let role = guild.roles.cache.find(role => role.name === resources[resource].name);
+      if (role == undefined) {
+        role = await guild.roles.create({
+          name: resources[resource].name,
+          color: '#FFFFFF',
+          reason: 'Added role for resource from selectResource command',
+        });
+  
+        resources[resource].roleCode = role.id;
+        await dbm.saveFile("keys", "resources", resources);
+      } else if (role.id != resource.roleCode) {
+        resource[resource].roleCode = role.id;
+        await dbm.saveFile("keys", "resources", resources);
+      }
+    }
+      
     let embed = new EmbedBuilder()
       .setDescription("# Resources" +
         "\n- You can choose from one of the following resources: " +
