@@ -17,7 +17,7 @@ module.exports = {
         const response = await char.giveGoldToPlayer(playerGiving, player, amount);
 
         if (response == true) {
-            return interaction.reply(`Gave ${clientManager.getEmoji("Talent")} ${amount} to ${player}`);
+            return interaction.reply(`Gave ${clientManager.getEmoji("Gold")} ${amount} to ${player}`);
         } else if (response == false || !response) {
             return interaction.reply('Something went wrong');
         } else {

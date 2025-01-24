@@ -53,9 +53,9 @@ class marketplace {
     // Save the character.json file
     await dbm.saveFile('characters', userTag, charData);
     await dbm.saveCollection('marketplace', marketData);
-    // Create an embed to return on success. Will just say @user listed **numberItems :itemIcon: itemName** to the **/sales** page for <:Talent:1232097113089904710>**price**.
+    // Create an embed to return on success. Will just say @user listed **numberItems :itemIcon: itemName** to the **/sales** page for <:Gold:1232097113089904710>**price**.
     let embed = new EmbedBuilder();
-    embed.setDescription(`<@${userID}> listed **${numberItems} ${await shop.getItemIcon(itemName, shopData)} ${itemName}** to the **/sales** page for ${clientManager.getEmoji("Talent")}**${price}**.`);
+    embed.setDescription(`<@${userID}> listed **${numberItems} ${await shop.getItemIcon(itemName, shopData)} ${itemName}** to the **/sales** page for ${clientManager.getEmoji("Gold")}**${price}**.`);
     return embed;
   }
 
@@ -117,12 +117,12 @@ class marketplace {
 
     //Create embed
     let embed = new EmbedBuilder();
-    embed.setTitle(clientManager.getEmoji("Talent") + 'Sales');
+    embed.setTitle(clientManager.getEmoji("Gold") + 'Sales');
     embed.setColor(0x36393e);
 
     let descriptionText = '';
 
-    // Create the formatted line. `ID` :icon: **`Number ItemName [ALIGNSPACES]`**`Price`**<:Talent:1232097113089904710>, with coin and price aligned to right side (alignSpaces used to separate them and ensure all the coins and prices are aligned )
+    // Create the formatted line. `ID` :icon: **`Number ItemName [ALIGNSPACES]`**`Price`**<:Gold:1232097113089904710>, with coin and price aligned to right side (alignSpaces used to separate them and ensure all the coins and prices are aligned )
     for (const itemName in sales) {
       const salesList = sales[itemName];
       for (const saleID in salesList) {
@@ -135,7 +135,7 @@ class marketplace {
         if ((30 - item.length - ("" + price + "" + number).length) > 0) {
           alignSpaces = ' '.repeat(30 - item.length - ("" + price + "" + number).length);
         }
-        descriptionText += `\`${saleID}\` ${icon} **\`${number} ${item}${alignSpaces}${price}\`**${clientManager.getEmoji("Talent")}\n`;
+        descriptionText += `\`${saleID}\` ${icon} **\`${number} ${item}${alignSpaces}${price}\`**${clientManager.getEmoji("Gold")}\n`;
       }
     }
     
@@ -183,7 +183,7 @@ class marketplace {
     // Load the marketplace.json file
     let marketData = await dbm.loadCollection('marketplace');
     let shopData = await dbm.loadCollection('shop');
-    // Create an embed to return on success. Will just say @user has listed **numberItems :itemIcon: itemName** for <:Talent:1232097113089904710>**price**.
+    // Create an embed to return on success. Will just say @user has listed **numberItems :itemIcon: itemName** for <:Gold:1232097113089904710>**price**.
     let embed = new EmbedBuilder();
     embed.setTitle(`${player}'s Sales`);
     embed.setColor(0x36393e);
@@ -204,7 +204,7 @@ class marketplace {
             if ((30 - item.length - ("" + price + "" + number).length) > 0) {
               alignSpaces = ' '.repeat(30 - item.length - ("" + price + "" + number).length);
             }
-            descriptionText += `\`${saleID}\` ${icon} **\`${number} ${item}${alignSpaces}${price}\`**${clientManager.getEmoji("Talent")}\n`;
+            descriptionText += `\`${saleID}\` ${icon} **\`${number} ${item}${alignSpaces}${price}\`**${clientManager.getEmoji("Gold")}\n`;
             if (descriptionText.length > 3000) {
               if (page == n) {
                 descriptionText += '\n';
@@ -252,9 +252,9 @@ class marketplace {
       await dbm.saveCollection('characters', charData);
       // Save the marketplace.json file
       await dbm.saveCollection('marketplace', marketData);
-      // Create an embed to return on success. Will just say @user bought **numberItems :itemIcon: itemName** from @seller for <:Talent:1232097113089904710>**price**.
+      // Create an embed to return on success. Will just say @user bought **numberItems :itemIcon: itemName** from @seller for <:Gold:1232097113089904710>**price**.
       let embed = new EmbedBuilder();
-      embed.setDescription(`<@${userID}> bought **${sale.number} ${await shop.getItemIcon(foundItemName, shopData)} ${foundItemName}** back from themselves. It was listed for ${clientManager.getEmoji("Talent")}**${sale.price}**.`);
+      embed.setDescription(`<@${userID}> bought **${sale.number} ${await shop.getItemIcon(foundItemName, shopData)} ${foundItemName}** back from themselves. It was listed for ${clientManager.getEmoji("Gold")}**${sale.price}**.`);
       return embed;
     }
 
@@ -281,9 +281,9 @@ class marketplace {
     await dbm.saveCollection('marketplace', marketData);
 
     console.log(charData);
-    // Create an embed to return on success. Will just say @user bought **numberItems :itemIcon: itemName** from @seller for <:Talent:1232097113089904710>**price**.
+    // Create an embed to return on success. Will just say @user bought **numberItems :itemIcon: itemName** from @seller for <:Gold:1232097113089904710>**price**.
     let embed = new EmbedBuilder();
-    embed.setDescription(`<@${userID}> bought **${sale.number} ${await shop.getItemIcon(foundItemName, shopData)} ${foundItemName}** from <@${sale.sellerID}> for ${clientManager.getEmoji("Talent")}**${sale.price}**.`);
+    embed.setDescription(`<@${userID}> bought **${sale.number} ${await shop.getItemIcon(foundItemName, shopData)} ${foundItemName}** from <@${sale.sellerID}> for ${clientManager.getEmoji("Gold")}**${sale.price}**.`);
     return embed;
   }
 
@@ -300,7 +300,7 @@ class marketplace {
     let embed = new EmbedBuilder();
     embed.setTitle(`Sale ${saleID}`);
     embed.setColor(0x36393e);
-    embed.setDescription(`**${sale.number} ${await shop.getItemIcon(itemName, shopData)} ${itemName}** for ${clientManager.getEmoji("Talent")}**${sale.price}**.`);
+    embed.setDescription(`**${sale.number} ${await shop.getItemIcon(itemName, shopData)} ${itemName}** for ${clientManager.getEmoji("Gold")}**${sale.price}**.`);
     embed.setFooter({text: `Seller: ${sale.seller}`});
     return embed;
   }
