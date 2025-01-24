@@ -154,7 +154,7 @@ class Admin {
         resources[resource].roleCode = role.id;
         await dbm.saveFile("keys", "resources", resources);
       } else if (role.id != resource.roleCode) {
-        resource[resource].roleCode = role.id;
+        resources[resource].roleCode = role.id;
         await dbm.saveFile("keys", "resources", resources);
       }
     }
