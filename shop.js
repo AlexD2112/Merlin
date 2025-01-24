@@ -13,7 +13,7 @@ class shop {
       'Show Image', 'Show Message', 'Give/Take Money (#)', 'Cooldown in Hours (#)',
       'Give Item', 'Give Item 2', 'Give Item 3', 'Give Item 4', 'Give Item 5',
       'Take Item', 'Take Item 2', 'Take Item 3', 'Take Item 4', 'Take Item 5',
-      'Change Health (#)', 'Change Prestige (#)', 'Change Martial (#)', 'Change Intrigue (#)', 'Change Devotion (#)', 'Revive (Y/N)', 'Durability (#)'
+      'Change Legitimacy (#)', 'Change Prestige (#)', 'Change Martial (#)', 'Change Intrigue (#)', 'Change Devotion (#)', 'Revive (Y/N)', 'Durability (#)'
     ];
   static recipeOptions = [
       'Name', 'Icon', 'Show Image', 'Show Message',

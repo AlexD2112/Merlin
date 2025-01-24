@@ -34,7 +34,7 @@ class char {
           Intrigue: 0,
           Prestige: 0,
           Devotion: 0,
-          Health: 100
+          Legitimacy: 0
         },
         cooldowns: {
           craftSlots: {},
@@ -221,13 +221,14 @@ class char {
     const MartialEmoji = clientManager.getEmoji("Martial");
     const IntrigueEmoji = clientManager.getEmoji("Intrigue");
     const DevotionEmoji = clientManager.getEmoji("Devotion");
-    const HealthEmoji = clientManager.getEmoji("Health");
+    console.log(DevotionEmoji);
+    const LegitimacyEmoji = clientManager.getEmoji("Legitimacy");
 
     let prestige = charData.stats.Prestige;
     let martial = charData.stats.Martial;
     let intrigue = charData.stats.Intrigue;
     let devotion = charData.stats.Devotion;
-    let health = charData.stats.Health;
+    let legitimacy = charData.stats.Legitimacy;
 
     //If any are > 100, set them to 100
     let valChanged = false;
@@ -247,8 +248,8 @@ class char {
       devotion = 100;
       valChanged = true;
     }
-    if (health > 100) {
-      health = 100;
+    if (legitimacy > 100) {
+      legitimacy = 100;
       valChanged = true;
     }
 
@@ -257,13 +258,13 @@ class char {
       charData.stats.Martial = martial;
       charData.stats.Intrigue = intrigue;
       charData.stats.Devotion = devotion;
-      charData.stats.Health = health;
+      charData.stats.Legitimacy = legitimacy;
       console.log(userID);
       await dbm.saveFile('characters', userID, charData);
     }
 
     return "**`━━━━━━━Stats━━━━━━━`**\n"+ 
-            "**" + HealthEmoji + " Health: " + health + "**/100\n" +
+            "**" + LegitimacyEmoji + " Legitimacy: " + legitimacy + "**/100\n" +
             "**" + PrestigeEmoji + " Prestige: " + prestige + "**/100\n" +
             "**" + MartialEmoji + " Martial: " + martial + "**/100\n" +
             "**" + IntrigueEmoji + " Intrigue: " + intrigue + "**/100\n" +
@@ -514,7 +515,7 @@ class char {
     //   'Show Image', 'Show Message', 'Give/Take Money (#)', 'Cooldown in Hours (#)',
     //   'Give Item', 'Give Item 2', 'Give Item 3', 'Give Item 4', 'Give Item 5',
     //   'Take Item', 'Take Item 2', 'Take Item 3', 'Take Item 4', 'Take Item 5',
-    //   'Change Health (#)', 'Change Prestige (#)', 'Change Martial (#)', 'Change Intrigue (#)', 'Change Devotion (#)', 'Revive (Y/N)', 'Durability (#)'
+    //   'Change Legitimacy (#)', 'Change Prestige (#)', 'Change Martial (#)', 'Change Intrigue (#)', 'Change Devotion (#)', 'Revive (Y/N)', 'Durability (#)'
     // ];
     let shopData = await dbm.loadCollection('shop');
     itemName = await shop.findItemName(itemName, shopData);
@@ -1387,7 +1388,7 @@ class char {
       case "Martial":
       case "Intrigue":
       case "Devotion":
-      case "Health":
+      case "Legitimacy":
         break;
       default:
         return "Invalid stat";
