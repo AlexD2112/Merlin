@@ -27,7 +27,9 @@ class Admin {
     //Each shire should have a name and a roleCode. If the roleCode is not found, it should be created.
     for (const shire in shires) {
       let role = channel.guild.roles.cache.find(role => role.name === shires[shire].name);
+      console.log("Role: " + role);
       if (role == undefined) {
+        console.log("New Role");
         role = await channel.guild.roles.create({
           name: shires[shire].name,
           color: '#FFFFFF',
@@ -35,10 +37,25 @@ class Admin {
         });
         shires[shire].roleCode = role.id;
         changed = true;
-      } else if (shires[shire].roleCode == undefined) {
+      } else if (shires[shire].roleCode == undefined || shires[shire].roleCode != role.id) {
         shires[shire].roleCode = role.id;
         changed = true;
       }
+    }
+
+    //Each kingdom should have a role to match its name. If one is not found, it should be created.
+    let role = channel.guild.roles.cache.find(role => role.name === kingdom);
+    if (role == undefined) {
+      role = await channel.guild.roles.create({
+        name: kingdom,
+        color: '#FFFFFF',
+        reason: 'Added role for kingdom from initShireSelect command',
+      });
+      kingdoms[kingdom].roleCode = role.id;
+      changed = true;
+    } else if (kingdoms[kingdom].roleCode == undefined || kingdoms[kingdom].roleCode != role.id) {
+      kingdoms[kingdom].roleCode = role.id;
+      changed = true;
     }
 
     //Send an embed with the title Massalia and the text Capital: Massalia \n The city has the following colonies \n and than a list of the colonies. There will also be a menu you can click to choose which colony. The colonies will come out of the shires.json file.
@@ -518,7 +535,20 @@ When selected grants the:
       await dbm.saveFile("keys", "kingdoms", kingdoms);
     }
 
+    let kingdomRole = guild.roles.cache.find(role => role.id === kingdoms[selectedKingdom].roleCode);
+    if (kingdomRole == undefined) {
+      kingdomRole = await guild.roles.create({
+        name: selectedKingdom,
+        color: '#FFFFFF',
+        reason: 'Added role for kingdom from selectShire command',
+      });
+
+      kingdoms[selectedKingdom].roleCode = kingdomRole.id;
+      await dbm.saveFile("keys", "kingdoms", kingdoms);
+    }
+
     await user.roles.add(role);
+    await user.roles.add(kingdomRole);
     await dbm.saveFile("characters", userTag, char);
 
 
