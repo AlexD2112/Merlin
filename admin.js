@@ -140,6 +140,8 @@ class Admin {
     let resourceNames = Object.keys(resources).map(key => "- " + resources[key].emoji + " " + resources[key].name + " - " + resources[key].description).join("\n");
     //Send an embed with the title Resources of the Realm and the text The following resources are available to join: and than a list of the resources. There will also be a menu you can click to choose which resource. The resources will come out of the resources.json file.
 
+    let guild = channel.guild;
+    
     for (const resource in resources) {
       let role = guild.roles.cache.find(role => role.name === resources[resource].name);
       if (role == undefined) {
