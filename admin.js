@@ -539,6 +539,20 @@ When selected grants the:
       }
     }
 
+    let playerKingdoms = await dbm.loadFile("keys", "playerKingdoms");
+    playerKingdoms = playerKingdoms.list;
+
+    console.log(playerKingdoms);
+
+    //playerKingdoms is an array of role IDs
+    for (const role of user.roles.cache) {
+      if (playerKingdoms.includes(role[1].id)) {
+        await interaction.reply({ content: "You are already a member of a player kingdom! You cannot switch to a bot kingdom", ephemeral: true });
+        return;
+      }
+    }
+      
+
     //shire.roleCode is the role ID of the shire. If it doesn't exist, create it. First, check for a role with that rolecode. DO not first check for a role that matches by name, first check for a role that matches by ID
     let role = guild.roles.cache.find(role => role.id === shire.roleCode);
     if (role == undefined) {
@@ -744,6 +758,37 @@ When selected grants the:
     let partyChat = guild.channels.cache.get(partyChatID);
     let userPing = "<@" + user.id + ">";
     await partyChat.send("Welcome to " + party.emoji + party.name + ", " + userPing + "!");
+  }
+
+  static async addKingdom(kingdomRole) {
+    //Add role ID to the kingdom list in keys/playerKingdoms . list
+    let kingdoms = await dbm.loadFile("keys", "playerKingdoms");
+    let roleID = kingdomRole.id;
+    
+    let list = kingdoms.list;
+    if (list.includes(roleID)) {
+      return "Player kingdom already exists";
+    } else {
+      list.push(roleID);
+      kingdoms.list = list;
+      await dbm.saveFile("keys", "playerKingdoms", kingdoms);
+      return "Player kingdom " + kingdomRole.name + " added";
+    }
+  }
+
+  static async listKingdoms() {
+    //List all kingdoms in keys/playerKingdoms . list. Arrange them as proper roles, using discord formatting so they show properly
+    let kingdoms = await dbm.loadFile("keys", "playerKingdoms");
+    let list = kingdoms.list;
+    let kingdomNames = "";
+    for (const roleID of list) {
+      kingdomNames += "<@&" + roleID + ">\n";
+    }
+    //Set up an embed to return
+    let embed = new EmbedBuilder()
+      .setTitle("Player Kingdoms")
+      .setDescription(kingdomNames);
+    return embed;
   }
 
   static async generalHelpMenu(page, isAdminMenu) {

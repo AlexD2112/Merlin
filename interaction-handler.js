@@ -167,21 +167,21 @@ shopLayout = async (interaction) => {
 
 //BUTTONS
 shopSwitch = async (interaction) => {
-  let [edittedEmbed, rows] = await shop.createShopEmbed(interaction.customId[11], interaction);
+  let [edittedEmbed, rows] = await shop.createShopEmbed(interaction.customId.slice(11), interaction);
   console.log(interaction);
   await interaction.update({ embeds: [edittedEmbed], components: rows});
 }
 incomeSwitch = async (interaction) => {
   interaction.deferUpdate();
-  let [edittedEmbed, rows] = await admin.allIncomes(interaction.customId[11]);
+  let [edittedEmbed, rows] = await admin.allIncomes(interaction.customId.slice(11));
   await interaction.editReply({ embeds: [edittedEmbed], components: rows});
 }
 salesSwitch = async (interaction) => {
-  let [edittedEmbed, rows] = await marketplace.createSalesEmbed(interaction.customId[11]);
+  let [edittedEmbed, rows] = await marketplace.createSalesEmbed(interaction.customId.slice(11));
   await interaction.update({ embeds: [edittedEmbed], components: rows});
 }
 allItemSwitch = async (interaction) => {
-  let [edittedEmbed, rows] = await shop.createAllItemsEmbed(interaction.customId[11], interaction);
+  let [edittedEmbed, rows] = await shop.createAllItemsEmbed(interaction.customId.slice(11), interaction);
   await interaction.update({ embeds: [edittedEmbed], components: rows});
 }
 itemSwitch = async (interaction) => {
