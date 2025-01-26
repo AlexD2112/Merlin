@@ -17,7 +17,7 @@ class shop {
     ];
   static recipeOptions = [
       'Name', 'Icon', 'Show Image', 'Show Message',
-      'Ingredient 1', 'Ingredient 2', 'Ingredient 3', 'Ingredient 4', 'Ingredient 5',
+      'Ingredient 1', 'Ingredient 2', 'Ingredient 3', 'Ingredient 4', 'Ingredient 5', 'Ingredient 6', 'Ingredient 7', 'Ingredient 8', 'Ingredient 9', 'Ingredient 10',
       'Result 1', 'Result 2', 'Result 3', 'Result 4', 'Result 5',
       'Craft Time in Hours (#)', 'Need None Of Roles', 'Need All Of Roles', 'Need Any Of Roles', 'Is Public (Y/N)'
     ];
@@ -881,7 +881,7 @@ class shop {
       aboutString = "\nCraft Time: :clock9:" + recipeData[recipeName].recipeOptions["Craft Time in Hours (#)"] + " hours\n";
     }
     aboutString += "\nIngredients:\n";
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 1; i <= 10; i++) {
       let ingredient = recipeData[recipeName].recipeOptions["Ingredient " + i];
       if (ingredient) {
         let splitString = ingredient.split(" ");

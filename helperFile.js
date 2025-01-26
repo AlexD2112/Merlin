@@ -83,7 +83,23 @@ async function addShireToShireNames() {
     await dbm.saveFile('keys', 'kingdoms', kingdoms);
 }
 
-addShireToShireNames();
+async function addTo10RecipeIngredients() {
+    const recipes = await dbm.loadCollection('recipes');
+
+    //For every recipe, in recipeOptions, there should be Ingredient 1 ... Ingredient 5 fields. Add Ingredient 6 ... Ingredient 10 fields. Empty with "" as value
+    for (let recipe in recipes) {
+        recipe = recipes[recipe];
+        recipe.recipeOptions["Ingredient 6"] = "";
+        recipe.recipeOptions["Ingredient 7"] = "";
+        recipe.recipeOptions["Ingredient 8"] = "";
+        recipe.recipeOptions["Ingredient 9"] = "";
+        recipe.recipeOptions["Ingredient 10"] = "";
+    }
+
+    await dbm.saveCollection('recipes', recipes);
+}
+
+addTo10RecipeIngredients();
 
 module.exports = {
     addNeedNoneOfRolesToShop,
