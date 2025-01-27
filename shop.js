@@ -13,11 +13,11 @@ class shop {
       'Show Image', 'Show Message', 'Give/Take Money (#)', 'Cooldown in Hours (#)',
       'Give Item', 'Give Item 2', 'Give Item 3', 'Give Item 4', 'Give Item 5',
       'Take Item', 'Take Item 2', 'Take Item 3', 'Take Item 4', 'Take Item 5',
-      'Change Health (#)', 'Change Prestige (#)', 'Change Martial (#)', 'Change Intrigue (#)', 'Change Devotion (#)', 'Revive (Y/N)', 'Durability (#)'
+      'Change Legitimacy (#)', 'Change Prestige (#)', 'Change Martial (#)', 'Change Intrigue (#)', 'Change Devotion (#)', 'Revive (Y/N)', 'Durability (#)'
     ];
   static recipeOptions = [
       'Name', 'Icon', 'Show Image', 'Show Message',
-      'Ingredient 1', 'Ingredient 2', 'Ingredient 3', 'Ingredient 4', 'Ingredient 5',
+      'Ingredient 1', 'Ingredient 2', 'Ingredient 3', 'Ingredient 4', 'Ingredient 5', 'Ingredient 6', 'Ingredient 7', 'Ingredient 8', 'Ingredient 9', 'Ingredient 10',
       'Result 1', 'Result 2', 'Result 3', 'Result 4', 'Result 5',
       'Craft Time in Hours (#)', 'Need None Of Roles', 'Need All Of Roles', 'Need Any Of Roles', 'Is Public (Y/N)'
     ];
@@ -327,7 +327,7 @@ class shop {
     );
 
     const embed = new Discord.EmbedBuilder()
-      .setTitle(clientManager.getEmoji("Talent") + ' Shop')
+      .setTitle(clientManager.getEmoji("Gold") + ' Shop')
       .setColor(0x36393e);
 
     //If there are no items in the shop, set description as "No items have prices!" and return
@@ -353,7 +353,7 @@ class shop {
             alignSpaces = ' '.repeat(30 - item.length - ("" + price).length);
           }
           // Create the formatted line
-          return `${icon} \`${item}${alignSpaces}${price}\` ${clientManager.getEmoji("Talent")}`;
+          return `${icon} \`${item}${alignSpaces}${price}\` ${clientManager.getEmoji("Gold")}`;
         })
         .join('\n');
       descriptionText += '\n';
@@ -759,7 +759,7 @@ class shop {
     if (itemData) {
       let aboutString = "";
       if (itemData.shopOptions["Price (#)"] != "") {
-        aboutString = "Price: " + clientManager.getEmoji("Talent") + " " + itemData.shopOptions["Price (#)"] + "\n";
+        aboutString = "Price: " + clientManager.getEmoji("Gold") + " " + itemData.shopOptions["Price (#)"] + "\n";
       }
       let descriptionString = "**Description:\n**" + itemData.infoOptions.Description;
       console.log(itemData.usageOptions["Is Usable (Y/N)"] == "Yes");
@@ -774,7 +774,7 @@ class shop {
           }
           if (key == "Give/Take Money (#)") {
             if (itemData.usageOptions[key] > 0) {
-              aboutString += ("\n- " + clientManager.getEmoji("Talent") + " " + itemData.usageOptions[key]);
+              aboutString += ("\n- " + clientManager.getEmoji("Gold") + " " + itemData.usageOptions[key]);
             }
           }
           if (key.startsWith("Give Item")) {
@@ -804,7 +804,7 @@ class shop {
           }
           if (key == "Give/Take Money (#)") {
             if (itemData.usageOptions[key] < 0) {
-              aboutString += ("\n- " + clientManager.getEmoji("Talent") + " " + itemData.usageOptions[key]);
+              aboutString += ("\n- " + clientManager.getEmoji("Gold") + " " + itemData.usageOptions[key]);
             }
           }
           if (key.startsWith("Take Item")) {
@@ -881,7 +881,7 @@ class shop {
       aboutString = "\nCraft Time: :clock9:" + recipeData[recipeName].recipeOptions["Craft Time in Hours (#)"] + " hours\n";
     }
     aboutString += "\nIngredients:\n";
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 1; i <= 10; i++) {
       let ingredient = recipeData[recipeName].recipeOptions["Ingredient " + i];
       if (ingredient) {
         let splitString = ingredient.split(" ");

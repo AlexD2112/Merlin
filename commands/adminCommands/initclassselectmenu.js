@@ -3,13 +3,13 @@ const admin = require('../../admin'); // Importing the database manager
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('inithouseselectmenu')
-		.setDescription('Initialize a house select menu here')
+		.setName('initclassselectmenu')
+		.setDescription('Initialize a class select menu here')
 		.setDefaultMemberPermissions(0),
 	async execute(interaction) {
 		try {
             // Call the method with the channel object directly
-            await admin.initHouseSelect(interaction.channel);
+            await admin.initClassSelect(interaction.channel);
             await interaction.reply({ content: "Set! Select menu should appear just below this message", ephemeral: true });
         } catch (error) {
             console.error("Failed to initialize select menu:", error);

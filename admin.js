@@ -10,31 +10,82 @@ const mapOptions = ["Name", "About", "Channels", "Image", "Emoji"]
 
 class Admin {
 
-  static async initShireSelect(channel) {
-    let shires = await dbm.loadFile("keys", "shires");
-    //get shires from keys, where it is an array
-    let shireNames = Object.keys(shires).map(key => "- " + clientManager.getEmoji("Polis") + " " + shires[key].name  + " - " + shires[key].resource + " " + shires[key].resourceCode).join("\n");
+  static async initShireSelect(channel, kingdom) {
+    let kingdoms = await dbm.loadFile("keys", "kingdoms");
+    //Capitalize the first letter of the kingdom
+    kingdom = kingdom.charAt(0).toUpperCase() + kingdom.slice(1);
+    let shires = kingdoms[kingdom].shires;
+
+    if (shires == undefined) {
+      return "Kingdom not found!";
+    }
+
+    let shireNames = Object.keys(shires).map(key => "- " + clientManager.getEmoji("Town") + " " + shires[key].name).join("\n");
+
+    let changed = false;
+
+    //Each shire should have a name and a roleCode. If the roleCode is not found, it should be created.
+    for (const shire in shires) {
+      let role = channel.guild.roles.cache.find(role => role.name === shires[shire].name);
+      console.log("Role: " + role);
+      if (role == undefined) {
+        console.log("New Role");
+        role = await channel.guild.roles.create({
+          name: shires[shire].name,
+          color: '#FFFFFF',
+          reason: 'Added role for shire from initShireSelect command',
+        });
+        shires[shire].roleCode = role.id;
+        changed = true;
+      } else if (shires[shire].roleCode == undefined || shires[shire].roleCode != role.id) {
+        shires[shire].roleCode = role.id;
+        changed = true;
+      }
+    }
+
+    //Each kingdom should have a role to match its name. If one is not found, it should be created.
+    let role = channel.guild.roles.cache.find(role => role.name === kingdom);
+    if (role == undefined) {
+      role = await channel.guild.roles.create({
+        name: kingdom,
+        color: '#FFFFFF',
+        reason: 'Added role for kingdom from initShireSelect command',
+      });
+      kingdoms[kingdom].roleCode = role.id;
+      changed = true;
+    } else if (kingdoms[kingdom].roleCode == undefined || kingdoms[kingdom].roleCode != role.id) {
+      kingdoms[kingdom].roleCode = role.id;
+      changed = true;
+    }
+
     //Send an embed with the title Massalia and the text Capital: Massalia \n The city has the following colonies \n and than a list of the colonies. There will also be a menu you can click to choose which colony. The colonies will come out of the shires.json file.
     let embed = new EmbedBuilder()
-      .setDescription("# " + clientManager.getEmoji("Massalia") + " The League of Massalia" +
-        "\n- Capital: :star: Massalia" +
-        "\n- The League of Massalia controls the following cities: " +
+      .setDescription("# " + clientManager.getEmoji(kingdom) + " " + kingdom +
+        "\n- Capital: :star: " + kingdoms[kingdom].capital +
+        "\n- This kingdom contains the following shires: " +
         "\n \u200B----------------------------------------" +
         "\n" + shireNames)
-      .setFooter({ text: 'Select a city below to join', iconURL: 'https://images-ext-1.discordapp.net/external/zNN-s-f41tPGzag5FxItzlLKuLKnAXiirTy3ke0nG-k/https/cdn.discordapp.com/emojis/620697454928723971.gif' })
-      .setImage('https://cdn.discordapp.com/attachments/1232087145557135380/1232426010604077056/MASSALIA_BANNER_NEW_copy.jpg?ex=662969aa&is=6628182a&hm=bf094becea2d4479e257fcdeb54b2b4055910a379fa8809d6c826e5c712cca2c&');
-    let select = new StringSelectMenuBuilder().setCustomId('shireSelect').setPlaceholder('Select a city to join');
+      .setFooter({ text: 'Select a shire below to join', iconURL: 'https://images-ext-1.discordapp.net/external/zNN-s-f41tPGzag5FxItzlLKuLKnAXiirTy3ke0nG-k/https/cdn.discordapp.com/emojis/620697454928723971.gif' })
+      .setImage(kingdoms[kingdom].image);
+    let select = new StringSelectMenuBuilder().setCustomId('shireSelect').setPlaceholder('Select a shire to join');
     //Add a select menu option for each city in the keys.json file
     Object.keys(shires).forEach(shire => {
       select.addOptions({
         label: shires[shire].name,
-        value: shire
+        value: kingdom + "||" + shire
       });
     });
 
     let actionRow = new ActionRowBuilder().addComponents(select);
+
+    if (changed == true) {
+      kingdoms[kingdom].shires = shires;
+      await dbm.saveFile("keys", "kingdoms", kingdoms);
+    }
     
     await channel.send({ embeds: [embed], components: [actionRow] });
+
+    return "Select menu set!";
   }
 
   static async initTradeNodeSelect(channel) {
@@ -83,29 +134,101 @@ class Admin {
     await channel.send({ embeds: [embed], components: [actionRow] });
   }
 
-  static async initHouseSelect(channel) {
-    let houses = await dbm.loadFile("keys", "houses");
-    //Houses is a map of house names to house objects, where each house object has a name, emoji, political stance and motto
-    let houseNames = Object.keys(houses).map(key => "- " + houses[key].emoji + " House " + houses[key].name + " - " + houses[key].stance).join("\n");
-    //Send an embed with the title Houses of the Realm and the text The following houses are available to join: and than a list of the houses. There will also be a menu you can click to choose which house. The houses will come out of the houses.json file.
+  static async initResourceSelect(channel) {
+    let resources = await dbm.loadFile("keys", "resources");
+    //Resources is a map of resource names to resource objects, where each resource object has a name, emoji, political stance and motto
+    let resourceNames = Object.keys(resources).map(key => "- " + resources[key].emoji + " " + resources[key].name + " - " + resources[key].description).join("\n");
+    //Send an embed with the title Resources of the Realm and the text The following resources are available to join: and than a list of the resources. There will also be a menu you can click to choose which resource. The resources will come out of the resources.json file.
 
+    let guild = channel.guild;
+    
+    for (const resource in resources) {
+      let role = guild.roles.cache.find(role => role.name === resources[resource].name);
+      if (role == undefined) {
+        role = await guild.roles.create({
+          name: resources[resource].name,
+          color: '#FFFFFF',
+          reason: 'Added role for resource from selectResource command',
+        });
+  
+        resources[resource].roleCode = role.id;
+        await dbm.saveFile("keys", "resources", resources);
+      } else if (role.id != resource.roleCode) {
+        resources[resource].roleCode = role.id;
+        await dbm.saveFile("keys", "resources", resources);
+      }
+    }
+      
     let embed = new EmbedBuilder()
-      .setDescription("# Houses of Massalia" +
-        "\n- The following houses are available to join: " +
+      .setDescription("# Resources" +
+        "\n- You can choose from one of the following resources: " +
         "\n \u200B----------------------------------------" +
-        "\n" + houseNames)
-      .setFooter({ text: 'Select a house below to join', iconURL: 'https://images-ext-1.discordapp.net/external/zNN-s-f41tPGzag5FxItzlLKuLKnAXiirTy3ke0nG-k/https/cdn.discordapp.com/emojis/620697454928723971.gif' })
+        "\n" + resourceNames)
+      .setFooter({ text: 'Select a resource below to join', iconURL: 'https://images-ext-1.discordapp.net/external/zNN-s-f41tPGzag5FxItzlLKuLKnAXiirTy3ke0nG-k/https/cdn.discordapp.com/emojis/620697454928723971.gif' })
       .setImage('https://cdn.discordapp.com/attachments/1244030279199359077/1244034376757547070/Screenshot_2024-05-26_at_12.08.12_AM.png?ex=66544d8c&is=6652fc0c&hm=afbdf2cfd0776ca95946ddfc2a5cb4d3cf57b6f166b8623896bd873dc9ad0eae&');
 
-    let select = new StringSelectMenuBuilder().setCustomId('houseSelect').setPlaceholder('Select a house to join');
-    //Add a select menu option for each house in the houses.json file
-    Object.keys(houses).forEach(house => {
+    let select = new StringSelectMenuBuilder().setCustomId('resourceSelect').setPlaceholder('Select a resource to join');
+    //Add a select menu option for each resource in the resources.json file
+    Object.keys(resources).forEach(resource => {
       select.addOptions({
-        label: houses[house].name,
-        value: house
+        label: resources[resource].name,
+        value: resource
       });
     });
 
+    let actionRow = new ActionRowBuilder().addComponents(select);
+
+    await channel.send({ embeds: [embed], components: [actionRow] });
+  }
+
+  static async initClassSelect(channel) {
+    //Classes is just a simple array containing two values, "Landowner" and "Trader"
+    let classes = ["Landowner", "Trader"];
+    //Class text box should be as follows:
+    /**
+     * **Choose Your Starting Class**
+This is an era of opportunity for the ambitious. Begin your journey as a humble landowner or a modest trader.
+
+<:Wheat:1231881265062613053>  Landowner class: Unique resource Wheat - Used mainly for troops.
+
+<:Wine:1212160493989400586>  Trader class: Unique resource  Wine-versatile resource
+
+
+
+When selected grants the:
+
+<@&1331650035628380241> and <@&1331613719385477140> 
+
+<@&1331650287877886073>  role and <@&1331613468897579130>
+     */
+    //Send an embed with the title Resources of the Realm and the text The following resources are available to join: and than a list of the resources. There will also be a menu you can click to choose which resource. The resources will come out of the resources.json file.
+
+    //Set up text box properly, using client manager.getEmoji to get the emojis for the resources and  grabbing roles from names (Landowner and Landowner Base Role, Trader and Trader Base Role).
+
+    let embedText = "# Choose Your Starting Class" +
+      "\n This is an era of opportunity for the ambitious. Begin your journey as a humble landowner or a modest trader." +
+      "\n \u200B----------------------------------------" +
+      "\n" + clientManager.getEmoji("Wheat") + "  Landowner class: Unique resource Wheat - Used mainly for troops." +
+      "\n \u200B----------------------------------------" +
+      "\n" + clientManager.getEmoji("Wine") + "  Trader class: Unique resource  Wine-versatile resource" +
+      "\n\nWhen selected grants the:" +
+      "\n<@&1331650035628380241> and <@&1331613719385477140>" +
+      "\n<@&1331650287877886073> and <@&1331613468897579130>";
+      
+
+    let embed = new EmbedBuilder()
+      .setDescription(embedText)
+      .setFooter({ text: 'Select a class below', iconURL: 'https://images-ext-1.discordapp.net/external/zNN-s-f41tPGzag5FxItzlLKuLKnAXiirTy3ke0nG-k/https/cdn.discordapp.com/emojis/620697454928723971.gif' })
+      .setImage('https://cdn.discordapp.com/attachments/1244030279199359077/1244034376757547070/Screenshot_2024-05-26_at_12.08.12_AM.png?ex=66544d8c&is=6652fc0c&hm=afbdf2cfd0776ca95946ddfc2a5cb4d3cf57b6f166b8623896bd873dc9ad0eae&');
+
+    let select = new StringSelectMenuBuilder().setCustomId('classSelect').setPlaceholder('Select a class');
+    //Add a select menu option for each resource in the resources.json file
+    classes.forEach(cl => {
+      select.addOptions({
+        label: cl,
+        value: cl
+      });
+    });
     let actionRow = new ActionRowBuilder().addComponents(select);
 
     await channel.send({ embeds: [embed], components: [actionRow] });
@@ -391,8 +514,10 @@ class Admin {
   
 
   static async selectShire(interaction) {
-    const selectedShire = interaction.values[0];
-    let shires = await dbm.loadFile("keys", "shires");
+    const selectedShire = interaction.values[0].split("||")[1];
+    const selectedKingdom = interaction.values[0].split("||")[0];
+    let kingdoms = await dbm.loadFile("keys", "kingdoms");
+    let shires = kingdoms[selectedKingdom].shires;
     let shire = shires[selectedShire];
 
     let guild = interaction.guild;
@@ -400,15 +525,36 @@ class Admin {
 
     let userTag = interaction.user.tag;
     let char = await dbm.loadFile("characters", userTag);
+    //add all shires from all kingdoms to a new tempShires object
+    let tempShires = {};
+    for (const kingdom in kingdoms) {
+      Object.assign(tempShires, kingdoms[kingdom].shires);
+    }
+
     //Sort through user roles, see if they have any that match the shire roles. If they do, return an error message
     for (const role of user.roles.cache) {
-      if (Object.values(shires).some(shire => shire.roleCode == role[1].id)) {
-        await interaction.reply({ content: "You are already a member of a city! You cannot switch cities", ephemeral: true });
+      if (Object.values(tempShires).some(shire => shire.roleCode == role[1].id)) {
+        await interaction.reply({ content: "You are already a member of a shire! You cannot switch shires", ephemeral: true });
         return;
       }
     }
 
-    let role = guild.roles.cache.find(role => role.name === shire.name);
+    let playerKingdoms = await dbm.loadFile("keys", "playerKingdoms");
+    playerKingdoms = playerKingdoms.list;
+
+    console.log(playerKingdoms);
+
+    //playerKingdoms is an array of role IDs
+    for (const role of user.roles.cache) {
+      if (playerKingdoms.includes(role[1].id)) {
+        await interaction.reply({ content: "You are already a member of a player kingdom! You cannot switch to a bot kingdom", ephemeral: true });
+        return;
+      }
+    }
+      
+
+    //shire.roleCode is the role ID of the shire. If it doesn't exist, create it. First, check for a role with that rolecode. DO not first check for a role that matches by name, first check for a role that matches by ID
+    let role = guild.roles.cache.find(role => role.id === shire.roleCode);
     if (role == undefined) {
       role = await guild.roles.create({
         name: shire.name,
@@ -418,26 +564,29 @@ class Admin {
 
       shire.roleCode = role.id;
       shires[selectedShire] = shire;
-      await dbm.saveFile("keys", "shires", shires);
+      kingdoms[selectedKingdom].shires = shires;
+      await dbm.saveFile("keys", "kingdoms", kingdoms);
     }
 
-    //Make sure user has role for resource, and if it doesnt exist create it
-    let resourceRole = guild.roles.cache.find(role => role.name === shire.resource);
-    if (resourceRole == undefined) {
-      resourceRole = await guild.roles.create({
-        name: shire.resource,
+    let kingdomRole = guild.roles.cache.find(role => role.id === kingdoms[selectedKingdom].roleCode);
+    if (kingdomRole == undefined) {
+      kingdomRole = await guild.roles.create({
+        name: selectedKingdom,
         color: '#FFFFFF',
-        reason: 'Added role for resource from selectShire command',
+        reason: 'Added role for kingdom from selectShire command',
       });
+
+      kingdoms[selectedKingdom].roleCode = kingdomRole.id;
+      await dbm.saveFile("keys", "kingdoms", kingdoms);
     }
 
     await user.roles.add(role);
-    await user.roles.add(resourceRole);
+    await user.roles.add(kingdomRole);
     await dbm.saveFile("characters", userTag, char);
 
 
     await interaction.reply({ 
-      content: "You have selected " + shire.name + " with resource " + shire.resource, 
+      content: "You have selected " + shire.name + " as your shire",
       ephemeral: true 
     });
   }
@@ -482,10 +631,10 @@ class Admin {
     });
   }
 
-  static async selectHouse(interaction) {
-    const selectedHouse = interaction.values[0];
-    let houses = await dbm.loadFile("keys", "houses");
-    let house = houses[selectedHouse];
+  static async selectResource(interaction) {
+    const selectedResource = interaction.values[0];
+    let resources = await dbm.loadFile("keys", "resources");
+    let resource = resources[selectedResource];
 
     let guild = interaction.guild;
     let user = await guild.members.fetch(interaction.user.id);
@@ -493,67 +642,84 @@ class Admin {
     let userTag = interaction.user.tag;
     let char = await dbm.loadFile("characters", userTag);
     for (const role of user.roles.cache) {
-      if (Object.values(houses).some(house => house.roleCode == role[1].id)) {
-        await interaction.reply({ content: "You are already a member of a house! You cannot switch houses", ephemeral: true });
+      if (Object.values(resources).some(resource => resource.roleCode == role[1].id)) {
+        await interaction.reply({ content: "You are already a producer of a resource! You cannot switch resources", ephemeral: true });
         return;
       }
     }
 
-    let role = guild.roles.cache.find(role => role.name === house.name);
+    let role = guild.roles.cache.find(role => role.name === resource.name);
     if (role == undefined) {
       role = await guild.roles.create({
-        name: house.name,
+        name: resource.name,
         color: '#FFFFFF',
-        reason: 'Added role for house from selectHouse command',
+        reason: 'Added role for resource from selectResource command',
       });
 
-      house.roleCode = role.id;
-      houses[selectedHouse] = house;
-      await dbm.saveFile("keys", "houses", houses);
+      resource.roleCode = role.id;
+      resources[selectedResource] = resource;
+      await dbm.saveFile("keys", "resources", resources);
     }
 
     await user.roles.add(role);
-    char.houseID = selectedHouse;
+    char.resourceID = selectedResource;
     await dbm.saveFile("characters", userTag, char);
 
     await interaction.reply({ 
-      content: "You have selected " + house.emoji + house.name + "\n\n" + house.motto, 
+      content: "You have selected " + resource.emoji + resource.name, 
       ephemeral: true 
     });
+  }
 
-    //Send welcome message to the house channel
-    let houseForumID = house.forumID;
-    let houseForum = guild.channels.cache.get(houseForumID);
-    //Find house general chat- it's a thread in the forum that already exists
-    const threads = await houseForum.threads.fetchActive();
-    let generalChat;
-    threads.threads.forEach(thread => {
-      if (thread.name === "The " + house.name + " House General Chat") {
-        generalChat = thread;
-        // If found, stop searching
+  static async selectClass(interaction) {
+    const selectedClass = interaction.values[0];
+    let guild = interaction.guild;
+    let user = await guild.members.fetch(interaction.user.id);
+
+    let classRoleName;
+    let classBaseRoleName;
+    if (selectedClass == "Landowner") {
+      classRoleName = "Farmer";
+      classBaseRoleName = "Landowner Base Role";
+    } else if (selectedClass == "Trader") {
+      classRoleName = "Trader";
+      classBaseRoleName = "Trader Base Role";
+    }
+
+    let userTag = interaction.user.tag;
+    let char = await dbm.loadFile("characters", userTag);
+    for (const role of user.roles.cache) {
+      if (role[1].name == "Trader" || role[1].name == "Farmer") {
+        await interaction.reply({ content: "You are already a member of a class! You cannot switch classes", ephemeral: true });
         return;
       }
-    });
+    }
 
-    if (!generalChat) {
-      // If not found in active, search in archived
-      const archivedThreads = await houseForum.threads.fetchArchived();
-      archivedThreads.threads.forEach(thread => {
-        if (thread.name === "The " + house.name + " House General Chat") {
-          generalChat = thread;
-          // If found, stop searching
-          return;
-        }
+    let classRole = guild.roles.cache.find(role => role.name === classRoleName);
+    if (classRole == undefined) {
+      classRole = await guild.roles.create({
+        name: classRoleName,
+        color: '#FFFFFF',
+        reason: 'Added role for class from selectClass command',
       });
     }
 
-
-    let userPing = "<@" + user.id + ">";
-    if (generalChat) {
-      await generalChat.send("Welcome to " + house.emoji + house.name + ", " + userPing + "!");
-    } else {
-      console.log("General chat not found");
+    let classBaseRole = guild.roles.cache.find(role => role.name === classBaseRoleName);
+    if (classBaseRole == undefined) {
+      classBaseRole = await guild.roles.create({
+        name: classBaseRoleName,
+        color: '#FFFFFF',
+        reason: 'Added base role for class from selectClass command',
+      });
     }
+
+    await user.roles.add(classRole);
+    await user.roles.add(classBaseRole);
+    
+    await interaction.reply({
+      content: "You have selected " + selectedClass + " as your class",
+      ephemeral: true
+    });
   }
 
   static async selectParty(interaction) {
@@ -592,6 +758,37 @@ class Admin {
     let partyChat = guild.channels.cache.get(partyChatID);
     let userPing = "<@" + user.id + ">";
     await partyChat.send("Welcome to " + party.emoji + party.name + ", " + userPing + "!");
+  }
+
+  static async addKingdom(kingdomRole) {
+    //Add role ID to the kingdom list in keys/playerKingdoms . list
+    let kingdoms = await dbm.loadFile("keys", "playerKingdoms");
+    let roleID = kingdomRole.id;
+    
+    let list = kingdoms.list;
+    if (list.includes(roleID)) {
+      return "Player kingdom already exists";
+    } else {
+      list.push(roleID);
+      kingdoms.list = list;
+      await dbm.saveFile("keys", "playerKingdoms", kingdoms);
+      return "Player kingdom " + kingdomRole.name + " added";
+    }
+  }
+
+  static async listKingdoms() {
+    //List all kingdoms in keys/playerKingdoms . list. Arrange them as proper roles, using discord formatting so they show properly
+    let kingdoms = await dbm.loadFile("keys", "playerKingdoms");
+    let list = kingdoms.list;
+    let kingdomNames = "";
+    for (const roleID of list) {
+      kingdomNames += "<@&" + roleID + ">\n";
+    }
+    //Set up an embed to return
+    let embed = new EmbedBuilder()
+      .setTitle("Player Kingdoms")
+      .setDescription(kingdomNames);
+    return embed;
   }
 
   static async generalHelpMenu(page, isAdminMenu) {
@@ -738,7 +935,7 @@ class Admin {
       goldGiven: 0,
       itemGiven: "",
       itemAmount: 0,
-      emoji: clientManager.getEmoji("Talent"),
+      emoji: clientManager.getEmoji("Gold"),
       roles: []
     };
     let incomeSplit = incomeString.split(" ");
@@ -811,7 +1008,7 @@ class Admin {
       }
       let givenString = "";
       if (incomeValue.goldGiven > 0) {
-        givenString += clientManager.getEmoji("Talent");
+        givenString += clientManager.getEmoji("Gold");
         givenString += " " + incomeValue.goldGiven;
         givenString += " ";
       }
@@ -953,7 +1150,7 @@ class Admin {
         break;
       case 2:
         if (newValue == "DELETEFIELD") {
-          newValue = clientManager.getEmoji("Talent");
+          newValue = clientManager.getEmoji("Gold");
         }
         incomeValue.emoji = newValue;
         break;
