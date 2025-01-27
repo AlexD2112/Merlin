@@ -221,6 +221,21 @@ async function loadCollection(collectionName) {
   }
 }
 
+async function loadCollectionFileNames(collectionName) {
+  try {
+    const docRefs = await db.collection(collectionName).listDocuments();
+    const data = {}
+    for (const docRef of docRefs) {
+      data[docRef.id] = docRef.id;
+    }
+    return data;
+  }
+  catch (error) {
+    console.error('Error loading collection:', error);
+    return {};
+  }
+}
+
 async function saveFile(collectionName, docId, data) {
   return db.collection(collectionName).doc(docId).set(data)
     .then(() => console.log('Document saved successfully'))
@@ -307,4 +322,4 @@ async function moveJsonToFirestore() {
 }
 
 
-module.exports = { saveCollection, loadCollection, saveFile, loadFile, docDelete, fieldDelete, logData };
+module.exports = { saveCollection, loadCollection, loadCollectionFileNames, saveFile, loadFile, docDelete, fieldDelete, logData };
