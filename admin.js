@@ -296,9 +296,9 @@ When selected grants the:
   }
 
   //addMap adds a new map to data, should be similar to addRecipe NOT to addShire
-  static async addMap(mapName, guild) {
+  static async addMap(mapName, guild, mapType = "map") {
     // Load the maps collection
-    let data = await dbm.loadFile('keys', 'maps');
+    let data = await dbm.loadFile('keys', mapType + 's');
     let mapNames = Object.keys(data);
     let i = 1;
     let newMapName = mapName;
@@ -322,14 +322,14 @@ When selected grants the:
     data[newMapName] = mapData;
   
     // Save the new map to the maps collection
-    await dbm.saveFile('keys', 'maps', data); 
+    await dbm.saveFile('keys', mapType + 's', data); 
   
     return newMapName;
   }
 
-  static async editMapMenu(mapName, tag) {
+  static async editMapMenu(mapName, tag, mapType = "map") {
     // Load the map data
-    let mapData = await dbm.loadFile('keys', 'maps');
+    let mapData = await dbm.loadFile('keys', mapType + 's');
   
     if (mapData[mapName] == undefined) {
       for (let key in mapData) {
@@ -350,6 +350,7 @@ When selected grants the:
       userData.editingFields = {};
     }
     userData.editingFields["Map Edited"] = mapName;
+    userData.editingFields["Map Type Edited"] = mapType;
     await dbm.saveFile('characters', tag, userData);
   
     // Construct the edit menu embed
@@ -367,9 +368,9 @@ When selected grants the:
     return embed;
   }
 
-  static async removeMap(mapName) {
+  static async removeMap(mapName, mapType = "map") {
     // Load the maps collection
-    let data = await dbm.loadFile('keys', 'maps');
+    let data = await dbm.loadFile('keys', mapType + 's');
     if (data[mapName] == undefined) {
       return "Map not found! Must match the exact name of the map, case sensitive."
     }
@@ -378,14 +379,16 @@ When selected grants the:
     delete data[mapName];
   
     // Save the updated collection
-    await dbm.saveFile('keys', 'maps', data);
+    await dbm.saveFile('keys', mapType + 's', data);
   
     return mapName + ' has been deleted';
   }
 
   static async editMapAbout(interaction) {
-    let mapNameNoSpaces = interaction.customId.replace("editmapaboutmodal", "");
-    let maps = await dbm.loadFile('keys', 'maps');
+    let infoSection = interaction.customId.replace("editmapaboutmodal", "");
+    let mapNameNoSpaces = infoSection.split("||")[0];
+    let mapType = infoSection.split("||")[1];
+    let maps = await dbm.loadFile('keys', mapType + 's');
     let mapName = Object.keys(maps).find(key => key.replace(/ /g, '').toLowerCase() == mapNameNoSpaces);
     if (mapName == undefined) {
       interaction.reply("Map not found!");
@@ -395,17 +398,17 @@ When selected grants the:
     let about = interaction.fields.getTextInputValue('mapabout');
 
     maps[mapName].mapOptions.About = about;
-    await dbm.saveFile('keys', 'maps', maps);
+    await dbm.saveFile('keys', mapType + 's', maps);
     interaction.reply("About section has been updated");
   }
   
   static async editMapField(charTag, field, value) {
     // Load the maps collection
-    let data = await dbm.loadFile('keys', 'maps');
     let charData = await dbm.loadFile('characters', charTag);
-    if (!charData.editingFields || !charData.editingFields["Map Edited"]) {
+    if (!charData.editingFields || !charData.editingFields["Map Edited"] || !charData.editingFields["Map Type Edited"]) {
       return "You must use /editmapmenu first to select a map to edit";
     }
+    let data = await dbm.loadFile('keys', charData.editingFields["Map Type Edited"] + 's');
     let mapName = charData.editingFields["Map Edited"];
     if (data[mapName] == undefined) {
       return "Map not found! Must match the exact name of the map, case sensitive."
@@ -451,7 +454,7 @@ When selected grants the:
     data[mapName].mapOptions[field] = value;
   
     // Save the updated collection
-    await dbm.saveFile('keys', 'maps', data);
+    await dbm.saveFile('keys', mapType + 's', data);
 
     if (value == "") {
       return 'Field ' + field + ' has been removed';
@@ -471,10 +474,40 @@ When selected grants the:
     return embed;
   }
 
-  static async map(mapName, channelId) {
-    let maps = await dbm.loadFile("keys", "maps");
+  static async allGuides() {
+    let guides = await dbm.loadFile("keys", "guides");
+    let mapNames = Object.keys(guides).map(key => guides[key].emoji + " **" + key + "**").join("\n");
+    let embed = new EmbedBuilder()
+      .setTitle("All Guides")
+      .setDescription(mapNames);
+
+    return embed;
+  }
+
+  static async allLores() {
+    let lores = await dbm.loadFile("keys", "lores");
+    let mapNames = Object.keys(lores).map(key => lores[key].emoji + " **" + key + "**").join("\n");
+    let embed = new EmbedBuilder()
+      .setTitle("All Lores")
+      .setDescription(mapNames);
+
+    return embed;
+  }
+
+  static async allRanks() {
+    let ranks = await dbm.loadFile("keys", "ranks");
+    let mapNames = Object.keys(ranks).map(key => ranks[key].emoji + " **" + key + "**").join("\n");
+    let embed = new EmbedBuilder()
+      .setTitle("All Ranks")
+      .setDescription(mapNames);
+
+    return embed;
+  }
+
+  static async map(mapName, channelId, type = "map") {
+    let maps = await dbm.loadFile("keys", type + "s");
     let map = maps[mapName];
-    if (map == undefined) {
+    while (map == undefined) {
       for (const key in maps) {
         if (key.toLowerCase().replace(/ /g, '') == mapName.toLowerCase().replace(/ /g, '')) {
           map = maps[key];
@@ -507,7 +540,10 @@ When selected grants the:
     if (map.mapOptions.Image != "") {
       embed.setImage(map.mapOptions.Image);
     }
-    embed.setFooter({ text: 'Map of ' + mapName });
+    //Typename
+    let typeName = type.charAt(0).toUpperCase() + type.slice(1, -1);
+
+    embed.setFooter({ text: typeName + ' of ' + mapName });
   
     return embed;
   }

@@ -5,16 +5,17 @@ const dbm = require ('../../database-manager');
 ///editfield <field number> <new value>
 module.exports = {
 	data: new SlashCommandBuilder()
-        .setName('editmapabout')
-        .setDescription('Edit the about field of a map. Use /editmapmenu first. Allows you to type paragraphs.')
+        .setName('editembedabout')
+        .setDescription('Edit the about field of an embed. Use /editembedmenu first. Allows you to type paragraphs.')
         .setDefaultMemberPermissions(0),
     async execute(interaction) {
         try {
             let mapName = await dbm.loadFile('characters', interaction.user.tag);   
             
             mapName = mapName.editingFields["Map Edited"];
+            let mapTypeEdited = mapName.editingFields["Map Type Edited"];
             
-            let maps = await dbm.loadFile('keys', 'maps');
+            let maps = await dbm.loadFile('keys', mapTypeEdited);
 
             let mapAbout = maps[mapName].mapOptions.about;
             if (mapAbout == null || mapAbout == undefined) {
@@ -24,7 +25,7 @@ module.exports = {
             let mapNameNoSpaces = mapName.replace(/ /g, '').toLowerCase();
 
             const modal = new ModalBuilder()
-                .setCustomId('editmapaboutmodal' + mapNameNoSpaces)
+                .setCustomId('editmapaboutmodal' + mapNameNoSpaces + "||" + mapTypeEdited)
                 .setTitle('Edit the About Section of [' + mapName + ']');
 
             const mapAboutInput = new TextInputBuilder()

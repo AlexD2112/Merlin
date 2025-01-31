@@ -3,6 +3,7 @@ const { clientId, guildId, token } = require('./config.json');
 const fs = require('node:fs');
 const path = require('node:path');
 const dbm = require('./database-manager');
+const { map } = require('./admin');
 
 
 async function loadCommands() {
@@ -13,22 +14,17 @@ async function loadCommands() {
 
 	let commandList = {};
 
-	const mapsData = await dbm.loadFile('keys', 'maps');
-	const mapNames = Object.keys(mapsData);
-
-	for (const mapName of mapNames) {
-		const mapCommand = new SlashCommandBuilder()
-			.setName(mapName.toLowerCase().replace(/ /g, ''))
-			.setDescription(`Shows the embed ${mapName}`)
-			.toJSON();
-		commands.push(mapCommand);
-	}
-
 
 	for (const folder of commandFolders) {
 		// Grab all the command files from the commands directory you created earlier
 		const commandsPath = path.join(foldersPath, folder);
 		const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+
+		//Count command files, print, and than break
+		let count = 0;
+		for (const file of commandFiles) {
+			count++;
+		}
 		// Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
 		for (const file of commandFiles) {
 			//Add this command to the list of commands with fields "name", "description" and "help"

@@ -63,21 +63,6 @@ client.on(Events.InteractionCreate, async interaction => {
 
 	if (interaction.isChatInputCommand()) {
 		const command = client.commands.get(interaction.commandName);
-		if (!command) {
-			let returnEmbed = await admin.map(interaction.commandName, interaction.channelId);
-
-			// If the return is a string, it's an error message
-			if (typeof(returnEmbed) == 'string') {
-				// If it's a string, it's an error message, ephemeral it
-				await interaction.reply({content: returnEmbed, ephemeral: true });
-				return;
-			} else if (typeof(returnEmbed) == 'object') {
-				await interaction.reply({ embeds: [returnEmbed] });
-				return;
-			} else {
-				return;
-			}
-		}
 
 		try {
 			await command.execute(interaction);

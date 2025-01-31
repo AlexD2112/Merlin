@@ -4,8 +4,8 @@ const admin = require('../../admin'); // Importing the database manager
 ///editfield <field number> <new value>
 module.exports = {
 	data: new SlashCommandBuilder()
-        .setName('editmapfield')
-        .setDescription('Edit a field of a map. Use /editmapmenu first to see the fields of a map')
+        .setName('editembedfield')
+        .setDescription('Edit a field of an embed. Use /editembedmenu first to see the fields of the embed')
         .setDefaultMemberPermissions(0)
         .addIntegerOption((option) =>
             option.setName('fieldnumber')

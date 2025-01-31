@@ -1196,6 +1196,18 @@ class shop {
       }
       //Save new item
       await dbm.saveFile('shop', newValue, itemData);
+
+      //Go into every character and change the item name in their inventory
+      for (let charID in userData) {
+        if (userData[charID].inventory[itemName]) {
+          userData[charID].inventory[newValue] = userData[charID].inventory[itemName];
+          delete userData[charID].inventory[itemName];
+        }
+        if (userData[charID].storage && userData[charID].storage[itemName]) {
+          userData[charID].storage[newValue] = userData[charID].storage[itemName];
+          delete userData[charID].storage[itemName];
+        }
+      }
       //Delete old item
       await dbm.docDelete('shop', itemName);
 
