@@ -25,17 +25,15 @@ module.exports = {
             let embed = interaction.options.getString('embed');
             let channelID = interaction.channelId;
             // Call the method with the channel object directly
-            let map = await admin.map(embed, channelID, type);
-            
-            // Show the map menu
-            let reply = await admin.editMapMenu(map, interaction.user.tag, type);
+            let reply = await admin.map(embed, channelID, type);
             if (typeof(reply) == 'string') {
                 await interaction.reply(reply);
             } else {
                 await interaction.reply({ embeds: [reply]});
             }
-            
         } catch (error) {
+            console.error("Failed to add map menu:", error);
+            await interaction.reply({ content: "Failed to add the map. Please try again.", ephemeral: true });
         }
 	},
 };

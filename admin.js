@@ -541,7 +541,7 @@ When selected grants the:
       embed.setImage(map.mapOptions.Image);
     }
     //Typename
-    let typeName = type.charAt(0).toUpperCase() + type.slice(1, -1);
+    let typeName = type.charAt(0).toUpperCase() + type.slice(1);
 
     embed.setFooter({ text: typeName + ' of ' + mapName });
   
