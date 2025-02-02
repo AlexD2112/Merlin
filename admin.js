@@ -410,6 +410,7 @@ When selected grants the:
     }
     let data = await dbm.loadFile('keys', charData.editingFields["Map Type Edited"] + 's');
     let mapName = charData.editingFields["Map Edited"];
+    let mapType = charData.editingFields["Map Type Edited"];
     if (data[mapName] == undefined) {
       return "Map not found! Must match the exact name of the map, case sensitive."
     }
@@ -476,7 +477,7 @@ When selected grants the:
 
   static async allGuides() {
     let guides = await dbm.loadFile("keys", "guides");
-    let mapNames = Object.keys(guides).map(key => guides[key].emoji + " **" + key + "**").join("\n");
+    let mapNames = Object.keys(guides).map(key => guides[key].mapOptions.Emoji + " **" + key + "**").join("\n");
     let embed = new EmbedBuilder()
       .setTitle("All Guides")
       .setDescription(mapNames);
@@ -486,7 +487,11 @@ When selected grants the:
 
   static async allLores() {
     let lores = await dbm.loadFile("keys", "lores");
-    let mapNames = Object.keys(lores).map(key => lores[key].emoji + " **" + key + "**").join("\n");
+    let mapNames = Object.keys(lores).map(key => lores[key].mapOptions.Emoji + " **" + key + "**").join("\n");
+    //Iterate over each value, log emoji + " " + key
+    for (const key in lores) {
+      console.log(lores[key]);
+    }
     let embed = new EmbedBuilder()
       .setTitle("All Lores")
       .setDescription(mapNames);
@@ -496,7 +501,7 @@ When selected grants the:
 
   static async allRanks() {
     let ranks = await dbm.loadFile("keys", "ranks");
-    let mapNames = Object.keys(ranks).map(key => ranks[key].emoji + " **" + key + "**").join("\n");
+    let mapNames = Object.keys(ranks).map(key => ranks[key].mapOptions.Emoji + " **" + key + "**").join("\n");
     let embed = new EmbedBuilder()
       .setTitle("All Ranks")
       .setDescription(mapNames);

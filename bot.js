@@ -137,13 +137,13 @@ function getGuildID() {
 
 module.exports = { getClient, getGuildID };
 
-process.on('uncaughtException', function (err){ 
-	const channelID = "1249834768326197379";
-	console.log('Caught exception: ' + err);
-	try {
-		console.log("Major error!")
-	} catch (error) {
-		//Log full error to console
-		console.error(error);
-	}
-});
+// process.on('uncaughtException', function (err){ 
+// 	const channelID = "1249834768326197379";
+// 	console.log('Caught exception: ' + err);
+// 	try {
+// 		console.log("Major error!")
+// 	} catch (error) {
+// 		//Log full error to console
+// 		console.error(error);
+// 	}
+// });
