@@ -826,6 +826,19 @@ class shop {
             aboutString += ("\n" + role);
           }
         }
+
+        //Add 'Need Any Of Roles', 'Need All Of Roles', 'Need None Of Roles',
+        if (itemData.usageOptions["Need Any Of Roles"] != "") {
+          aboutString += "\nNeed Any Of Roles: " + itemData.usageOptions["Need Any Of Roles"];
+        }
+
+        if (itemData.usageOptions["Need All Of Roles"] != "") {
+          aboutString += "\nNeed All Of Roles: " + itemData.usageOptions["Need All Of Roles"];
+        }
+
+        if (itemData.usageOptions["Need None Of Roles"] != "") {
+          aboutString += "\nNeed None Of Roles: " + itemData.usageOptions["Need None Of Roles"];
+        }
       }
 
       let recipeEmbed = await this.inspectRecipe(itemName);
@@ -911,6 +924,19 @@ class shop {
 
     if (recipeData[recipeName].recipeOptions["Show Message"] != "") {
       inspectEmbed.setDescription(recipeData[recipeName].recipeOptions["Show Message"]);
+    }
+
+    //Check role requirements
+    if (recipeData[recipeName].recipeOptions["Need Any Of Roles"] != "") {
+      aboutString += "\nNeed Any Of Roles: " + recipeData[recipeName].recipeOptions["Need Any Of Roles"];
+    }
+
+    if (recipeData[recipeName].recipeOptions["Need All Of Roles"] != "") {
+      aboutString += "\nNeed All Of Roles: " + recipeData[recipeName].recipeOptions["Need All Of Roles"];
+    }
+
+    if (recipeData[recipeName].recipeOptions["Need None Of Roles"] != "") {
+      aboutString += "\nNeed None Of Roles: " + recipeData[recipeName].recipeOptions["Need None Of Roles"];
     }
 
     inspectEmbed.addFields({ name: '**About: **', value: aboutString });
