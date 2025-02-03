@@ -359,9 +359,21 @@ When selected grants the:
       .setDescription('Edit the fields using the command /editmapfield <field number> <new value>');
     
     let emoji = mapData.mapOptions.Emoji;
+
+    let valueString = mapOptions.map((option, index) => {
+      let value = mapData.mapOptions[option];
+      
+      // If index is 1 and value is too long, replace it
+      if (index === 1 && value.length > 50) {
+          value = "Too long! Must view in /editembedabout";
+      }
+  
+      return `\`[${index + 1}] ${option}:\` ` + value;
+  }).join('\n');
+  
   
     // Add fields for Map Options
-    embed.addFields({ name: emoji + ' Map Options', value: mapOptions.map((option, index) => `\`[${index + 1}] ${option}:\` ` + mapData.mapOptions[option]).join('\n') });
+    embed.addFields({ name: emoji + ' Embed Options', value: valueString });
     embed.setFooter({ text: 'Page 1 of 1, Map Options' });
   
     // Return the embed
