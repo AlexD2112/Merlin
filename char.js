@@ -719,19 +719,23 @@ class char {
     await dbm.saveFile(charactersCollection, charID, charData);
 
       //If theres an error, give 
-    for (let i = 0; i < takeRoles.length; i++) {
-      await user.roles.remove(takeRoles[i]);
+    if (takeRoles) {
+      for (let i = 0; i < takeRoles.length; i++) {
+        await user.roles.remove(takeRoles[i]);
+      }
     }
 
-    try {
-      for (let i = 0; i < giveRoles.length; i++) {
-        await user.roles.add(giveRoles[i]);
+    if (giveRoles) {
+      try {
+        for (let i = 0; i < giveRoles.length; i++) {
+          await user.roles.add(giveRoles[i]);
+        }
+      } catch (error) {
+        for (let i = 0; i < takeRoles.length; i++) {
+          await user.roles.add(takeRoles[i]);
+        }
+        return "Error adding roles!";
       }
-    } catch (error) {
-      for (let i = 0; i < takeRoles.length; i++) {
-        await user.roles.add(takeRoles[i]);
-      }
-      return "Error adding roles!";
     }
     
     return returnEmbed;
