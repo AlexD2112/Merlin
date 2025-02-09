@@ -633,7 +633,7 @@ class char {
     if (itemData.usageOptions["Give/Take Money (#)"] && itemData.usageOptions["Give/Take Money (#)"] != 0 && itemData.usageOptions["Give/Take Money (#)"] != "") {
       //If they are taking money, make sure they have enough
       let totalGold = parseInt(itemData.usageOptions["Give/Take Money (#)"]) * numToUse;
-      if (charData.balance + totalGold < 0) {
+      if (charData.balance + totalGold < 0 && totalGold < 0) {
         return "You do not have enough money to use this item!";
       }
       charData.balance += totalGold;
