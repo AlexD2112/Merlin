@@ -18,8 +18,10 @@ module.exports = {
 
         console.log(role)
         const response = await char.addItemToRole(role, item, amount);
+        console.log(response);
+        console.log(typeof response);
 
-        if (typeof response == 'array') {
+        if (typeof response == 'object') {
             if (response.length > 0) {
                 "Errors on the following characters: " + response.join(", ");
             } else {
