@@ -1425,16 +1425,45 @@ class char {
 
   static async addItemToRole(role, item, amount) {
     let collectionName = 'characters';
-    //Role is like a full role object, item is the item name, amount is the amount of the item to add. Can probably find the members in the role and add the item to each member, without loading the chars collectoin
+    let charData = await dbm.loadCollection(collectionName);
+    //Role is like a full role object, item is the item name, amount is the amount of the item to add. Can probably find the members in the role and add the item to each member
     let members = await role.members;
     console.log(members);
     let errorMembers = [];
     for (let member of members) {
       console.log("USERNAME", member[1].user.username);
-      if (!await this.addItemToPlayer(member[1].user.username, item, amount)) {
-        errorMembers.push(member[1].user.tag);
+      //Check if the member has a character
+      let charID = member[1].user.tag;
+      if (!charData[charID]) {
+        errorMembers.push(member[1].user.username);
+        continue;
+      }
+
+      //Add the item to the member
+      if (!charData[charID].inventory) {
+        charData[charID].inventory = {};
+      }
+      if (amount > 0) {
+        if (charData[charID].inventory[item]) {
+          charData[charID].inventory[item] += amount;
+        } else {
+          charData[charID].inventory[item] = amount;
+        }
+      } else if (amount < 0) {
+        if (charData[charID].inventory[item]) {
+          if (charData[charID].inventory[item] + amount > 0) {
+            charData[charID].inventory[item] += amount;
+          } else {
+            charData[charID].inventory[item] = 0;
+          }
+        } else {
+          charData[charID].inventory[item] = 0;
+        }
       }
     }
+
+    await dbm.saveCollection(collectionName, charData);
+    
     return errorMembers;
   }
 
