@@ -132,8 +132,8 @@ class marketplace {
         const icon = await shop.getItemIcon(itemName, shopData);
         const price = sale.price;
         let alignSpaces = ' '
-        if ((30 - item.length - ("" + price + "" + number).length) > 0) {
-          alignSpaces = ' '.repeat(30 - item.length - ("" + price + "" + number).length);
+        if ((20 - item.length - ("" + price + "" + number).length) > 0) {
+          alignSpaces = ' '.repeat(20 - item.length - ("" + price + "" + number).length);
         }
         descriptionText += `\`${saleID}\` ${icon} **\`${number} ${item}${alignSpaces}${price}\`**${clientManager.getEmoji("Gold")}\n`;
       }

@@ -510,6 +510,8 @@ class char {
 
 
   static async useItem(itemName, charID, numToUse) {
+    let takeRoles;
+    let giveRoles;
     //static usageOptions = [
     //   'Is Usable (Y/N)', 'Removed on Use (Y/N)', 'Need Role', 'Give Role', 'Take Role',
     //   'Show Image', 'Show Message', 'Give/Take Money (#)', 'Cooldown in Hours (#)',
@@ -688,27 +690,21 @@ class char {
     }
 
     if (itemData.usageOptions["Give Role"]) {
-      let roles = itemData.usageOptions["Give Role"].split("<@&");
-      roles = roles.map(role => role.replace(">", ""));
-      roles = roles.map(role => role.replace(",", ""));
-      roles = roles.map(role => role.replace(/\s+/g, ""));
-      roles = roles.filter(role => role.length > 0);
-      for (let i = 0; i < roles.length; i++) {
-        await user.roles.add(roles[i]);
-      }
+      giveRoles = itemData.usageOptions["Give Role"].split("<@&");
+      giveRoles = roles.map(role => role.replace(">", ""));
+      giveRoles = roles.map(role => role.replace(",", ""));
+      giveRoles = roles.map(role => role.replace(/\s+/g, ""));
+      giveRoles = roles.filter(role => role.length > 0);
 
       returnEmbed.addFields({ name: '**Added Roles:**', value: itemData.usageOptions["Give Role"] });
     }
 
     if (itemData.usageOptions["Take Role"]) {
-      let roles = itemData.usageOptions["Take Role"].split("<@&");
-      roles = roles.map(role => role.replace(">", ""));
-      roles = roles.map(role => role.replace(",", ""));
-      roles = roles.map(role => role.replace(/\s+/g, ""));
-      roles = roles.filter(role => role.length > 0);
-      for (let i = 0; i < roles.length; i++) {
-        await user.roles.remove(roles[i]);
-      }
+      takeRoles = itemData.usageOptions["Take Role"].split("<@&");
+      takeRoles = roles.map(role => role.replace(">", ""));
+      takeRoles = roles.map(role => role.replace(",", ""));
+      takeRoles = roles.map(role => role.replace(/\s+/g, ""));
+      takeRoles = roles.filter(role => role.length > 0);
 
       returnEmbed.addFields({ name: '**Removed Roles:**', value: itemData.usageOptions["Take Role"] });
     }
@@ -720,46 +716,24 @@ class char {
       returnEmbed.addFields({ name: '**Items:**', value: itemString });
     }
 
-    //Check to make sure the player's roles got swapped around right, i.e. if they have the role they should have and don't have the role they shouldn't have
-    if (itemData.usageOptions["Give Role"] && itemData.usageOptions["Take Role"]) {
-      let giveRoles = itemData.usageOptions["Give Role"].split("<@&");
-      giveRoles = giveRoles.map(role => role.replace(">", ""));
-      giveRoles = giveRoles.map(role => role.replace(",", ""));
-      giveRoles = giveRoles.map(role => role.replace(/\s+/g, ""));
-      giveRoles = giveRoles.filter(role => role.length > 0);
-
-      let takeRoles = itemData.usageOptions["Take Role"].split("<@&");
-      takeRoles = takeRoles.map(role => role.replace(">", ""));
-      takeRoles = takeRoles.map(role => role.replace(",", ""));
-      takeRoles = takeRoles.map(role => role.replace(/\s+/g, ""));
-      takeRoles = takeRoles.filter(role => role.length > 0);
-
-      for (let i = 0; i < giveRoles.length; i++) {
-        let k = 0;
-        while (!user.roles.cache.some(role => role.id === giveRoles[i]) && k < 100) {
-          //Try again
-          await user.roles.add(giveRoles[i]);
-          k++;
-        } if (k >= 100) {
-          returnEmbed.addFields({ name: '**ERROR!!!!:**', value: "You do not have a role you should have! Ping Alex" });
-        }
-      }
-
-      for (let i = 0; i < takeRoles.length; i++) {
-        let k = 0;
-        while (user.roles.cache.some(role => role.id === takeRoles[i]) && k < 100) {
-          //Log the role they have that they shouldn't have
-          await user.roles.remove(takeRoles[i]);
-          k++;
-        }
-        if (k >= 100) {
-          returnEmbed.addFields({ name: '**ERROR!!!!:**', value: "You have a role you shouldn't have! Ping Alex" });
-        }
-      }
-    }
-
     await dbm.saveFile(charactersCollection, charID, charData);
 
+      //If theres an error, give 
+    for (let i = 0; i < takeRoles.length; i++) {
+      await user.roles.remove(takeRoles[i]);
+    }
+
+    try {
+      for (let i = 0; i < giveRoles.length; i++) {
+        await user.roles.add(giveRoles[i]);
+      }
+    } catch (error) {
+      for (let i = 0; i < takeRoles.length; i++) {
+        await user.roles.add(takeRoles[i]);
+      }
+      return "Error adding roles!";
+    }
+    
     return returnEmbed;
   }
 
@@ -1443,6 +1417,21 @@ class char {
     } else {
       return false;
     }
+  }
+
+  static async addItemToRole(role, item, amount) {
+    let collectionName = 'characters';
+    //Role is like a full role object, item is the item name, amount is the amount of the item to add. Can probably find the members in the role and add the item to each member, without loading the chars collectoin
+    let members = await role.members;
+    console.log(members);
+    let errorMembers = [];
+    for (let member of members) {
+      console.log("USERNAME", member[1].user.username);
+      if (!await this.addItemToPlayer(member[1].user.username, item, amount)) {
+        errorMembers.push(member[1].user.tag);
+      }
+    }
+    return errorMembers;
   }
 
   static async store(player, item, amount) {
