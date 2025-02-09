@@ -20,7 +20,11 @@ module.exports = {
         const response = await char.addItemToRole(role, item, amount);
 
         if (typeof response == 'array') {
-            return interaction.reply(response);
+            if (response.length > 0) {
+                "Errors on the following characters: " + response.join(", ");
+            } else {
+                return interaction.reply(`Gave ${amount} ${item} to ${role}`);
+            }
         } else {
             return interaction.reply(response);
         }
