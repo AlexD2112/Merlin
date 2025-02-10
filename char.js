@@ -494,9 +494,16 @@ class char {
                 }
             }
 
+            console.log(nextCycleTime);
+            console.log(nextResetTimes.get(delay));
+            console.log("Next Cycle Day" + nextCycleTime.getUTCDate() + " Next Cycle Month" + nextCycleTime.getUTCMonth() + " Next Cycle Year" + nextCycleTime.getUTCFullYear());
+            console.log("Now Day" + now.getUTCDate() + " Now Month" + now.getUTCMonth() + " Now Year" + now.getUTCFullYear());
+
             nextResetTimes.set(delay, nextCycleTime.getUTCDate() === now.getUTCDate() &&
                                       nextCycleTime.getUTCMonth() === now.getUTCMonth() &&
                                       nextCycleTime.getUTCFullYear() === now.getUTCFullYear());
+
+            console.log(nextResetTimes.get(delay));
           }
           if (nextResetTimes.get(delay)) {
             charData[key] = true;
@@ -1426,44 +1433,41 @@ class char {
   static async addItemToRole(role, item, amount) {
     let collectionName = 'characters';
     let charData = await dbm.loadCollection(collectionName);
-    //Role is like a full role object, item is the item name, amount is the amount of the item to add. Can probably find the members in the role and add the item to each member
-    let members = await role.members;
+  
+    let members = await role.guild.members.fetch();
+    members = members.filter(member => member.roles.cache.has(role.id));
     console.log(members);
+  
     let errorMembers = [];
-    for (let member of members) {
-      console.log("USERNAME", member[1].user.username);
-      //Check if the member has a character
-      let charID = member[1].user.tag;
+  
+    for (let [id, member] of members) {
+      console.log("USERNAME", member.user.username);
+  
+      // Check if the member has a character
+      let charID = member.id;
       if (!charData[charID]) {
-        errorMembers.push(member[1].user.username);
+        errorMembers.push(member.user.username);
         continue;
       }
-
-      //Add the item to the member
+  
+      // Add the item to the member's inventory
       if (!charData[charID].inventory) {
         charData[charID].inventory = {};
       }
+  
       if (amount > 0) {
-        if (charData[charID].inventory[item]) {
-          charData[charID].inventory[item] += amount;
-        } else {
-          charData[charID].inventory[item] = amount;
-        }
+        charData[charID].inventory[item] = (charData[charID].inventory[item] || 0) + amount;
       } else if (amount < 0) {
-        if (charData[charID].inventory[item]) {
-          if (charData[charID].inventory[item] + amount > 0) {
-            charData[charID].inventory[item] += amount;
-          } else {
-            charData[charID].inventory[item] = 0;
-          }
-        } else {
-          charData[charID].inventory[item] = 0;
+        charData[charID].inventory[item] = Math.max((charData[charID].inventory[item] || 0) + amount, 0);
+        if (charData[charID].inventory[item] === 0) {
+          delete charData[charID].inventory[item]; // Optional: Remove if amount is 0
         }
       }
     }
-
+  
     await dbm.saveCollection(collectionName, charData);
-      
+    console.log(members);
+  
     return errorMembers;
   }
 
