@@ -691,20 +691,20 @@ class char {
 
     if (itemData.usageOptions["Give Role"]) {
       giveRoles = itemData.usageOptions["Give Role"].split("<@&");
-      giveRoles = roles.map(role => role.replace(">", ""));
-      giveRoles = roles.map(role => role.replace(",", ""));
-      giveRoles = roles.map(role => role.replace(/\s+/g, ""));
-      giveRoles = roles.filter(role => role.length > 0);
+      giveRoles = giveRoles.map(role => role.replace(">", ""));
+      giveRoles = giveRoles.map(role => role.replace(",", ""));
+      giveRoles = giveRoles.map(role => role.replace(/\s+/g, ""));
+      giveRoles = giveRoles.filter(role => role.length > 0);
 
       returnEmbed.addFields({ name: '**Added Roles:**', value: itemData.usageOptions["Give Role"] });
     }
 
     if (itemData.usageOptions["Take Role"]) {
       takeRoles = itemData.usageOptions["Take Role"].split("<@&");
-      takeRoles = roles.map(role => role.replace(">", ""));
-      takeRoles = roles.map(role => role.replace(",", ""));
-      takeRoles = roles.map(role => role.replace(/\s+/g, ""));
-      takeRoles = roles.filter(role => role.length > 0);
+      takeRoles = takeRoles.map(role => role.replace(">", ""));
+      takeRoles = takeRoles.map(role => role.replace(",", ""));
+      takeRoles = takeRoles.map(role => role.replace(/\s+/g, ""));
+      takeRoles = takeRoles.filter(role => role.length > 0);
 
       returnEmbed.addFields({ name: '**Removed Roles:**', value: itemData.usageOptions["Take Role"] });
     }
@@ -1463,7 +1463,7 @@ class char {
     }
 
     await dbm.saveCollection(collectionName, charData);
-    
+      
     return errorMembers;
   }
 
