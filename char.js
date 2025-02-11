@@ -1445,6 +1445,8 @@ class char {
       // Check if the member has a character
       let charID = member.tag;
       console.log("ID" + charID);
+      console.log(id);
+      console.log(member);
       console.log(charData[charID]);
       if (!charData[charID]) {
         errorMembers.push(member.user.username);
