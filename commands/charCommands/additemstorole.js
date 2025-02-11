@@ -16,9 +16,8 @@ module.exports = {
         const item = interaction.options.getString('item');
         const amount = interaction.options.getInteger('amount');
 
-        console.log(role)
         const response = await char.addItemToRole(role, item, amount);
-        console.log(response);
+        console.log("response" + response);
         console.log(typeof response);
 
         if (typeof response == 'object') {
