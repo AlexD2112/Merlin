@@ -1443,13 +1443,13 @@ class char {
     for (let [id, member] of members) {
   
       // Check if the member has a character
-      let charID = member.tag;
+      let charID = member.user.username;
       console.log("ID" + charID);
       console.log(id);
       console.log(member);
       console.log(charData[charID]);
       if (!charData[charID]) {
-        errorMembers.push(member.user.username);
+        errorMembers.push(charID);
         continue;
       }
   
