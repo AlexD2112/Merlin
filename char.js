@@ -458,6 +458,7 @@ class char {
     let collectionName = 'characters';
     let data = await dbm.loadCollection(collectionName);
     let now = new Date();
+    now = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1, 0, 0, 0, 0));
     let nextResetTimes = new Map();
 
     // Define the start date
