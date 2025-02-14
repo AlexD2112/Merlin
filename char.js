@@ -1437,17 +1437,20 @@ class char {
   
     let members = await role.guild.members.fetch();
     members = members.filter(member => member.roles.cache.has(role.id));
-    console.log(members);
+    console.log(members.length);
   
     let errorMembers = [];
   
     for (let [id, member] of members) {
-      console.log("USERNAME", member.user.username);
   
       // Check if the member has a character
-      let charID = member.id;
+      let charID = member.user.username;
+      console.log("ID" + charID);
+      console.log(id);
+      console.log(member);
+      console.log(charData[charID]);
       if (!charData[charID]) {
-        errorMembers.push(member.user.username);
+        errorMembers.push(charID);
         continue;
       }
   
@@ -1467,7 +1470,7 @@ class char {
     }
   
     await dbm.saveCollection(collectionName, charData);
-    console.log(members);
+    console.log(errorMembers);
   
     return errorMembers;
   }
