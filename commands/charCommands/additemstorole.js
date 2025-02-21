@@ -21,8 +21,9 @@ module.exports = {
         console.log(typeof response);
 
         if (typeof response == 'object') {
+            console.log("here");
             if (response.length > 0) {
-                "Errors on the following characters: " + response.join(", ");
+                return interaction.reply("Errors on the following characters: " + response.join(", "));
             } else {
                 return interaction.reply(`Gave ${amount} ${item} to ${role}`);
             }
