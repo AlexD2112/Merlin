@@ -6,6 +6,35 @@ const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, createWebhoo
 const { clientId, guildId } = require('./config.json');
 
 class char {
+  static async warn(playerID) {
+    console.log(playerID);
+    let collectionName = 'characters';
+    let charData = await dbm.loadFile(collectionName, playerID);
+    if (charData) {
+      if (!charData.warns) {
+        charData.warns = 0;
+      }
+      charData.warns++;
+      await dbm.saveFile(collectionName, playerID, charData);
+      return "Player has been warned. They now have " + charData.warns + " warnings.";
+    } else {
+      return "Player not found";
+    }
+  }
+
+  static async checkWarns(playerID) {
+    let collectionName = 'characters';
+    let charData = await dbm.loadFile(collectionName, playerID);
+    if (charData) {
+      if (!charData.warns) {
+        charData.warns = 0;
+      }
+      return "Player has " + charData.warns + " warnings.";
+    } else {
+      return "Player not found";
+    }
+  }
+
   // Function to add items
   static async newChar(playerID, charName, charBio, numericID) {
     // Set the collection name
